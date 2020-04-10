@@ -100,14 +100,13 @@ static int FilterDomain_Init(ConfigFileInfo *ConfigInfo)
     return 0;
 }
 
-static int FilterDomain_InitFromFile(ConfigFileInfo *ConfigInfo)
+static int LoadDomainsFromFile(StringChunk *List, const char *FilePath)
 {
-    const char *FilePath = ConfigGetRawString(ConfigInfo, "DisabledList");
     FILE *fp;
     ReadLineStatus	Status;
     char	Domain[512];
 
-    if( FilePath == NULL )
+    if( List == NULL || FilePath == NULL )
     {
         return 0;
     }
@@ -118,18 +117,12 @@ static int FilterDomain_InitFromFile(ConfigFileInfo *ConfigInfo)
         return -118;
     }
 
-    if( InitChunk(&DisabledDomain) != 0 )
-	{
-	    fclose(fp);
-        return -117;
-	}
-
     Status = ReadLine(fp, Domain, sizeof(Domain));
 	while( Status != READ_FAILED_OR_END )
 	{
 		if( Status == READ_DONE )
 		{
-			StringChunk_Add_Domain(DisabledDomain, Domain, NULL, 0);
+			StringChunk_Add_Domain(List, Domain, NULL, 0);
 		} else {
 			ReadLine_GoToNextLine(fp);
 		}
@@ -138,6 +131,35 @@ static int FilterDomain_InitFromFile(ConfigFileInfo *ConfigInfo)
 	}
 
     fclose(fp);
+
+    return 0;
+}
+
+static int FilterDomain_InitFromFile(ConfigFileInfo *ConfigInfo)
+{
+    StringList *FilePaths = ConfigGetStringList(ConfigInfo, "DisabledList");
+    const char *FilePath;
+	StringListIterator sli;
+
+    if( FilePaths == NULL )
+    {
+        return 0;
+    }
+
+    if( StringListIterator_Init(&sli, FilePaths) != 0 )
+    {
+        return -116;
+    }
+
+    if( InitChunk(&DisabledDomain) != 0 )
+	{
+        return -117;
+	}
+
+	while( (FilePath = sli.Next(&sli)) != NULL )
+	{
+        LoadDomainsFromFile(DisabledDomain, FilePath);
+	}
 
     return 0;
 }
