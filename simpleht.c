@@ -33,50 +33,6 @@ int SimpleHT_Init(SimpleHT *ht, int DataLength, size_t MaxLoadFactor, int (*Hash
 	return 0;
 }
 
-static Sht_NodeHead *SimpleHT_RemoveFromSlot(SimpleHT *ht, int Slot, int *NodeSubscript)
-{
-	int NumberOfSlots_New = Array_GetUsed(&(ht->Slots));
-
-	Sht_Slot *TheSlot;
-	Sht_NodeHead *FirstNode = NULL;
-	Sht_NodeHead *SecondNode = NULL;
-
-	TheSlot = Array_GetBySubscript(&(ht->Slots), Slot);
-	if( TheSlot == NULL )
-	{
-		return NULL;
-	}
-
-	FirstNode = Array_GetBySubscript(&(ht->Nodes), TheSlot->Next);
-	if( FirstNode == NULL )
-	{
-		return NULL;
-	}
-
-	if( FirstNode->HashValue % NumberOfSlots_New != Slot )
-	{
-		*NodeSubscript = TheSlot->Next;
-		TheSlot->Next = FirstNode->Next;
-		return FirstNode;
-	} else {
-		*NodeSubscript = FirstNode->Next;
-		SecondNode = Array_GetBySubscript(&(ht->Nodes), FirstNode->Next);
-		while( SecondNode != NULL )
-		{
-			if( SecondNode->HashValue % NumberOfSlots_New != Slot )
-			{
-				FirstNode->Next = SecondNode->Next;
-				return SecondNode;
-			}
-
-			FirstNode = SecondNode;
-			*NodeSubscript = SecondNode->Next;
-			SecondNode = Array_GetBySubscript(&(ht->Nodes), SecondNode->Next);
-		}
-		return NULL;
-	}
-}
-
 static int SimpleHT_AddToSlot(SimpleHT *ht, Sht_NodeHead *Node, int NodeSubscript)
 {
 	int NumberOfSlots = Array_GetUsed(&(ht->Slots));
@@ -97,8 +53,8 @@ static int SimpleHT_AddToSlot(SimpleHT *ht, Sht_NodeHead *Node, int NodeSubscrip
 static int SimpleHT_Expand(SimpleHT *ht)
 {
 	int NumberOfSlots_Old = Array_GetUsed(&(ht->Slots));
-	Sht_NodeHead *Itr = NULL;
-	int ItrSubscript = 0;
+	int NumberOfNodes = Array_GetUsed(&(ht->Nodes));
+	Sht_NodeHead *nh = NULL;
 	int loop;
 
 	for( loop = 0; loop < NumberOfSlots_Old; ++loop )
@@ -109,14 +65,12 @@ static int SimpleHT_Expand(SimpleHT *ht)
 		}
 	}
 
-	for( loop = 0; loop < NumberOfSlots_Old; ++loop )
+    memset(ht->Slots.Data, -1, NumberOfSlots_Old * ht->Slots.DataLength);
+
+	for( loop = 0; loop < NumberOfNodes; ++loop )
 	{
-		Itr = SimpleHT_RemoveFromSlot(ht, loop, &ItrSubscript);
-		while( Itr != NULL )
-		{
-			SimpleHT_AddToSlot(ht, Itr, ItrSubscript);
-			Itr = SimpleHT_RemoveFromSlot(ht, loop, &ItrSubscript);
-		}
+		nh = Array_GetBySubscript(&(ht->Nodes), loop);
+		SimpleHT_AddToSlot(ht, nh, loop);
 	}
 
 	return 0;
