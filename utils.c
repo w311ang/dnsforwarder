@@ -718,8 +718,8 @@ int ELFHash(const char *str, int Unused)
 
 	while( *str != '\0' )
 	{
-		h += *str;
 		h <<= 4;
+		h += *str;
 
 		x = h & 0xF0000000;
 		if( x != 0 )
