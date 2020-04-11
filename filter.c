@@ -7,10 +7,14 @@
 #include "logs.h"
 #include "readline.h"
 #include "domainstatistic.h"
+#include "rwlock.h"
 
 static Bst			*DisabledTypes = NULL;
 
 static StringChunk	*DisabledDomain = NULL;
+static RWLock		DisabledDomainLock;
+
+static ConfigFileInfo *CurrConfigInfo = NULL;
 
 static int TypeCompare(const int *_1, const int *_2)
 {
@@ -80,7 +84,7 @@ static int LoadDomainsFromList(StringChunk *List, StringList *Domains)
 	return 0;
 }
 
-static int FilterDomain_Init(ConfigFileInfo *ConfigInfo)
+static int FilterDomain_Init(StringChunk **List, ConfigFileInfo *ConfigInfo)
 {
     StringList *dd = ConfigGetStringList(ConfigInfo, "DisabledDomain");
 
@@ -89,13 +93,12 @@ static int FilterDomain_Init(ConfigFileInfo *ConfigInfo)
         return 0;
     }
 
-	if( InitChunk(&DisabledDomain) != 0 )
-	{
+    if( InitChunk(List) != 0 )
+    {
         return -120;
-	}
+    }
 
-    LoadDomainsFromList(DisabledDomain, dd);
-    dd->Free(dd);
+    LoadDomainsFromList(*List, dd);
 
     return 0;
 }
@@ -135,11 +138,11 @@ static int LoadDomainsFromFile(StringChunk *List, const char *FilePath)
     return 0;
 }
 
-static int FilterDomain_InitFromFile(ConfigFileInfo *ConfigInfo)
+static int FilterDomain_InitFromFile(StringChunk **List, ConfigFileInfo *ConfigInfo)
 {
     StringList *FilePaths = ConfigGetStringList(ConfigInfo, "DisabledList");
     const char *FilePath;
-	StringListIterator sli;
+    StringListIterator sli;
 
     if( FilePaths == NULL )
     {
@@ -151,15 +154,15 @@ static int FilterDomain_InitFromFile(ConfigFileInfo *ConfigInfo)
         return -116;
     }
 
-    if( InitChunk(&DisabledDomain) != 0 )
-	{
+    if( InitChunk(List) != 0 )
+    {
         return -117;
-	}
+    }
 
-	while( (FilePath = sli.Next(&sli)) != NULL )
-	{
-        LoadDomainsFromFile(DisabledDomain, FilePath);
-	}
+    while( (FilePath = sli.Next(&sli)) != NULL )
+    {
+        LoadDomainsFromFile(*List, FilePath);
+    }
 
     return 0;
 }
@@ -205,14 +208,41 @@ static int FilterType_Init(ConfigFileInfo *ConfigInfo)
 	return 0;
 }
 
-int Filter_Init(ConfigFileInfo *ConfigInfo)
+static int DisabledDomain_Init(ConfigFileInfo *ConfigInfo)
 {
-    if( FilterDomain_Init(ConfigInfo) != 0 )
+    StringChunk    *TempDisabledDomain = NULL;
+
+    if( FilterDomain_Init(&TempDisabledDomain, ConfigInfo) != 0 )
     {
         INFO("Disabled domains was not initialized.\n");
+        return -1;
     } else {
         INFO("Disabled domains initialized.\n");
     }
+
+    if( FilterDomain_InitFromFile(&TempDisabledDomain, ConfigInfo) != 0 )
+    {
+        INFO("Disabled list was not initialized.\n");
+        return -1;
+    } else {
+        INFO("Disabled list initialized.\n");
+    }
+
+    RWLock_WrLock(DisabledDomainLock);
+    if( DisabledDomain != NULL )
+    {
+        StringChunk_Free(DisabledDomain, TRUE);
+        SafeFree((void *)DisabledDomain);
+    }
+    DisabledDomain = TempDisabledDomain;
+    RWLock_UnWLock(DisabledDomainLock);
+
+    return 0;
+}
+
+int Filter_Init(ConfigFileInfo *ConfigInfo)
+{
+    CurrConfigInfo = ConfigInfo;
 
     if( FilterType_Init(ConfigInfo) != 0 )
     {
@@ -221,14 +251,21 @@ int Filter_Init(ConfigFileInfo *ConfigInfo)
         INFO("Disabled types initialized.\n");
     }
 
-    if( FilterDomain_InitFromFile(ConfigInfo) != 0 )
-    {
-        INFO("Disabled list was not initialized.\n");
-    } else {
-        INFO("Disabled list initialized.\n");
-    }
+	RWLock_Init(DisabledDomainLock);
+
+    DisabledDomain_Init(ConfigInfo);
 
 	return 0;
+}
+
+int Filter_Update(void)
+{
+    if ( ConfigGetBoolean(CurrConfigInfo, "ReloadDisabledList") )
+    {
+        DisabledDomain_Init(CurrConfigInfo);
+        INFO("Loading DisabledList completed.\n");
+    }
+    return 0;
 }
 
 static BOOL IsDisabledType(int Type)
@@ -244,8 +281,18 @@ static BOOL IsDisabledType(int Type)
 
 static BOOL IsDisabledDomain(const char *Domain, int HashValue)
 {
-	return DisabledDomain != NULL &&
-	       StringChunk_Domain_Match(DisabledDomain, Domain, &HashValue, NULL);
+    int ret;
+
+    if (DisabledDomain == NULL)
+    {
+        return FALSE;
+    }
+
+    RWLock_RdLock(DisabledDomainLock);
+    ret = StringChunk_Domain_Match(DisabledDomain, Domain, &HashValue, NULL);
+    RWLock_UnRLock(DisabledDomainLock);
+
+    return ret;
 }
 
 BOOL Filter_Out(IHeader *h)

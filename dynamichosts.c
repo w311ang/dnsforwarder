@@ -7,6 +7,7 @@
 #include "timedtask.h"
 #include "rwlock.h"
 #include "logs.h"
+#include "filter.h"
 
 static const char   *File = NULL;
 static RWLock		HostsLock;
@@ -127,6 +128,7 @@ static void GetHostsFromInternet_Thread(void *Unused1, void *Unused2)
         }
 
         DynamicHosts_Load();
+        Filter_Update();
     } else {
         ERRORMSG("Getting hosts file(s) failed.\n");
     }

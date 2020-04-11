@@ -126,6 +126,9 @@ static int EnvironmentInit(void)
     TmpTypeDescriptor.INT32 = 18000;
     ConfigAddOption(&ConfigInfo, "HostsUpdateInterval", STRATEGY_DEFAULT, TYPE_INT32, TmpTypeDescriptor);
 
+    TmpTypeDescriptor.boolean = TRUE;
+    ConfigAddOption(&ConfigInfo, "ReloadDisabledList", STRATEGY_DEFAULT, TYPE_BOOLEAN, TmpTypeDescriptor);
+
     TmpTypeDescriptor.INT32 = 30;
     ConfigAddOption(&ConfigInfo, "HostsRetryInterval", STRATEGY_DEFAULT, TYPE_INT32, TmpTypeDescriptor);
 
@@ -409,6 +412,16 @@ static int ArgParse(int argc, char *argv_ori[])
     return 0;
 }
 
+static void CleanupConfig(void)
+{
+    ConfigFree(&ConfigInfo);
+}
+
+static void CleanupWSA(void)
+{
+    WSACleanup();
+}
+
 int main(int argc, char *argv[])
 {
 #ifdef WIN32
@@ -522,12 +535,15 @@ int main(int argc, char *argv[])
 
     UdpFrontend_StartWork();
 
-    ConfigFree(&ConfigInfo);
+    atexit(CleanupConfig);
+
+#ifndef NODOWNLOAD
+#ifdef WIN32
+    atexit(CleanupWSA);
+#endif /* WIN32 */
+#endif /* NODOWNLOAD */
 
 	ExitThisThread();
 
-#ifdef WIN32
-    WSACleanup();
-#endif /* WIN32 */
     return 0;
 }
