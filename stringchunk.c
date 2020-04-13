@@ -330,3 +330,24 @@ void StringChunk_Free(StringChunk *dl, BOOL FreeStringList)
 		SafeFree(dl->List);
 	}
 }
+
+int InitChunk(StringChunk **dl)
+{
+    if( *dl != NULL )
+    {
+        return 0;
+    }
+
+    *dl = malloc(sizeof(StringChunk));
+    if( *dl == NULL )
+    {
+        return -77;
+    }
+
+    if( StringChunk_Init(*dl, NULL) < 0 )
+    {
+        return -82;
+    }
+
+    return 0;
+}

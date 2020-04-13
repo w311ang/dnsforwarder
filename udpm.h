@@ -16,6 +16,9 @@ struct _UdpM {
     EFFECTIVE_LOCK  Lock;
 
     ThreadHandle    WorkThread;
+    ThreadHandle    SwepThread;
+
+    int IsServer;
 
     AddressList     AddrList;
     struct { /* parallel query informations */

@@ -129,6 +129,9 @@ static int EnvironmentInit(void)
     TmpTypeDescriptor.boolean = TRUE;
     ConfigAddOption(&ConfigInfo, "ReloadDisabledList", STRATEGY_DEFAULT, TYPE_BOOLEAN, TmpTypeDescriptor);
 
+    TmpTypeDescriptor.boolean = TRUE;
+    ConfigAddOption(&ConfigInfo, "ReloadGroupFile", STRATEGY_DEFAULT, TYPE_BOOLEAN, TmpTypeDescriptor);
+
     TmpTypeDescriptor.INT32 = 30;
     ConfigAddOption(&ConfigInfo, "HostsRetryInterval", STRATEGY_DEFAULT, TYPE_INT32, TmpTypeDescriptor);
 

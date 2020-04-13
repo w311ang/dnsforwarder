@@ -21,27 +21,6 @@ static int TypeCompare(const int *_1, const int *_2)
 	return *_1 - *_2;
 }
 
-static int InitChunk(StringChunk **List)
-{
-    if( *List != NULL )
-    {
-        return 0;
-    }
-
-	*List = malloc(sizeof(StringChunk));
-	if( *List == NULL )
-	{
-		return -77;
-	}
-
-	if( StringChunk_Init(*List, NULL) < 0 )
-	{
-		return -82;
-	}
-
-	return 0;
-}
-
 static int InitBst(Bst **t, int (*CompareFunc)(const void *, const void *))
 {
 	*t = malloc(sizeof(Bst));

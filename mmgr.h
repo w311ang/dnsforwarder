@@ -7,6 +7,8 @@
 
 int MMgr_Init(ConfigFileInfo *ConfigInfo);
 
+int Modules_Update(void);
+
 int MMgr_Send(IHeader *h, int BufferLength);
 
 #endif // MMGR_H_INCLUDED

@@ -8,6 +8,7 @@
 #include "logs.h"
 #include "ipmisc.h"
 #include "readline.h"
+#include "rwlock.h"
 
 typedef int (*SendFunc)(void *Module,
                         IHeader *h, /* Entity followed */
@@ -26,11 +27,23 @@ typedef struct _ModuleInterface {
 
 } ModuleInterface;
 
-static StableBuffer Modules; /* Storing ModuleInterfaces */
-static Array        ModuleArray; /* ModuleInterfaces' references */
-static StringChunk  Distributor; /* Domain-to-ModuleInterface mapping */
+typedef struct _ModuleMap {
+    StableBuffer *Modules;
+    Array        *ModuleArray;
+    StringChunk  *Distributor;
+} ModuleMap;
 
-static int MappingAModule(ModuleInterface *Stored, StringList *DomainList)
+static StableBuffer *Modules = NULL; /* Storing ModuleInterfaces */
+static Array        *ModuleArray = NULL; /* ModuleInterfaces' references */
+static StringChunk  *Distributor = NULL; /* Domain-to-ModuleInterface mapping */
+
+static RWLock		ModulesLock;
+static ConfigFileInfo *CurrConfigInfo = NULL;
+
+static int MappingAModule(ModuleMap *ModuleMap,
+                          ModuleInterface *Stored,
+                          StringList *DomainList
+                          )
 {
     StringListIterator  i;
     const char *OneDomain;
@@ -45,7 +58,7 @@ static int MappingAModule(ModuleInterface *Stored, StringList *DomainList)
 
     while( (OneDomain = i.Next(&i)) != NULL )
     {
-        StringChunk_Add_Domain(&Distributor,
+        StringChunk_Add_Domain(ModuleMap->Distributor,
                                OneDomain,
                                &Stored,
                                sizeof(ModuleInterface *)
@@ -55,17 +68,17 @@ static int MappingAModule(ModuleInterface *Stored, StringList *DomainList)
     return 0;
 }
 
-static ModuleInterface *StoreAModule(void)
+static ModuleInterface *StoreAModule(ModuleMap *ModuleMap)
 {
     ModuleInterface *Added;
 
-    Added = Modules.Add(&Modules, NULL, sizeof(ModuleInterface), TRUE);
+    Added = ModuleMap->Modules->Add(ModuleMap->Modules, NULL, sizeof(ModuleInterface), TRUE);
     if( Added == NULL )
     {
         return NULL;
     }
 
-    if( Array_PushBack(&ModuleArray, &Added, NULL) < 0 )
+    if( Array_PushBack(ModuleMap->ModuleArray, &Added, NULL) < 0 )
     {
         return NULL;
     }
@@ -75,7 +88,8 @@ static ModuleInterface *StoreAModule(void)
     return Added;
 }
 
-static int Udp_Init_Core(const char *Services,
+static int Udp_Init_Core(ModuleMap *ModuleMap,
+                         const char *Services,
                          StringList *DomainList,
                          const char *Parallel
                          )
@@ -90,7 +104,7 @@ static int Udp_Init_Core(const char *Services,
         return -99;
     }
 
-    NewM = StoreAModule();
+    NewM = StoreAModule(ModuleMap);
     if( NewM == NULL )
     {
         return -101;
@@ -117,7 +131,7 @@ static int Udp_Init_Core(const char *Services,
 
     NewM->Send = (SendFunc)(NewM->ModuleUnion.Udp.Send);
 
-    if( MappingAModule(NewM, DomainList) != 0 )
+    if( MappingAModule(ModuleMap, NewM, DomainList) != 0 )
     {
         ERRORMSG("Mapping UDP module of %s failed.\n", Services);
     }
@@ -125,7 +139,7 @@ static int Udp_Init_Core(const char *Services,
     return 0;
 }
 
-static int Udp_Init(StringListIterator  *i)
+static int Udp_Init(ModuleMap *ModuleMap, StringListIterator *i)
 {
     const char *Services;
     const char *Domains;
@@ -148,7 +162,7 @@ static int Udp_Init(StringListIterator  *i)
         return -148;
     }
 
-    if( Udp_Init_Core(Services, &DomainList, Parallel) != 0 )
+    if( Udp_Init_Core(ModuleMap, Services, &DomainList, Parallel) != 0 )
     {
         return -153;
     }
@@ -158,7 +172,8 @@ static int Udp_Init(StringListIterator  *i)
     return 0;
 }
 
-static int Tcp_Init_Core(const char *Services,
+static int Tcp_Init_Core(ModuleMap *ModuleMap,
+                         const char *Services,
                          StringList *DomainList,
                          const char *Proxies
                          )
@@ -172,7 +187,7 @@ static int Tcp_Init_Core(const char *Services,
         return -157;
     }
 
-    NewM = StoreAModule();
+    NewM = StoreAModule(ModuleMap);
     if( NewM == NULL )
     {
         return -192;
@@ -197,7 +212,7 @@ static int Tcp_Init_Core(const char *Services,
 
     NewM->Send = (SendFunc)(NewM->ModuleUnion.Tcp.Send);
 
-    if( MappingAModule(NewM, DomainList) != 0 )
+    if( MappingAModule(ModuleMap, NewM, DomainList) != 0 )
     {
         ERRORMSG("Mapping TCP module of %s failed.\n", Services);
     }
@@ -205,7 +220,7 @@ static int Tcp_Init_Core(const char *Services,
     return 0;
 }
 
-static int Tcp_Init(StringListIterator  *i)
+static int Tcp_Init(ModuleMap *ModuleMap, StringListIterator *i)
 {
     const char *Services;
     const char *Domains;
@@ -228,7 +243,7 @@ static int Tcp_Init(StringListIterator  *i)
         return -148;
     }
 
-    if( Tcp_Init_Core(Services, &DomainList, Proxies) != 0 )
+    if( Tcp_Init_Core(ModuleMap, Services, &DomainList, Proxies) != 0 )
     {
         return -233;
     }
@@ -263,7 +278,7 @@ PROXY 192.168.1.1:8080,192.168.1.1:8081
 example.com
 
 */
-static int Modules_InitFromFile(StringListIterator  *i)
+static int Modules_InitFromFile(ModuleMap *ModuleMap, StringListIterator *i)
 {
     #define MAX_PATH_BUFFER     384
 
@@ -365,7 +380,7 @@ static int Modules_InitFromFile(StringListIterator  *i)
                                      (void **)&Parallel
                                      );
 
-        if( Udp_Init_Core(Services, &Domains, Parallel) != 0 )
+        if( Udp_Init_Core(ModuleMap, Services, &Domains, Parallel) != 0 )
         {
             ERRORMSG("Loading group file \"%s\" failed.\n", File);
             return -337;
@@ -379,7 +394,7 @@ static int Modules_InitFromFile(StringListIterator  *i)
         StringChunk_Match_NoWildCard(&Args, "server", NULL, (void **)&Services);
         StringChunk_Match_NoWildCard(&Args, "proxy", NULL, (void **)&Proxies);
 
-        if( Tcp_Init_Core(Services, &Domains, Proxies) != 0 )
+        if( Tcp_Init_Core(ModuleMap, Services, &Domains, Proxies) != 0 )
         {
             ERRORMSG("Loading group file \"%s\" failed.\n", File);
             return -233;
@@ -396,7 +411,7 @@ static int Modules_InitFromFile(StringListIterator  *i)
     return 0;
 }
 
-static int Modules_Init(ConfigFileInfo *ConfigInfo)
+static int Modules_Init(ModuleMap *ModuleMap, ConfigFileInfo *ConfigInfo)
 {
     StringList  *ServerGroups;
     StringListIterator  i;
@@ -419,21 +434,21 @@ static int Modules_Init(ConfigFileInfo *ConfigInfo)
     {
         if( strcmp(Type, "UDP") == 0 )
         {
-            if( Udp_Init(&i) != 0 )
+            if( Udp_Init(ModuleMap, &i) != 0 )
             {
                 ERRORMSG("Initializing UDPGroups failed.\n");
                 return -218;
             }
         } else if( strcmp(Type, "TCP") == 0 )
         {
-            if( Tcp_Init(&i) != 0 )
+            if( Tcp_Init(ModuleMap, &i) != 0 )
             {
                 ERRORMSG("Initializing TCPGroups failed.\n");
                 return -226;
             }
         } else if( strcmp(Type, "FILE") == 0 )
         {
-            if( Modules_InitFromFile(&i) != 0 )
+            if( Modules_InitFromFile(ModuleMap, &i) != 0 )
             {
                 ERRORMSG("Initializing group files failed.\n");
                 return -318;
@@ -445,6 +460,136 @@ static int Modules_Init(ConfigFileInfo *ConfigInfo)
     }
 
     INFO("Server groups initialized.\n", Type);
+    return 0;
+}
+
+static int Modules_SafeCleanup(StableBuffer *Modules)
+{
+    StableBufferIterator BI;
+    ModuleInterface *M = NULL;
+    int i, BytesOfMetaInfo;
+    BOOL InUse = TRUE;
+
+    if( StableBufferIterator_Init(&BI, Modules) != 0 )
+    {
+        return -1;
+    }
+
+    while( InUse )
+    {
+        InUse = FALSE;
+        BI.Reset(&BI);
+        while( (M = BI.NextBlock(&BI)) != NULL )
+        {
+            BytesOfMetaInfo = BI.CurrentBlockUsed(&BI);
+            for( i = 0; i * sizeof(ModuleInterface) < BytesOfMetaInfo; ++i, ++M )
+            {
+                if( strcmp(M->ModuleName, "UDP") == 0 )
+                {
+                    M->ModuleUnion.Udp.IsServer = 0;
+                    InUse |= M->ModuleUnion.Udp.Departure != INVALID_SOCKET;
+                    InUse |= M->ModuleUnion.Udp.SwepThread != NULL;
+                }
+                else if( strcmp(M->ModuleName, "TCP") == 0 )
+                {
+                    M->ModuleUnion.Tcp.IsServer = 0;
+                    InUse |= M->ModuleUnion.Tcp.Departure != INVALID_SOCKET;
+                }
+            }
+        }
+
+        if( !InUse )
+        {
+            Modules->Free(Modules);
+            SafeFree((void *)Modules);
+        }
+
+        SLEEP(1000);
+    }
+    INFO("Last Modules freed.\n");
+
+    return 0;
+}
+
+static int Modules_Load(ConfigFileInfo *ConfigInfo)
+{
+    ModuleMap ModuleMap = {NULL};
+
+    ThreadHandle th;
+    int ret;
+
+    CurrConfigInfo = ConfigInfo;
+
+    if( InitChunk(&(ModuleMap.Distributor)) != 0 )
+    {
+        return -10;
+    }
+
+    if( StringChunk_Init(ModuleMap.Distributor, NULL) != 0 )
+    {
+        return -10;
+    }
+
+    ModuleMap.Modules = SafeMalloc(sizeof(StableBuffer));
+    if( ModuleMap.Modules == NULL)
+    {
+        return -27;
+    }
+
+    if( StableBuffer_Init(ModuleMap.Modules) != 0 )
+    {
+        return -27;
+    }
+
+    ModuleMap.ModuleArray = SafeMalloc(sizeof(Array));
+    if( ModuleMap.ModuleArray == NULL)
+    {
+        return -27;
+    }
+
+    if( Array_Init(ModuleMap.ModuleArray,
+                   sizeof(ModuleInterface *),
+                   0,
+                   FALSE,
+                   NULL
+                   )
+       != 0 )
+    {
+        return -98;
+    }
+
+    RWLock_WrLock(ModulesLock); // Don't consume ServerGroup at the same time!
+
+    ret = Modules_Init(&ModuleMap, ConfigInfo);
+
+    if (ret)
+    {
+        return ret;
+    }
+
+    if( Distributor != NULL )
+    {
+        StringChunk_Free(Distributor, TRUE);
+        SafeFree((void *)Distributor);
+    }
+    Distributor = ModuleMap.Distributor;
+
+    if( ModuleArray != NULL )
+    {
+        Array_Free(ModuleArray);
+        SafeFree((void *)ModuleArray);
+    }
+    ModuleArray = ModuleMap.ModuleArray;
+
+    if( Modules != NULL )
+    {
+        CREATE_THREAD(Modules_SafeCleanup, Modules, th);
+        DETACH_THREAD(th);
+    }
+    Modules = ModuleMap.Modules;
+
+    RWLock_UnWLock(ModulesLock);
+
     return 0;
 }
 
@@ -472,34 +617,27 @@ int MMgr_Init(ConfigFileInfo *ConfigInfo)
     }
 
     /* Ordinary modeles */
-    if( StringChunk_Init(&Distributor, NULL) != 0 )
-    {
-        return -10;
-    }
+    RWLock_Init(ModulesLock);
 
-    if( StableBuffer_Init(&Modules) != 0 )
-    {
-        return -27;
-    }
+    return Modules_Load(ConfigInfo);
+}
 
-    if( Array_Init(&ModuleArray,
-                   sizeof(ModuleInterface *),
-                   0,
-                   FALSE,
-                   NULL
-                   )
-       != 0 )
+int Modules_Update(void)
+{
+    if ( ConfigGetBoolean(CurrConfigInfo, "ReloadGroupFile") )
     {
-        return -98;
+        Modules_Load(CurrConfigInfo);
+        INFO("Loading GroupFile completed.\n");
     }
-
-    return Modules_Init(ConfigInfo);
+    return 0;
 }
 
 int MMgr_Send(IHeader *h, int BufferLength)
 {
     ModuleInterface **i;
     ModuleInterface *TheModule;
+
+    int ret;
 
     /* Determine whether to discard the query */
     if( Filter_Out(h) )
@@ -519,17 +657,20 @@ int MMgr_Send(IHeader *h, int BufferLength)
     }
 
     /* Ordinary modeles */
-    if( StringChunk_Domain_Match(&Distributor,
+
+    RWLock_RdLock(ModulesLock);
+
+    if( StringChunk_Domain_Match(Distributor,
                                  h->Domain,
                                  &(h->HashValue),
                                  (void **)&i
                                  )
        )
     {
-    } else if( Array_GetUsed(&ModuleArray) > 0 ){
-        i = Array_GetBySubscript(&ModuleArray,
+    } else if( Array_GetUsed(ModuleArray) > 0 ){
+        i = Array_GetBySubscript(ModuleArray,
                                  (int)(*(uint16_t *)IHEADER_TAIL(h)) %
-                                     Array_GetUsed(&ModuleArray)
+                                     Array_GetUsed(ModuleArray)
                                  );
     } else {
         i = NULL;
@@ -537,10 +678,13 @@ int MMgr_Send(IHeader *h, int BufferLength)
 
     if( i == NULL || *i == NULL )
     {
-        return -190;
+        ret = -190;
+    } else {
+        TheModule = *i;
+        ret = TheModule->Send(&(TheModule->ModuleUnion), h, BufferLength);
     }
 
-    TheModule = *i;
+    RWLock_UnRLock(ModulesLock);
 
-    return TheModule->Send(&(TheModule->ModuleUnion), h, BufferLength);
+    return ret;
 }

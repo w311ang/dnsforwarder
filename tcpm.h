@@ -19,6 +19,8 @@ struct _TcpM {
 
     ThreadHandle    WorkThread;
 
+    int IsServer;
+
     AddressList     ServiceList;
     struct sockaddr **Services;
     sa_family_t     *ServiceFamilies;

@@ -29,6 +29,18 @@ static int SwepTask(UdpM *m, SwepCallback cb)
     return 0;
 }
 
+static int UdpM_Swep_Thread(UdpM *m)
+{
+    while( m->IsServer )
+    {
+        SwepTask(m, (SwepCallback)SweepWorks);
+        SLEEP(10000);
+    }
+
+    m->SwepThread = NULL;
+    return 0;
+}
+
 static void UdpM_Works(UdpM *m)
 {
     static const struct timeval	ShortTime = {10, 0};
@@ -55,7 +67,7 @@ static void UdpM_Works(UdpM *m)
     Header = (IHeader *)ReceiveBuffer;
     Entity = ReceiveBuffer + sizeof(IHeader);
 
-    while( TRUE )
+    while( m->IsServer )
     {
         int RecvState;
         int ContextState;
@@ -212,7 +224,10 @@ static void UdpM_Works(UdpM *m)
         }
     }
 
+    closesocket(m->Departure);
     SafeFree(ReceiveBuffer);
+
+    m->Departure = INVALID_SOCKET;
 }
 
 static int UdpM_Send(UdpM *m,
@@ -360,20 +375,14 @@ int UdpM_Init(UdpM *m, const char *Services, BOOL Parallel)
 
     m->CountOfTimeout = 0;
 
+    m->IsServer = 1;
+
     EFFECTIVE_LOCK_INIT(m->Lock);
 
     m->Send = UdpM_Send;
 
     CREATE_THREAD(UdpM_Works, m, m->WorkThread);
-
-    TimedTask_Add(TRUE,
-                  FALSE,
-                  10000,
-                  (TaskFunc)SwepTask,
-                  m,
-                  SweepWorks,
-                  FALSE
-                  );
+    CREATE_THREAD(UdpM_Swep_Thread, m, m->SwepThread);
 
     return 0;
 }

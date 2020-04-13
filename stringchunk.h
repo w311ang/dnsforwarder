@@ -58,4 +58,6 @@ const char *StringChunk_Enum_NoWildCard(StringChunk *dl, int32_t *Start, void **
 
 void StringChunk_Free(StringChunk *dl, BOOL FreeStringList);
 
+int InitChunk(StringChunk **dl);
+
 #endif // STRINGCHUNK_H_INCLUDED

@@ -402,7 +402,7 @@ static int TcpM_Works(TcpM *m)
     Header = (IHeader *)ReceiveBuffer;
     Entity = ReceiveBuffer + sizeof(IHeader);
 
-    while( TRUE )
+    while( m->IsServer )
     {
         TimeOut = TimeLimit;
         s = m->Puller.Select(&(m->Puller), &TimeOut, NULL, TRUE, FALSE);
@@ -570,6 +570,13 @@ static int TcpM_Works(TcpM *m)
             }
         }
     }
+
+    closesocket(m->Departure);
+    SafeFree(ReceiveBuffer);
+
+    m->Departure = INVALID_SOCKET;
+
+    return 0;
 }
 
 int TcpM_Init(TcpM *m, const char *Services, const char *SocksProxies)
@@ -685,6 +692,8 @@ int TcpM_Init(TcpM *m, const char *Services, const char *SocksProxies)
     }
 
     m->Send = TcpM_Send;
+
+    m->IsServer = 1;
 
     CREATE_THREAD(TcpM_Works, m, m->WorkThread);
 

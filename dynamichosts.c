@@ -8,6 +8,7 @@
 #include "rwlock.h"
 #include "logs.h"
 #include "filter.h"
+#include "mmgr.h"
 
 static const char   *File = NULL;
 static RWLock		HostsLock;
@@ -129,6 +130,7 @@ static void GetHostsFromInternet_Thread(void *Unused1, void *Unused2)
 
         DynamicHosts_Load();
         Filter_Update();
+        Modules_Update();
     } else {
         ERRORMSG("Getting hosts file(s) failed.\n");
     }
