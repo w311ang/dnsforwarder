@@ -31,7 +31,7 @@ PUBFUNC int HostsContext_Add(HostsContext   *c,
     strncpy(n.RecursedDomain, RecursedDomain, sizeof(n.RecursedDomain));
     n.RecursedDomain[sizeof(n.RecursedDomain) - 1] = '\0';
 
-    n.RecursedHashValue = ELFHash(n.RecursedDomain, 0);
+    n.RecursedHashValue = HASH(n.RecursedDomain, 0);
 
     if( c->t.Add(&(c->t), &n) != NULL )
     {

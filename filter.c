@@ -258,7 +258,7 @@ static BOOL IsDisabledType(int Type)
 	}
 }
 
-static BOOL IsDisabledDomain(const char *Domain, int HashValue)
+static BOOL IsDisabledDomain(const char *Domain, uint32_t HashValue)
 {
     int ret;
 

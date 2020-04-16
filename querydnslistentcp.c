@@ -75,7 +75,7 @@ static int Query(char *Content, int ContentLength, int BufferLength, SOCKET This
 	Header->RequestingType =
 		(DNSRecordType)DNSGetRecordType(DNSJumpHeader(RequestEntity));
 
-	Header->RequestingDomainHashValue = ELFHash(Header->RequestingDomain, 0);
+	Header->RequestingDomainHashValue = HASH(Header->RequestingDomain, 0);
 
 	State = QueryBase(Content, ContentLength, BufferLength, TCPOutcomeSocket);
 

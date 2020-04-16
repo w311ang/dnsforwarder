@@ -711,26 +711,18 @@ BOOL ContainWildCard(const char *item)
 	}
 }
 
-int ELFHash(const char *str, int Unused)
+unsigned int BKDRHash(const char* str, unsigned int Unused)
 {
-	uint32_t h = 0;
-	uint32_t x = 0;
+    unsigned int seed = 131; /* 31 131 1313 13131 131313 etc.. */
+    unsigned int hash = 0;
 
-	while( *str != '\0' )
-	{
-		h <<= 4;
-		h += *str;
+    while( *str != '\0' )
+    {
+        hash = (hash * seed) + (*str);
+        str++;
+    }
 
-		x = h & 0xF0000000;
-		if( x != 0 )
-		{
-			h ^= (x >> 24);
-
-		}
-		h &= ~x;
-		str++;
-	}
-	return (h & 0x7FFFFFFF);
+    return hash;
 }
 
 void HexDump(const char *Data, int Length)

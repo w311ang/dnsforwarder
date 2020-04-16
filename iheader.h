@@ -13,7 +13,7 @@ struct _IHeader{
 	SOCKET          SendBackSocket;
 
 	char	        Domain[256];
-	int             HashValue;
+	uint32_t        HashValue;
 	DNSRecordType   Type;
 
 	BOOL            ReturnHeader;

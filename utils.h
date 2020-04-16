@@ -13,6 +13,8 @@
 #define STRINGIZING(val)        # val
 #define STRINGIZINGINT(val)     STRINGIZING(val)
 
+#define HASH                    BKDRHash
+
 typedef int offset_t;
 
 typedef int (*CompareFunc)(const void *, const void *);
@@ -102,7 +104,7 @@ int FindNextPrime(int Current);
 
 BOOL ContainWildCard(const char *item);
 
-int ELFHash(const char *str, int Unused);
+unsigned int BKDRHash(const char *str, unsigned int Unused);
 
 void HexDump(const char *Data, int Length);
 

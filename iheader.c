@@ -65,7 +65,7 @@ int IHeader_Fill(IHeader *h,
             }
 
             StrToLower(h->Domain);
-            h->HashValue = ELFHash(h->Domain, 0);
+            h->HashValue = HASH(h->Domain, 0);
             h->Type = (DNSRecordType)DNSGetRecordType(DNSJumpHeader(DnsEntity));
             break;
 

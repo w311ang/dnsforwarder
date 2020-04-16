@@ -7,7 +7,7 @@ typedef struct _Sht_Slot{
 
 static const Sht_Slot EmptySlot = {-1};
 
-int SimpleHT_Init(SimpleHT *ht, int DataLength, size_t MaxLoadFactor, int (*HashFunction)(const char *, int))
+int SimpleHT_Init(SimpleHT *ht, int DataLength, size_t MaxLoadFactor, uint32_t (*HashFunction)(const char *, uint32_t))
 {
 	int loop;
 
@@ -76,7 +76,7 @@ static int SimpleHT_Expand(SimpleHT *ht)
 	return 0;
 }
 
-const char *SimpleHT_Add(SimpleHT *ht, const char *Key, int KeyLength, const char *Data, int *HashValue)
+const char *SimpleHT_Add(SimpleHT *ht, const char *Key, int KeyLength, const char *Data, uint32_t *HashValue)
 {
 	Sht_NodeHead *New;
 	int	NewSubscript;
@@ -117,7 +117,7 @@ const char *SimpleHT_Add(SimpleHT *ht, const char *Key, int KeyLength, const cha
 	return (const char *)(New + 1);
 }
 
-const char *SimpleHT_Find(SimpleHT *ht, const char *Key, int KeyLength, int *HashValue, const char *Start)
+const char *SimpleHT_Find(SimpleHT *ht, const char *Key, int KeyLength, uint32_t *HashValue, const char *Start)
 {
 	int NumberOfSlots = Array_GetUsed(&(ht->Slots));
 	int SlotNumber;

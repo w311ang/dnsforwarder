@@ -146,7 +146,7 @@ int CacheHT_InsertToSlot(CacheHT	*h,
 						 const char	*Key,
 						 int		Node_index,
 						 Cht_Node	*Node,
-						 int		*HashValue
+						 uint32_t	*HashValue
 						 )
 {
 	int			Slot_i;
@@ -159,7 +159,7 @@ int CacheHT_InsertToSlot(CacheHT	*h,
 	{
 		Slot_i = (*HashValue) % (h->Slots.Allocated);
 	} else {
-		Slot_i = ELFHash(Key, 0) % (h->Slots.Allocated);
+		Slot_i = HASH(Key, 0) % (h->Slots.Allocated);
 	}
 
 	Node->Slot = Slot_i;
@@ -238,7 +238,7 @@ int CacheHT_RemoveFromSlot(CacheHT *h, int32_t SubScriptOfNode, Cht_Node *Node)
 	return 0;
 }
 
-Cht_Node *CacheHT_Get(CacheHT *h, const char *Key, Cht_Node *Start, int *HashValue)
+Cht_Node *CacheHT_Get(CacheHT *h, const char *Key, Cht_Node *Start, uint32_t *HashValue)
 {
 	Cht_Node	*Node;
 
@@ -254,7 +254,7 @@ Cht_Node *CacheHT_Get(CacheHT *h, const char *Key, Cht_Node *Start, int *HashVal
 		{
 			Slot_i = (*HashValue) % (h->Slots.Allocated);
 		} else {
-			Slot_i = ELFHash(Key, 0) % (h->Slots.Allocated);
+			Slot_i = HASH(Key, 0) % (h->Slots.Allocated);
 		}
 
 		Slot = (Cht_Slot *)Array_GetBySubscript(&(h->Slots), Slot_i);

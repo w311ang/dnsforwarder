@@ -14,7 +14,7 @@ int StringChunk_Init(StringChunk *dl, StringList *List)
 		return 0;
 	}
 
-	if( SimpleHT_Init(&(dl->List_Pos), sizeof(EntryForString), 5, ELFHash) != 0 )
+	if( SimpleHT_Init(&(dl->List_Pos), sizeof(EntryForString), 5, HASH) != 0 )
 	{
 		return -1;
 	}
@@ -129,7 +129,7 @@ int StringChunk_Add_Domain(StringChunk	*dl,
 
 BOOL StringChunk_Match_NoWildCard(StringChunk	*dl,
 								  const char	*Str,
-								  int			*HashValue,
+								  uint32_t		*HashValue,
 								  void			**Data
 								  )
 {
@@ -208,7 +208,7 @@ BOOL StringChunk_Match_OnlyWildCard(StringChunk	*dl,
 	return FALSE;
 }
 
-BOOL StringChunk_Match(StringChunk *dl, const char *Str, int *HashValue, void **Data)
+BOOL StringChunk_Match(StringChunk *dl, const char *Str, uint32_t *HashValue, void **Data)
 {
 	return (StringChunk_Match_NoWildCard(dl, Str, HashValue, Data) ||
 		StringChunk_Match_OnlyWildCard(dl, Str, Data));
@@ -255,13 +255,13 @@ static BOOL StringChunk_Match_WildCard_Exacly(StringChunk	*dl,
 	return FALSE;
 }
 
-BOOL StringChunk_Match_Exacly(StringChunk *dl, const char *Str, int *HashValue, void **Data)
+BOOL StringChunk_Match_Exacly(StringChunk *dl, const char *Str, uint32_t *HashValue, void **Data)
 {
 	return (StringChunk_Match_NoWildCard(dl, Str, HashValue, Data) ||
 		StringChunk_Match_WildCard_Exacly(dl, Str, Data));
 }
 
-BOOL StringChunk_Domain_Match_NoWildCard(StringChunk *dl, const char *Domain, int *HashValue, void **Data)
+BOOL StringChunk_Domain_Match_NoWildCard(StringChunk *dl, const char *Domain, uint32_t *HashValue, void **Data)
 {
 	if( StringChunk_Match_NoWildCard(dl, Domain, HashValue, Data) == TRUE )
 	{
@@ -283,7 +283,7 @@ BOOL StringChunk_Domain_Match_NoWildCard(StringChunk *dl, const char *Domain, in
 	return FALSE;
 }
 
-BOOL StringChunk_Domain_Match(StringChunk *dl, const char *Domain, int *HashValue, void **Data)
+BOOL StringChunk_Domain_Match(StringChunk *dl, const char *Domain, uint32_t *HashValue, void **Data)
 {
 	if( dl == NULL )
 	{

@@ -37,7 +37,7 @@ int StringChunk_Add_Domain(StringChunk    *dl,
 /* NOTICE : Data address returned, not offset. */
 BOOL StringChunk_Match_NoWildCard(StringChunk   *dl,
                                   const char    *Str,
-                                  int           *HashValue,
+                                  uint32_t      *HashValue,
                                   void          **Data
                                   );
 
@@ -46,13 +46,13 @@ BOOL StringChunk_Match_OnlyWildCard(StringChunk *dl,
                                     void        **Data
                                     );
 
-BOOL StringChunk_Match(StringChunk *dl, const char *Str, int *HashValue, void **Data);
+BOOL StringChunk_Match(StringChunk *dl, const char *Str, uint32_t *HashValue, void **Data);
 
-BOOL StringChunk_Match_Exacly(StringChunk *dl, const char *Str, int *HashValue, void **Data);
+BOOL StringChunk_Match_Exacly(StringChunk *dl, const char *Str, uint32_t *HashValue, void **Data);
 
-BOOL StringChunk_Domain_Match_NoWildCard(StringChunk *dl, const char *Domain, int *HashValue, void **Data);
+BOOL StringChunk_Domain_Match_NoWildCard(StringChunk *dl, const char *Domain, uint32_t *HashValue, void **Data);
 
-BOOL StringChunk_Domain_Match(StringChunk *dl, const char *Domain, int *HashValue, void **Data);
+BOOL StringChunk_Domain_Match(StringChunk *dl, const char *Domain, uint32_t *HashValue, void **Data);
 
 const char *StringChunk_Enum_NoWildCard(StringChunk *dl, int32_t *Start, void **Data);
 
