@@ -41,6 +41,17 @@ static int UdpM_Swep_Thread(UdpM *m)
     return 0;
 }
 
+static int UdpM_Cleanup(UdpM *m)
+{
+    m->IsServer = 0;
+    m->Context.d.Free(&(m->Context.d)); // <--!
+    SwepTask(m, (SwepCallback)SweepWorks);
+    AddressList_Free(&(m->AddrList));
+    CLOSE_SOCKET(m->Departure);
+
+    return 0;
+}
+
 static void UdpM_Works(UdpM *m)
 {
     static const struct timeval	ShortTime = {10, 0};
@@ -85,7 +96,7 @@ static void UdpM_Works(UdpM *m)
                 {
                     ERRORMSG("Fatal error 53.\n");
                     EFFECTIVE_LOCK_RELEASE(m->Lock);
-                    return;
+                    break;
                 }
 
                 m->Departure = socket(family, SOCK_DGRAM, IPPROTO_UDP);
@@ -100,7 +111,7 @@ static void UdpM_Works(UdpM *m)
             {
                 ERRORMSG("Fatal error 68.\n");
                 EFFECTIVE_LOCK_RELEASE(m->Lock);
-                return;
+                break;
             }
 
             m->CountOfTimeout = 0;
@@ -224,7 +235,7 @@ static void UdpM_Works(UdpM *m)
         }
     }
 
-    closesocket(m->Departure);
+    UdpM_Cleanup(m);
     SafeFree(ReceiveBuffer);
 
     m->Departure = INVALID_SOCKET;

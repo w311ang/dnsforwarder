@@ -558,14 +558,14 @@ static int Modules_Load(ConfigFileInfo *ConfigInfo)
         return -98;
     }
 
-    RWLock_WrLock(ModulesLock); // Don't consume ServerGroup at the same time!
-
     ret = Modules_Init(&ModuleMap, ConfigInfo);
 
     if (ret)
     {
         return ret;
     }
+
+    RWLock_WrLock(ModulesLock);
 
     if( Distributor != NULL )
     {
