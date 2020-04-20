@@ -22,7 +22,7 @@
 #include "timedtask.h"
 #include "domainstatistic.h"
 
-#define VERSION__ "6.1.15"
+#define VERSION__ "6.2.0"
 
 static char		*ConfigFile;
 static BOOL		DeamonMode;
