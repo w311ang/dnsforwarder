@@ -150,8 +150,11 @@ static int EnvironmentInit(void)
     TmpTypeDescriptor.str = NULL;
     ConfigAddOption(&ConfigInfo, "AppendHosts", STRATEGY_APPEND, TYPE_STRING, TmpTypeDescriptor);
 
-	TmpTypeDescriptor.boolean = TRUE;
+    TmpTypeDescriptor.boolean = TRUE;
     ConfigAddOption(&ConfigInfo, "UseCache", STRATEGY_DEFAULT, TYPE_BOOLEAN, TmpTypeDescriptor);
+
+    TmpTypeDescriptor.boolean = FALSE;
+    ConfigAddOption(&ConfigInfo, "CacheParallel", STRATEGY_DEFAULT, TYPE_BOOLEAN, TmpTypeDescriptor);
 
     TmpTypeDescriptor.INT32 = 1048576;
     ConfigAddOption(&ConfigInfo, "CacheSize", STRATEGY_DEFAULT, TYPE_INT32, TmpTypeDescriptor);

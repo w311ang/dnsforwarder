@@ -491,11 +491,6 @@ static int TcpM_Works(TcpM *m)
                          NULL
                          );
 
-            if( m->Context.FindAndRemove(&(m->Context), Header, Header) != 0 )
-            {
-                continue;
-            }
-
             switch( IPMiscSingleton_Process(Header) )
             {
             case IP_MISC_NOTHING:
@@ -519,8 +514,16 @@ static int TcpM_Works(TcpM *m)
                 break;
             }
 
-            State = IHeader_SendBack(Header);
+            State = m->Context.FindAndRemove(&(m->Context), Header, Header);
 
+            DNSCache_AddItemsToCache(Header, State == 0);
+
+            if( State != 0 )
+            {
+                continue;
+            }
+
+            State = IHeader_SendBack(Header);
             if( State != 0 )
             {
                 ShowErrorMessage(Header, 'T');
@@ -528,7 +531,6 @@ static int TcpM_Works(TcpM *m)
             }
 
             ShowNormalMessage(Header, 'T');
-            DNSCache_AddItemsToCache(Header);
             DomainStatistic_Add(Header, STATISTIC_TYPE_TCP);
 
         } else /* s == m->Incoming */ {

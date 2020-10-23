@@ -320,11 +320,6 @@ static int TlsM_Works(TlsM *m)
                 continue;
             }
 
-            if( m->Context.FindAndRemove(&(m->Context), Header, Header) != 0 )
-            {
-                continue;
-            }
-
             switch( IPMiscSingleton_Process(Header) )
             {
             case IP_MISC_ACTION_NOTHING:
@@ -341,6 +336,15 @@ static int TlsM_Works(TlsM *m)
                 break;
             }
 
+            State = m->Context.FindAndRemove(&(m->Context), Header, Header);
+
+            DNSCache_AddItemsToCache(Header, State == 0);
+
+            if( State != 0 )
+            {
+                continue;
+            }
+
             State = IHeader_SendBack(Header);
 
             if( State != 0 )
@@ -350,7 +354,6 @@ static int TlsM_Works(TlsM *m)
             }
 
             ShowNormalMessage(Header, 'S');
-            DNSCache_AddItemsToCache(Header);
             DomainStatistic_Add(Header, STATISTIC_TYPE_TCP);
         }
     }

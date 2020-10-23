@@ -217,22 +217,22 @@ static void UdpM_Works(UdpM *m)
                                                 Header
                                                 );
         EFFECTIVE_LOCK_RELEASE(m->Lock);
-        if( ContextState == 0 )
+
+        DNSCache_AddItemsToCache(Header, ContextState == 0);
+
+        if( ContextState != 0 )
         {
-            int SentState;
-
-            SentState = IHeader_SendBack(Header);
-
-            if( SentState != 0 )
-            {
-                ShowErrorMessage(Header, 'U');
-                continue;
-            }
-
-            ShowNormalMessage(Header, 'U');
-            DNSCache_AddItemsToCache(Header);
-            DomainStatistic_Add(Header, STATISTIC_TYPE_UDP);
+            continue;
         }
+
+        if( IHeader_SendBack(Header) != 0 )
+        {
+            ShowErrorMessage(Header, 'U');
+            continue;
+        }
+
+        ShowNormalMessage(Header, 'U');
+        DomainStatistic_Add(Header, STATISTIC_TYPE_UDP);
     }
 
     UdpM_Cleanup(m);

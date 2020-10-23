@@ -17,6 +17,7 @@
 #define	CACHE_START '\xFF'
 
 static BOOL				Inited = FALSE;
+static BOOL				CacheParallel = FALSE;
 
 static RWLock			CacheLock;
 
@@ -192,6 +193,8 @@ int DNSCache_Init(ConfigFileInfo *ConfigInfo)
 	{
 		return 0;
 	}
+
+	CacheParallel = ConfigGetBoolean(ConfigInfo, "CacheParallel");
 
 	IgnoreTTL = ConfigGetBoolean(ConfigInfo, "IgnoreTTL");
 
@@ -536,7 +539,7 @@ static int DNSCache_AddAItemToCache(DnsSimpleParserIterator *i,
 	return 0;
 }
 
-int DNSCache_AddItemsToCache(IHeader *Header)
+int DNSCache_AddItemsToCache(IHeader *Header, BOOL IsFirst)
 {
     char *DnsEntity = IHEADER_TAIL(Header);
 	const CtrlContent *TtlContent = NULL;
@@ -545,6 +548,7 @@ int DNSCache_AddItemsToCache(IHeader *Header)
 	DnsSimpleParserIterator i;
 
 	if(Inited == FALSE) return 0;
+	if(!IsFirst && !CacheParallel) return 0;
 
 	if( DnsSimpleParser_Init(&p, DnsEntity, Header->EntityLength, FALSE) != 0 )
     {
