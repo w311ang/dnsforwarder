@@ -14,9 +14,8 @@ dnsforwarder
 
 此版本保留了大部分 5 版本的功能，习惯 5 版本的朋友们可以到“5”分支内获取。
 
-[安装和部署](https://github.com/holmium/dnsforwarder/wiki/安装和部署-%7C-Deployment)
-
-捐助比特币支持此项目：1KwWqEkxcMXprwn8aTtV4qhqt1ZkBYqzra
+### 安装和部署
+ 参考 `default.config`。
 
 ### A simple DNS forwarder
 
@@ -29,10 +28,11 @@ dnsforwarder
 5. Refusing queries to specified domains (for ads blocking?);
 6. Cross-platform (Windows, Linux);
 
-[Installation & Deployment](https://github.com/holmium/dnsforwarder/wiki/安装和部署-%7C-Deployment#versions)
+### Installation & Deployment
+Read `default.en.config`.
 
 ### License :
-[GPL v3](https://github.com/holmium/dnsforwarder/blob/6/LICENSE)
+GPL v3
 
 ### Dependencies :
 
@@ -59,9 +59,3 @@ dnsforwarder
 
     WIN32
     WIN64
-- - -
-**Consider** donation?
-
-Bitcoin address : 1KwWqEkxcMXprwn8aTtV4qhqt1ZkBYqzra
-
-Thanks!
