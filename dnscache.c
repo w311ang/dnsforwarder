@@ -378,6 +378,34 @@ static Cht_Node *DNSCache_FindFromCache(char *Content, size_t Length, Cht_Node *
 
 }
 
+static uint32_t DNSCache_CacheMinTTL(char *Content, size_t Length, uint32_t NewTTL, time_t CurrentTime)
+{
+	uint32_t RecordTTL = NewTTL;
+	Cht_Node *Node = NULL;
+
+	/* Get the smallest, in case of not equal. */
+	while( (Node = DNSCache_FindFromCache(Content, Length, Node, CurrentTime)) != NULL )
+	{
+		uint32_t TTL = Node->TTL - (CurrentTime - Node->TimeAdded);
+		if( RecordTTL > TTL )
+		{
+			RecordTTL = TTL;
+		}
+	}
+
+	Node = NULL;
+	while( (Node = DNSCache_FindFromCache(Content, Length, Node, CurrentTime)) != NULL )
+	{
+		Node->TTL = RecordTTL;
+		Node->TimeAdded = CurrentTime;
+	}
+
+	return RecordTTL;
+}
+
+/* Item: StrName\x01IntType\x01IntClass\x00StrAndswer\x0A
+   ht: StrName\x01IntType\x01IntClass, NtcTriplet
+   https://tools.ietf.org/html/rfc1035 */
 static int DNSCache_AddAItemToCache(DnsSimpleParserIterator *i,
                                     time_t CurrentTime,
                                     const CtrlContent *InfectedTtlContent
@@ -385,7 +413,7 @@ static int DNSCache_AddAItemToCache(DnsSimpleParserIterator *i,
 {
 	/* used to store cache data temporarily, TODO: no bounds checking here */
 	char			Buffer[512];
-	char			*HostName = Buffer + 1;
+	char			*Item = Buffer + 1;
 
 	/* Iterator of `Buffer' */
 	char			*BufferItr = Buffer;
@@ -396,7 +424,7 @@ static int DNSCache_AddAItemToCache(DnsSimpleParserIterator *i,
 	Buffer[0] = CACHE_START;
 
 	/* Assign the name of the cache */
-	if( i->GetName(i, HostName, sizeof(Buffer) -1) < 0 )
+	if( i->GetName(i, Item, sizeof(Buffer) -1) < 0 )
 	{
 		return -1;
 	}
@@ -412,7 +440,7 @@ static int DNSCache_AddAItemToCache(DnsSimpleParserIterator *i,
 				break;
 
 			case TTL_CTRL_INFECTION_PASSIVLY:
-				TtlContent = CacheTtlCrtl_Get(TtlCtrl, HostName);
+				TtlContent = CacheTtlCrtl_Get(TtlCtrl, Item);
 				if( TtlContent == NULL )
 				{
 					TtlContent = InfectedTtlContent;
@@ -420,15 +448,15 @@ static int DNSCache_AddAItemToCache(DnsSimpleParserIterator *i,
 				break;
 
 			case TTL_CTRL_INFECTION_NONE:
-				TtlContent = CacheTtlCrtl_Get(TtlCtrl, HostName);
+				TtlContent = CacheTtlCrtl_Get(TtlCtrl, Item);
 				break;
 		}
 	} else {
-		TtlContent = CacheTtlCrtl_Get(TtlCtrl, HostName);
+		TtlContent = CacheTtlCrtl_Get(TtlCtrl, Item);
 	}
 
 	/* Jump just over the name, right at '\0' */
-	BufferItr = HostName + strlen(HostName);
+	BufferItr = Item + strlen(Item);
     if( BufferItr >= Buffer + sizeof(Buffer) )
     {
         return -2;
@@ -476,7 +504,7 @@ static int DNSCache_AddAItemToCache(DnsSimpleParserIterator *i,
 	/* Add the cache item to the main cache zone below */
 
 	/* Determine whether the cache item has existed in the main cache zone */
-	if(DNSCache_FindFromCache(Buffer + 1, BufferItr - Buffer, NULL, CurrentTime) == NULL)
+	if(DNSCache_FindFromCache(Item, BufferItr - Buffer, NULL, CurrentTime) == NULL)
 	{
 		/* If not, add it */
 
@@ -522,13 +550,18 @@ static int DNSCache_AddAItemToCache(DnsSimpleParserIterator *i,
 			/* Copy the cache to this entry */
 			memcpy(MapStart + Node->Offset, Buffer, BufferItr - Buffer + 1);
 
+			if( CacheParallel )
+			{
+				RecordTTL = DNSCache_CacheMinTTL(Item, strlen(Item), RecordTTL, CurrentTime);
+			}
+
 			/* Assign TTL */
 			Node->TTL = RecordTTL;
 
 			Node->TimeAdded = CurrentTime;
 
 			/* Index this entry on the hash table */
-			CacheHT_InsertToSlot(CacheInfo, Buffer + 1, Subscript, Node, NULL);
+			CacheHT_InsertToSlot(CacheInfo, Item, Subscript, Node, NULL);
 
 			++(*CacheCount);
 		} else {
