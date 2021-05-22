@@ -12,10 +12,50 @@ dnsforwarder
 5. 屏蔽指定的域名查询请求（广告屏蔽？）；
 6. 跨平台（Windows、Linux）；
 
-此版本保留了大部分 5 版本的功能，习惯 5 版本的朋友们可以到“5”分支内获取。
-
 ### 安装和部署
  参考 `default.config`。
+
+### 配置逻辑
+**host 匹配顺序：**
+
+1. `DisabledList`, 行数据 < 512 字节。
+2. Hosts {`AppendHosts`（静态） -> hosts 文件（动态）}
+    <br>
+    类型：支持 IPv4、IPv6、`@@`（跳过）、\<name> (`GoodIPList`) 和 CName
+3. DNS 缓存。
+4. (ServerGroup = `GroupFile` + `UDPGroup` + `TCPGroup` + `TLSGroup`) {
+       <br>
+        行数据 < 384 字节；
+       <br>
+        全被转为小写；
+       <br>
+        `#`和`;`后面为注释；
+       <br>
+        相同 domain 时后面的规则生效（**L**ast **I**n **F**irst **M**atch）；
+       <br>
+        `GroupFile` 路径语法： Win: `ExpandEnvironmentStrings`, *nix: `wordexp`。
+       <br>
+    }
+5. 无匹配时选择一组上级 DNS 转发查询。
+
+**DisabledList, GroupFile 的 domain 匹配**：
+1. 无通配符: 全部 || 每一个`.`后面的部分；
+2. 有通配符: Win: `PathMatchSpec(,)`; *nix: `fnmatch(,,)`。
+
+### Log 类型缩写
+
+| Alias | Description   |
+| ----- | ------------- |
+| B     | Bad           |
+| C     | Cache         |
+| H     | Hosts records |
+| INFO  | Information   |
+| R     | Rejected      |
+| S     | Tls           |
+| T     | TCP           |
+| U     | UDP           |
+
+---
 
 ### A simple DNS forwarder
 
@@ -30,6 +70,48 @@ dnsforwarder
 
 ### Installation & Deployment
 Read `default.en.config`.
+
+### Configuring Logic
+**host matching order：**
+
+1. `DisabledList`, line length < 512 chars
+2. Hosts {`AppendHosts` (StaticHosts) -> hosts-files (DynamicHosts)}
+   <br>
+   Types：supports IPv4, IPv6, `@@` (skipping), \<name> (`GoodIPList`) and CName
+3. DNS Cache
+4. (ServerGroup = `GroupFile` + `UDPGroup` + `TCPGroup` + `TLSGroup`) {
+       <br>
+       line length < 384 chars;
+       <br>
+       converted to lower case before testing;
+       <br>
+       `#` or `;` leads comments;
+       <br>
+       for the same domain rules, the last wins (**L**ast **I**n **F**irst **M**atch)；
+       <br>
+       `GroupFile` path syntax:  Win: `ExpandEnvironmentStrings`, *nix: `wordexp`.
+       <br>
+   }
+5. If none matches, forward it to 1 group of upstream DNS.
+
+**Domain Matching for DisabledList, GroupFile:**
+1. No Wild Card: Full || Right part of each `.`;
+2. Wild Card: Win: `PathMatchSpec(,)`; *nix: `fnmatch(,,)`。
+
+### Log Flags
+
+| Alias | Description   |
+| ----- | ------------- |
+| B     | Bad           |
+| C     | Cache         |
+| H     | Hosts records |
+| INFO  | Information   |
+| R     | Rejected      |
+| S     | Tls           |
+| T     | TCP           |
+| U     | UDP           |
+
+---
 
 ### License :
 GPL v3
