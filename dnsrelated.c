@@ -3,47 +3,48 @@
 
 /* http://en.wikipedia.org/wiki/List_of_DNS_record_types */
 const DNSTypeAndName DNSTypeList[] = {
+	{0,		NULL},
 	{1,		"IPv4 Address"},
+	{2,		"Name Server"},
 	{5,		"Canonical Name"},
-	{28,	"IPv6 Address"},
 	{6,		"start of authority"},
 	{12,	"Domain pointer"},
-	{2,		"Name Server"},
+	{13,	"Host Information"},
 	{15,	"MX"},
 	{16,	"TXT"},
-	{41,	"OPT"},
-	{255,	"*"},
-
+	{17,	"RP"},
 	{18,	"AFSDB"},
-	{42,	"APL"},
-	{37,	"CERT"},
-	{49,	"DHCID"},
-	{32769,	"DLV"},
-	{39,	"DNAME"},
-	{48,	"DNSKEY"},
-	{43,	"DS"},
-	{55,	"HIP"},
-	{45,	"IPSECKEY"},
+	{24,	"SIG"},
 	{25,	"KEY"},
-	{36,	"KX"},
+	{28,	"IPv6 Address"},
 	{29,	"LOC"},
+	{33,	"SRV"},
 	{35,	"NAPTR"},
+	{36,	"KX"},
+	{37,	"CERT"},
+	{39,	"DNAME"},
+	{41,	"OPT"},
+	{42,	"APL"},
+	{43,	"DS"},
+	{44,	"SSHFP"},
+	{45,	"IPSECKEY"},
+	{46,	"RRSIG"},
 	{47,	"NSEC"},
+	{48,	"DNSKEY"},
+	{49,	"DHCID"},
 	{50,	"NSEC3"},
 	{51,	"NSEC3PARAM"},
-	{46,	"RRSIG"},
-	{17,	"RP"},
-	{24,	"SIG"},
+	{55,	"HIP"},
+	{64,	"SVCB"},
+	{65,	"HTTPS"},
 	{99,	"SPF"},
-	{33,	"SRV"},
-	{44,	"SSHFP"},
-	{32768,	"TA"},
 	{249,	"TKEY"},
 	{250,	"TSIG"},
-	{252,	"AXFR"},
 	{251,	"IXFR"},
-	{13,	"Host Information"},
-	{0,		NULL}
+	{252,	"AXFR"},
+	{255,	"*"},
+	{32768,	"TA"},
+	{32769,	"DLV"}
 };
 
 /* http://www.iana.org/assignments/dns-sec-alg-numbers/dns-sec-alg-numbers.xhtml */
@@ -74,7 +75,7 @@ const char *DNSGetTypeName(uint16_t Num)
 {
 	int loop;
 
-	for(loop = 0; loop != sizeof(DNSTypeList) / sizeof(DNSTypeAndName); ++loop)
+	for(loop = 0; loop < sizeof(DNSTypeList) / sizeof(DNSTypeAndName); ++loop)
 	{
 		if( DNSTypeList[loop].Num == Num )
 		{
