@@ -375,7 +375,6 @@ PUBFUNC int TcpM_Send(TcpM *m,
 static int TcpM_Cleanup(TcpM *m)
 {
     m->IsServer = 0;
-    m->Context.d.Free(&(m->Context.d)); // <--!
     m->Context.Swep(&(m->Context), (SwepCallback)SweepWorks, m);
     AddressList_Free(&(m->ServiceList));
     AddressList_Free(&(m->SocksProxyList));

@@ -54,7 +54,7 @@ static void UdpFrontend_Work(void *Unused)
         if( sock == INVALID_SOCKET )
         {
             ERRORMSG("Fatal error 57.\n");
-            return;
+            break;
         }
 
         AddrLen = sizeof(Address_Type);
@@ -98,6 +98,7 @@ static void UdpFrontend_Work(void *Unused)
 
         MMgr_Send(Header, BUF_LENGTH);
     }
+    SafeFree(ReceiveBuffer);
 }
 
 void UdpFrontend_StartWork(void)

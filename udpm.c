@@ -44,7 +44,6 @@ static int UdpM_Swep_Thread(UdpM *m)
 static int UdpM_Cleanup(UdpM *m)
 {
     m->IsServer = 0;
-    m->Context.d.Free(&(m->Context.d)); // <--!
     SwepTask(m, (SwepCallback)SweepWorks);
     AddressList_Free(&(m->AddrList));
     CLOSE_SOCKET(m->Departure);
