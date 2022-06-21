@@ -19,7 +19,7 @@ static int IPMisc_AddSubstituteFromString(IPMisc *m,
 {
     if( strchr(Ip, ':') != NULL )
     {   /* IPv6 */
-        char	IpSubstituter[16];
+        char    IpSubstituter[16];
 
         IPv6AddressToNum(Substituter, IpSubstituter);
 
@@ -31,7 +31,7 @@ static int IPMisc_AddSubstituteFromString(IPMisc *m,
                                       );
     } else {
         /* IPv4 */
-        char	IpSubstituter[4];
+        char    IpSubstituter[4];
 
         IPv4AddressToNum(Substituter, IpSubstituter);
 

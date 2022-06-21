@@ -9,9 +9,9 @@
 
 int ConfigInitInfo(ConfigFileInfo *Info)
 {
-	Info->fp = NULL;
+    Info->fp = NULL;
 
-	if( StringList_Init(&(Info->StrBuffer), NULL, NULL) != 0 )
+    if( StringList_Init(&(Info->StrBuffer), NULL, NULL) != 0 )
     {
         return -14;
     }
@@ -21,21 +21,21 @@ int ConfigInitInfo(ConfigFileInfo *Info)
         return -19;
     }
 
-	return 0;
+    return 0;
 }
 
 int ConfigOpenFile(ConfigFileInfo *Info, const char *File)
 {
-	Info->fp = fopen(File, "r");
-	if( Info->fp == NULL )
-		return -56;
-	else
-		return 0;
+    Info->fp = fopen(File, "r");
+    if( Info->fp == NULL )
+        return -56;
+    else
+        return 0;
 }
 
 int ConfigCloseFile(ConfigFileInfo *Info)
 {
-	return fclose(Info->fp);
+    return fclose(Info->fp);
 }
 
 int ConfigAddOption(ConfigFileInfo *Info,
@@ -45,42 +45,42 @@ int ConfigAddOption(ConfigFileInfo *Info,
                     VType Initial
                     )
 {
-	ConfigOption New;
+    ConfigOption New;
 
-	New.Type = Type;
-	New.Status = STATUS_DEFAULT_VALUE;
-	New.Strategy = Strategy;
+    New.Type = Type;
+    New.Status = STATUS_DEFAULT_VALUE;
+    New.Strategy = Strategy;
 
-	switch( Type )
-	{
-		case TYPE_INT32:
-			New.Holder.INT32 = Initial.INT32;
-			break;
+    switch( Type )
+    {
+        case TYPE_INT32:
+            New.Holder.INT32 = Initial.INT32;
+            break;
 
-		case TYPE_BOOLEAN:
-			New.Holder.boolean = Initial.boolean;
-			break;
+        case TYPE_BOOLEAN:
+            New.Holder.boolean = Initial.boolean;
+            break;
 
-		case TYPE_PATH:
-		case TYPE_STRING:
-			if( StringList_Init(&(New.Holder.str), Initial.str, ",") != 0 )
-			{
-				return 2;
-			}
+        case TYPE_PATH:
+        case TYPE_STRING:
+            if( StringList_Init(&(New.Holder.str), Initial.str, ",") != 0 )
+            {
+                return 2;
+            }
 
-			New.Delimiters = ",";
+            New.Delimiters = ",";
             if( New.Delimiters == NULL )
             {
                 return -68;
             }
 
-			break;
+            break;
 
-		default:
-			break;
-	}
+        default:
+            break;
+    }
 
-	return StringChunk_Add(&(Info->Options), KeyName, (const char *)&New, sizeof(ConfigOption));
+    return StringChunk_Add(&(Info->Options), KeyName, (const char *)&New, sizeof(ConfigOption));
 }
 
 int ConfigAddAlias(ConfigFileInfo *Info,
@@ -90,27 +90,27 @@ int ConfigAddAlias(ConfigFileInfo *Info,
                    const char *StringDelimiters
                    )
 {
-	ConfigOption New;
+    ConfigOption New;
 
-	New.Type = TYPE_ALIAS;
+    New.Type = TYPE_ALIAS;
 
-	New.Holder.Aliasing.Target = DUP_STRING(Info, Target);
+    New.Holder.Aliasing.Target = DUP_STRING(Info, Target);
 
-	if( Prepending != NULL )
+    if( Prepending != NULL )
     {
         New.Holder.Aliasing.Prepending = DUP_STRING(Info, Prepending);
     } else {
         New.Holder.Aliasing.Prepending = NULL;
     }
 
-	if( StringDelimiters != NULL )
+    if( StringDelimiters != NULL )
     {
         New.Delimiters = DUP_STRING(Info, StringDelimiters);
     } else {
         New.Delimiters = NULL;
     }
 
-	return StringChunk_Add(&(Info->Options),
+    return StringChunk_Add(&(Info->Options),
                            Alias,
                            (const char *)&New,
                            sizeof(ConfigOption)
@@ -124,13 +124,13 @@ static ConfigOption *GetOptionOfAInfo(ConfigFileInfo *Info,
                                       const char **StringDelimiters
                                       )
 {
-	ConfigOption *Option;
+    ConfigOption *Option;
 
-	if( StringChunk_Match_NoWildCard(&(Info->Options), KeyName, NULL, (void **)&Option) == TRUE )
-	{
-		if( Option->Type == TYPE_ALIAS )
-		{
-		    if( Prepending != NULL )
+    if( StringChunk_Match_NoWildCard(&(Info->Options), KeyName, NULL, (void **)&Option) == TRUE )
+    {
+        if( Option->Type == TYPE_ALIAS )
+        {
+            if( Prepending != NULL )
             {
                 *Prepending = Option->Holder.Aliasing.Prepending;
             }
@@ -140,17 +140,17 @@ static ConfigOption *GetOptionOfAInfo(ConfigFileInfo *Info,
                 *StringDelimiters = Option->Delimiters;
             }
 
-			return GetOptionOfAInfo(Info,
+            return GetOptionOfAInfo(Info,
                                     Option->Holder.Aliasing.Target,
                                     Prepending,
                                     StringDelimiters
                                     );
-		} else {
-			return Option;
-		}
-	} else {
-		return NULL;
-	}
+        } else {
+            return Option;
+        }
+    } else {
+        return NULL;
+    }
 }
 
 int ConfigSetStringDelimiters(ConfigFileInfo *Info,
@@ -182,101 +182,101 @@ int ConfigSetStringDelimiters(ConfigFileInfo *Info,
 
 static BOOL GetBooleanValueFromString(const char *str)
 {
-	if( isdigit(*str) )
-	{
-		if( *str == '0' )
-			return FALSE;
-		else
-			return TRUE;
-	} else {
-	    char Dump[8];
+    if( isdigit(*str) )
+    {
+        if( *str == '0' )
+            return FALSE;
+        else
+            return TRUE;
+    } else {
+        char Dump[8];
 
-	    strncpy(Dump, str, sizeof(Dump));
-	    Dump[sizeof(Dump) - 1] = '\0';
+        strncpy(Dump, str, sizeof(Dump));
+        Dump[sizeof(Dump) - 1] = '\0';
 
-		StrToLower(Dump);
+        StrToLower(Dump);
 
-		if( strstr(Dump, "false") != NULL )
-			return FALSE;
-		else if( strstr(Dump, "true") != NULL )
-			return TRUE;
+        if( strstr(Dump, "false") != NULL )
+            return FALSE;
+        else if( strstr(Dump, "true") != NULL )
+            return TRUE;
 
-		if( strstr(Dump, "no") != NULL )
-			return FALSE;
-		else if( strstr(Dump, "yes") != NULL )
-			return TRUE;
-	}
+        if( strstr(Dump, "no") != NULL )
+            return FALSE;
+        else if( strstr(Dump, "yes") != NULL )
+            return TRUE;
+    }
 
-	return FALSE;
+    return FALSE;
 }
 
 static void ParseBoolean(ConfigOption *Option, const char *Value)
 {
-	switch (Option->Strategy)
-	{
-		case STRATEGY_APPEND_DISCARD_DEFAULT:
-			if( Option->Status == STATUS_DEFAULT_VALUE )
-			{
-				Option->Strategy = STRATEGY_APPEND;
-			}
-			/* No break */
+    switch (Option->Strategy)
+    {
+        case STRATEGY_APPEND_DISCARD_DEFAULT:
+            if( Option->Status == STATUS_DEFAULT_VALUE )
+            {
+                Option->Strategy = STRATEGY_APPEND;
+            }
+            /* No break */
 
-		case STRATEGY_DEFAULT:
-		case STRATEGY_REPLACE:
+        case STRATEGY_DEFAULT:
+        case STRATEGY_REPLACE:
 
-			Option->Holder.boolean = GetBooleanValueFromString(Value);
+            Option->Holder.boolean = GetBooleanValueFromString(Value);
 
-			Option->Status = STATUS_SPECIAL_VALUE;
-			break;
+            Option->Status = STATUS_SPECIAL_VALUE;
+            break;
 
-		case STRATEGY_APPEND:
-			{
-				BOOL SpecifiedValue;
+        case STRATEGY_APPEND:
+            {
+                BOOL SpecifiedValue;
 
-				SpecifiedValue = GetBooleanValueFromString(Value);
-				Option->Holder.boolean |= SpecifiedValue;
+                SpecifiedValue = GetBooleanValueFromString(Value);
+                Option->Holder.boolean |= SpecifiedValue;
 
-				Option->Status = STATUS_SPECIAL_VALUE;
-			}
-			break;
+                Option->Status = STATUS_SPECIAL_VALUE;
+            }
+            break;
 
-		default:
-			break;
+        default:
+            break;
 
-	}
+    }
 }
 
 static void ParseInt32(ConfigOption *Option, const char *Value)
 {
-	switch (Option->Strategy)
-	{
-		case STRATEGY_APPEND_DISCARD_DEFAULT:
-			if( Option->Status == STATUS_DEFAULT_VALUE )
-			{
-				Option->Strategy = STRATEGY_APPEND;
-			}
-			/* No break */
+    switch (Option->Strategy)
+    {
+        case STRATEGY_APPEND_DISCARD_DEFAULT:
+            if( Option->Status == STATUS_DEFAULT_VALUE )
+            {
+                Option->Strategy = STRATEGY_APPEND;
+            }
+            /* No break */
 
-		case STRATEGY_DEFAULT:
-		case STRATEGY_REPLACE:
-			sscanf(Value, "%d", &(Option->Holder.INT32));
-			Option->Status = STATUS_SPECIAL_VALUE;
-			break;
+        case STRATEGY_DEFAULT:
+        case STRATEGY_REPLACE:
+            sscanf(Value, "%d", &(Option->Holder.INT32));
+            Option->Status = STATUS_SPECIAL_VALUE;
+            break;
 
-		case STRATEGY_APPEND:
-			{
-				int32_t SpecifiedValue;
+        case STRATEGY_APPEND:
+            {
+                int32_t SpecifiedValue;
 
-				sscanf(Value, "%d", &SpecifiedValue);
-				Option->Holder.INT32 += SpecifiedValue;
+                sscanf(Value, "%d", &SpecifiedValue);
+                Option->Holder.INT32 += SpecifiedValue;
 
-				Option->Status = STATUS_SPECIAL_VALUE;
-			}
-			break;
+                Option->Status = STATUS_SPECIAL_VALUE;
+            }
+            break;
 
-		default:
-			break;
-	}
+        default:
+            break;
+    }
 }
 
 static void ParseString(ConfigOption *Option,
@@ -289,47 +289,47 @@ static void ParseString(ConfigOption *Option,
                         int BufferLength
                         )
 {
-	switch( Option->Strategy )
-	{
-		case STRATEGY_APPEND_DISCARD_DEFAULT:
-			if( Option->Status == STATUS_DEFAULT_VALUE )
-			{
-				Option->Strategy = STRATEGY_APPEND;
-			}
-			/* No break */
+    switch( Option->Strategy )
+    {
+        case STRATEGY_APPEND_DISCARD_DEFAULT:
+            if( Option->Status == STATUS_DEFAULT_VALUE )
+            {
+                Option->Strategy = STRATEGY_APPEND;
+            }
+            /* No break */
 
-		case STRATEGY_DEFAULT:
-		case STRATEGY_REPLACE:
-			Option->Holder.str.Clear(&(Option->Holder.str));
-			/* No break */
+        case STRATEGY_DEFAULT:
+        case STRATEGY_REPLACE:
+            Option->Holder.str.Clear(&(Option->Holder.str));
+            /* No break */
 
-		case STRATEGY_APPEND:
-			if( Option->Holder.str.Add(&(Option->Holder.str),
+        case STRATEGY_APPEND:
+            if( Option->Holder.str.Add(&(Option->Holder.str),
                                        Value,
                                        Delimiters
                                        )
                 == NULL )
-			{
-				return;
-			}
-			Option->Status = STATUS_SPECIAL_VALUE;
-			break;
+            {
+                return;
+            }
+            Option->Status = STATUS_SPECIAL_VALUE;
+            break;
 
-		default:
-			return;
-			break;
-	}
+        default:
+            return;
+            break;
+    }
 
-	while( ReadStatus != READ_DONE ){
+    while( ReadStatus != READ_DONE ){
 
-		ReadStatus = ReadLine(fp, Buffer, BufferLength);
-		if( ReadStatus == READ_FAILED_OR_END )
-			break;
+        ReadStatus = ReadLine(fp, Buffer, BufferLength);
+        if( ReadStatus == READ_FAILED_OR_END )
+            break;
 
-		Option->Holder.str.AppendLast(&(Option->Holder.str), Buffer, Delimiters);
-	}
+        Option->Holder.str.AppendLast(&(Option->Holder.str), Buffer, Delimiters);
+    }
 
-	if( Trim )
+    if( Trim )
     {
         Option->Holder.str.TrimAll(&(Option->Holder.str), NULL);
     }
@@ -337,60 +337,60 @@ static void ParseString(ConfigOption *Option,
 
 static char *TrimPath(char *Path)
 {
-	char *LastCharacter = StrRNpbrk(Path, "\"");
-	char *FirstLetter;
+    char *LastCharacter = StrRNpbrk(Path, "\"");
+    char *FirstLetter;
 
-	if( LastCharacter != NULL )
-	{
-		*(LastCharacter + 1) = '\0';
+    if( LastCharacter != NULL )
+    {
+        *(LastCharacter + 1) = '\0';
 
-		FirstLetter = StrNpbrk(Path, "\"\t ");
-		if( FirstLetter != NULL )
-		{
-			memmove(Path, FirstLetter, strlen(FirstLetter) + 1);
-			return Path;
-		} else {
-			return NULL;
-		}
-	} else {
-		return NULL;
-	}
+        FirstLetter = StrNpbrk(Path, "\"\t ");
+        if( FirstLetter != NULL )
+        {
+            memmove(Path, FirstLetter, strlen(FirstLetter) + 1);
+            return Path;
+        } else {
+            return NULL;
+        }
+    } else {
+        return NULL;
+    }
 }
 
 int ConfigRead(ConfigFileInfo *Info)
 {
-	int				NumOfRead	=	0;
+    int             NumOfRead   =   0;
 
-	char			Buffer[2048];
-	char			*ValuePos;
-	ReadLineStatus	ReadStatus;
+    char            Buffer[2048];
+    char            *ValuePos;
+    ReadLineStatus  ReadStatus;
 
-	char			*KeyName;
-	ConfigOption	*Option;
+    char            *KeyName;
+    ConfigOption    *Option;
 
-	const char      *Prepending;
-	const char      *StringDelimiters;
+    const char      *Prepending;
+    const char      *StringDelimiters;
 
-	while(TRUE){
-		ReadStatus = ReadLine(Info->fp, Buffer, sizeof(Buffer));
-		if( ReadStatus == READ_FAILED_OR_END )
-			return NumOfRead;
+    while(TRUE){
+        ReadStatus = ReadLine(Info->fp, Buffer, sizeof(Buffer));
+        if( ReadStatus == READ_FAILED_OR_END )
+            return NumOfRead;
 
-		ValuePos = SplitNameAndValue(Buffer, " \t=");
-		if( ValuePos == NULL )
-			continue;
+        ValuePos = SplitNameAndValue(Buffer, " \t=");
+        if( ValuePos == NULL )
+            continue;
 
-		KeyName = Buffer;
+        KeyName = Buffer;
 
-		Prepending = NULL;
-		StringDelimiters = NULL;
-		Option = GetOptionOfAInfo(Info,
+        Prepending = NULL;
+        StringDelimiters = NULL;
+        Option = GetOptionOfAInfo(Info,
                                   KeyName,
                                   &Prepending,
                                   &StringDelimiters
                                   );
 
-		if( Option == NULL )
+        if( Option == NULL )
         {
             continue;
         }
@@ -429,33 +429,33 @@ int ConfigRead(ConfigFileInfo *Info)
             }
         }
 
-		switch( Option->Type )
-		{
-			case TYPE_INT32:
-				ParseInt32(Option, ValuePos);
-				break;
+        switch( Option->Type )
+        {
+            case TYPE_INT32:
+                ParseInt32(Option, ValuePos);
+                break;
 
-			case TYPE_BOOLEAN:
-				ParseBoolean(Option, ValuePos);
-				break;
+            case TYPE_BOOLEAN:
+                ParseBoolean(Option, ValuePos);
+                break;
 
-			case TYPE_PATH:
+            case TYPE_PATH:
                 if( ReadStatus != READ_DONE )
                 {
-					break;
+                    break;
                 }
 
                 if( TrimPath(ValuePos) == NULL )
                 {
-					break;
-				}
+                    break;
+                }
 
-				ExpandPath(ValuePos, sizeof(Buffer) - (ValuePos - Buffer));
-				StringDelimiters = "";
-				/* No break */
+                ExpandPath(ValuePos, sizeof(Buffer) - (ValuePos - Buffer));
+                StringDelimiters = "";
+                /* No break */
 
-			case TYPE_STRING:
-				ParseString(Option,
+            case TYPE_STRING:
+                ParseString(Option,
                             StringDelimiters == NULL ?
                                 Option->Delimiters : StringDelimiters,
                             ValuePos,
@@ -465,24 +465,24 @@ int ConfigRead(ConfigFileInfo *Info)
                             Buffer,
                             sizeof(Buffer)
                             );
-				break;
+                break;
 
-			default:
-				break;
-		}
-		++NumOfRead;
-	}
+            default:
+                break;
+        }
+        ++NumOfRead;
+    }
 
-	return NumOfRead;
+    return NumOfRead;
 }
 
 const char *ConfigGetRawString(ConfigFileInfo *Info, char *KeyName)
 {
-	ConfigOption *Option = GetOptionOfAInfo(Info, KeyName, NULL, NULL);
+    ConfigOption *Option = GetOptionOfAInfo(Info, KeyName, NULL, NULL);
 
-	if( Option != NULL )
-	{
-		StringListIterator  sli;
+    if( Option != NULL )
+    {
+        StringListIterator  sli;
 
         if( StringListIterator_Init(&sli, &(Option->Holder.str)) != 0 )
         {
@@ -490,93 +490,93 @@ const char *ConfigGetRawString(ConfigFileInfo *Info, char *KeyName)
         }
 
         return sli.Next(&sli);
-	} else {
-	    return NULL;
-	}
+    } else {
+        return NULL;
+    }
 }
 
 StringList *ConfigGetStringList(ConfigFileInfo *Info, char *KeyName)
 {
-	ConfigOption *Option = GetOptionOfAInfo(Info, KeyName, NULL, NULL);
+    ConfigOption *Option = GetOptionOfAInfo(Info, KeyName, NULL, NULL);
 
-	if( Option != NULL )
-	{
-		if( Option->Holder.str.Count(&(Option->Holder.str)) == 0 )
-		{
-			return NULL;
-		} else {
-			return &(Option->Holder.str);
-		}
-	} else {
-		return NULL;
-	}
+    if( Option != NULL )
+    {
+        if( Option->Holder.str.Count(&(Option->Holder.str)) == 0 )
+        {
+            return NULL;
+        } else {
+            return &(Option->Holder.str);
+        }
+    } else {
+        return NULL;
+    }
 }
 
 int32_t ConfigGetNumberOfStrings(ConfigFileInfo *Info, char *KeyName)
 {
-	ConfigOption *Option = GetOptionOfAInfo(Info, KeyName, NULL, NULL);
+    ConfigOption *Option = GetOptionOfAInfo(Info, KeyName, NULL, NULL);
 
-	if( Option != NULL )
-	{
-		return Option->Holder.str.Count(&(Option->Holder.str));
-	} else {
-		return 0;
-	}
+    if( Option != NULL )
+    {
+        return Option->Holder.str.Count(&(Option->Holder.str));
+    } else {
+        return 0;
+    }
 }
 
 int32_t ConfigGetInt32(ConfigFileInfo *Info, char *KeyName)
 {
-	ConfigOption *Option = GetOptionOfAInfo(Info, KeyName, NULL, NULL);
+    ConfigOption *Option = GetOptionOfAInfo(Info, KeyName, NULL, NULL);
 
-	if( Option != NULL )
-	{
-		return Option->Holder.INT32;
-	} else {
-		return 0;
-	}
+    if( Option != NULL )
+    {
+        return Option->Holder.INT32;
+    } else {
+        return 0;
+    }
 }
 
 BOOL ConfigGetBoolean(ConfigFileInfo *Info, char *KeyName)
 {
-	ConfigOption *Option = GetOptionOfAInfo(Info, KeyName, NULL, NULL);
+    ConfigOption *Option = GetOptionOfAInfo(Info, KeyName, NULL, NULL);
 
-	if( Option != NULL )
-	{
-		return Option->Holder.boolean;
-	} else {
-		return FALSE;
-	}
+    if( Option != NULL )
+    {
+        return Option->Holder.boolean;
+    } else {
+        return FALSE;
+    }
 }
 
 /* Won't change the Option's status */
 void ConfigSetDefaultValue(ConfigFileInfo *Info, VType Value, char *KeyName)
 {
-	ConfigOption *Option = GetOptionOfAInfo(Info, KeyName, NULL, NULL);
+    ConfigOption *Option = GetOptionOfAInfo(Info, KeyName, NULL, NULL);
 
-	if( Option != NULL )
-	{
-		switch( Option->Type )
-		{
-			case TYPE_INT32:
-				Option->Holder.INT32 = Value.INT32;
-				break;
+    if( Option != NULL )
+    {
+        switch( Option->Type )
+        {
+            case TYPE_INT32:
+                Option->Holder.INT32 = Value.INT32;
+                break;
 
-			case TYPE_BOOLEAN:
-				Option->Holder.boolean = Value.boolean;
-				break;
+            case TYPE_BOOLEAN:
+                Option->Holder.boolean = Value.boolean;
+                break;
 
-			case TYPE_STRING:
-				Option->Holder.str.Clear(&(Option->Holder.str));
-				Option->Holder.str.Add(&(Option->Holder.str),
+            case TYPE_STRING:
+                Option->Holder.str.Clear(&(Option->Holder.str));
+                Option->Holder.str.Add(&(Option->Holder.str),
                                        Value.str,
                                        Option->Delimiters
                                        );
-				break;
+                break;
 
-			default:
-				break;
-		}
-	}
+            default:
+                break;
+        }
+    }
 }
 
 void ConfigFree(ConfigFileInfo *Info)

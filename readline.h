@@ -5,9 +5,9 @@
 
 typedef enum _ReadLineStatus
 {
-	READ_FAILED_OR_END	=	-1,
-	READ_DONE	=	0,
-	READ_TRUNCATED,
+    READ_FAILED_OR_END  =   -1,
+    READ_DONE   =   0,
+    READ_TRUNCATED,
 } ReadLineStatus;
 
 ReadLineStatus ReadLine(FILE *fp, char *Buffer, int BufferSize);

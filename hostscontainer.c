@@ -13,68 +13,68 @@ struct _TableNode{
 
 PRIFUNC HostsRecordType HostsContainer_DetermineType(const char *IPOrCName)
 {
-	if( IPOrCName == NULL )
-	{
-		return HOSTS_TYPE_UNKNOWN;
-	}
+    if( IPOrCName == NULL )
+    {
+        return HOSTS_TYPE_UNKNOWN;
+    }
 
-	/* Good IP List */
-	if( *IPOrCName == '<' && IPOrCName[strlen(IPOrCName) - 1] == '>' )
-	{
-		return HOSTS_TYPE_GOOD_IP_LIST;
-	}
+    /* Good IP List */
+    if( *IPOrCName == '<' && IPOrCName[strlen(IPOrCName) - 1] == '>' )
+    {
+        return HOSTS_TYPE_GOOD_IP_LIST;
+    }
 
-	/* A host IPOrCName started with "@@ " is excluded */
-	if( *IPOrCName == '@' && *(IPOrCName + 1) == '@' )
-	{
-		return HOSTS_TYPE_EXCLUEDE;
-	}
+    /* A host IPOrCName started with "@@ " is excluded */
+    if( *IPOrCName == '@' && *(IPOrCName + 1) == '@' )
+    {
+        return HOSTS_TYPE_EXCLUEDE;
+    }
 
-	if( isxdigit(*IPOrCName) )
-	{
-		const char *Itr;
-		/* Check if it is IPv6 */
-		if( strchr(IPOrCName, ':') != NULL )
-		{
-			return HOSTS_TYPE_AAAA;
-		}
+    if( isxdigit(*IPOrCName) )
+    {
+        const char *Itr;
+        /* Check if it is IPv6 */
+        if( strchr(IPOrCName, ':') != NULL )
+        {
+            return HOSTS_TYPE_AAAA;
+        }
 
-		/* Check if it is CNAME */
-		for(Itr = IPOrCName; *Itr != '\0'; ++Itr)
-		{
-			if( isalpha(*Itr) || *Itr == '-' )
-			{
-				return HOSTS_TYPE_CNAME;
-			}
-		}
+        /* Check if it is CNAME */
+        for(Itr = IPOrCName; *Itr != '\0'; ++Itr)
+        {
+            if( isalpha(*Itr) || *Itr == '-' )
+            {
+                return HOSTS_TYPE_CNAME;
+            }
+        }
 
-		for(Itr = IPOrCName; *Itr != '\0'; ++Itr)
-		{
-			if( isdigit(*Itr) || *Itr == '.' )
-			{
-				return HOSTS_TYPE_A;
-			}
-		}
+        for(Itr = IPOrCName; *Itr != '\0'; ++Itr)
+        {
+            if( isdigit(*Itr) || *Itr == '.' )
+            {
+                return HOSTS_TYPE_A;
+            }
+        }
 
-		return HOSTS_TYPE_UNKNOWN;
+        return HOSTS_TYPE_UNKNOWN;
 
-	} else {
+    } else {
 
-		if( *IPOrCName == ':' )
-		{
-			return HOSTS_TYPE_AAAA;
-		}
+        if( *IPOrCName == ':' )
+        {
+            return HOSTS_TYPE_AAAA;
+        }
 
-		for(; *IPOrCName != '\0'; ++IPOrCName)
-		{
-			if( !isalnum(*IPOrCName) && *IPOrCName != '-' && *IPOrCName != '.' )
-			{
-				return HOSTS_TYPE_UNKNOWN;
-			}
-		}
+        for(; *IPOrCName != '\0'; ++IPOrCName)
+        {
+            if( !isalnum(*IPOrCName) && *IPOrCName != '-' && *IPOrCName != '.' )
+            {
+                return HOSTS_TYPE_UNKNOWN;
+            }
+        }
 
-		return HOSTS_TYPE_CNAME;
-	}
+        return HOSTS_TYPE_CNAME;
+    }
 }
 
 /*
@@ -95,15 +95,15 @@ PUBFUNC const void *HostsContainer_Find(HostsContainer  *Container,
 {
     int Number = 1;
 
-	const TableNode **Matched = NULL;
-	const TableNode *IP = NULL;
+    const TableNode **Matched = NULL;
+    const TableNode *IP = NULL;
 
-	if( !StringChunk_Match(&(Container->Mappings), Name, NULL, (void **)&Matched) )
-	{
+    if( !StringChunk_Match(&(Container->Mappings), Name, NULL, (void **)&Matched) )
+    {
         return NULL;
-	}
+    }
 
-	if( Matched != NULL )
+    if( Matched != NULL )
     {
         IP = *Matched;
     }
@@ -148,15 +148,15 @@ PRIFUNC const void *HostsContainer_FindExist(HostsContainer  *Container,
                                             const char      *Name
                                             )
 {
-	const TableNode **Matched = NULL;
-	const TableNode *IP = NULL;
+    const TableNode **Matched = NULL;
+    const TableNode *IP = NULL;
 
-	if( !StringChunk_Match_Exacly(&(Container->Mappings), Name, NULL, (void **)&Matched) )
-	{
+    if( !StringChunk_Match_Exacly(&(Container->Mappings), Name, NULL, (void **)&Matched) )
+    {
         return NULL;
-	}
+    }
 
-	if( Matched != NULL )
+    if( Matched != NULL )
     {
         IP = *Matched;
     }
@@ -241,9 +241,9 @@ PRIFUNC int HostsContainer_AddIPV6(HostsContainer   *Container,
                                    const char       *Domain
                                    )
 {
-	char		NumericIP[16];
+    char        NumericIP[16];
 
-	IPv6AddressToNum(IPOrCName, NumericIP);
+    IPv6AddressToNum(IPOrCName, NumericIP);
 
     return HostsContainer_AddNode(Container,
                                   Domain,
@@ -258,9 +258,9 @@ PRIFUNC int HostsContainer_AddIPV4(HostsContainer *Container,
                                    const char *Domain
                                    )
 {
-	char		NumericIP[4];
+    char        NumericIP[4];
 
-	IPv4AddressToNum(IPOrCName, NumericIP);
+    IPv4AddressToNum(IPOrCName, NumericIP);
 
     return HostsContainer_AddNode(Container,
                                   Domain,
@@ -288,7 +288,7 @@ PRIFUNC int HostsContainer_AddGoodIpList(HostsContainer *Container,
                                          const char *Domain
                                          )
 {
-	char            Trimed[128];
+    char            Trimed[128];
 
     sscanf(ListName, "<%127[^>]", Trimed);
 
@@ -317,102 +317,102 @@ PRIFUNC HostsRecordType HostsContainer_Add(HostsContainer *Container,
                                            const char *Domain
                                            )
 {
-	switch( HostsContainer_DetermineType(IPOrCName) )
-	{
-		case HOSTS_TYPE_AAAA:
-			if( HostsContainer_AddIPV6(Container, IPOrCName, Domain) != 0)
-			{
-				return HOSTS_TYPE_UNKNOWN;
-			} else {
-				return HOSTS_TYPE_AAAA;
-			}
-			break;
+    switch( HostsContainer_DetermineType(IPOrCName) )
+    {
+        case HOSTS_TYPE_AAAA:
+            if( HostsContainer_AddIPV6(Container, IPOrCName, Domain) != 0)
+            {
+                return HOSTS_TYPE_UNKNOWN;
+            } else {
+                return HOSTS_TYPE_AAAA;
+            }
+            break;
 
-		case HOSTS_TYPE_A:
-			if( HostsContainer_AddIPV4(Container, IPOrCName, Domain) != 0 )
-			{
-				return HOSTS_TYPE_UNKNOWN;
-			} else {
-				return HOSTS_TYPE_A;
-			}
-			break;
+        case HOSTS_TYPE_A:
+            if( HostsContainer_AddIPV4(Container, IPOrCName, Domain) != 0 )
+            {
+                return HOSTS_TYPE_UNKNOWN;
+            } else {
+                return HOSTS_TYPE_A;
+            }
+            break;
 
-		case HOSTS_TYPE_CNAME:
-			if( HostsContainer_AddCName(Container, IPOrCName, Domain) != 0 )
-			{
-				return HOSTS_TYPE_UNKNOWN;
-			} else {
-				return HOSTS_TYPE_CNAME;
-			}
-			break;
+        case HOSTS_TYPE_CNAME:
+            if( HostsContainer_AddCName(Container, IPOrCName, Domain) != 0 )
+            {
+                return HOSTS_TYPE_UNKNOWN;
+            } else {
+                return HOSTS_TYPE_CNAME;
+            }
+            break;
 
-		case HOSTS_TYPE_EXCLUEDE:
-			if( HostsContainer_AddExcluded(Container, Domain) != 0 )
-			{
-				return HOSTS_TYPE_UNKNOWN;
-			} else {
-				return HOSTS_TYPE_EXCLUEDE;
-			}
-			break;
+        case HOSTS_TYPE_EXCLUEDE:
+            if( HostsContainer_AddExcluded(Container, Domain) != 0 )
+            {
+                return HOSTS_TYPE_UNKNOWN;
+            } else {
+                return HOSTS_TYPE_EXCLUEDE;
+            }
+            break;
 
-		case HOSTS_TYPE_GOOD_IP_LIST:
-			if( HostsContainer_AddGoodIpList(Container, IPOrCName, Domain) != 0 )
-			{
-				return HOSTS_TYPE_UNKNOWN;
-			} else {
-				return HOSTS_TYPE_GOOD_IP_LIST;
-			}
-			break;
+        case HOSTS_TYPE_GOOD_IP_LIST:
+            if( HostsContainer_AddGoodIpList(Container, IPOrCName, Domain) != 0 )
+            {
+                return HOSTS_TYPE_UNKNOWN;
+            } else {
+                return HOSTS_TYPE_GOOD_IP_LIST;
+            }
+            break;
 
-		default:
-			INFO("Unrecognisable host : %s %s\n", IPOrCName, Domain);
-			return HOSTS_TYPE_UNKNOWN;
-			break;
-	}
+        default:
+            INFO("Unrecognisable host : %s %s\n", IPOrCName, Domain);
+            return HOSTS_TYPE_UNKNOWN;
+            break;
+    }
 }
 
 PUBFUNC HostsRecordType HostsContainer_Load(HostsContainer *Container,
                                             const char *MetaLine
                                             )
 {
-	char IPOrCName[DOMAIN_NAME_LENGTH_MAX + 1];
-	char Domain[DOMAIN_NAME_LENGTH_MAX + 1];
+    char IPOrCName[DOMAIN_NAME_LENGTH_MAX + 1];
+    char Domain[DOMAIN_NAME_LENGTH_MAX + 1];
 
-	if( sscanf(MetaLine,
+    if( sscanf(MetaLine,
                "%" STRINGIZINGINT(DOMAIN_NAME_LENGTH_MAX) "s%" STRINGIZINGINT(DOMAIN_NAME_LENGTH_MAX) "s",
                IPOrCName,
                Domain
                )
      != 2 )
     {
-		INFO("Unrecognisable host : %s, it may be too long.\n", MetaLine);
-		return HOSTS_TYPE_UNKNOWN;
+        INFO("Unrecognisable host : %s, it may be too long.\n", MetaLine);
+        return HOSTS_TYPE_UNKNOWN;
     }
 
-	return HostsContainer_Add(Container, IPOrCName, Domain);
+    return HostsContainer_Add(Container, IPOrCName, Domain);
 }
 
 PUBFUNC void HostsContainer_Free(HostsContainer *Container)
 {
-	StringChunk_Free(&(Container->Mappings), TRUE);
-	Container->Table.Free(&(Container->Table));
+    StringChunk_Free(&(Container->Mappings), TRUE);
+    Container->Table.Free(&(Container->Table));
 }
 
 int HostsContainer_Init(HostsContainer *Container)
 {
-	if( StringChunk_Init(&(Container->Mappings), NULL) != 0 )
-	{
-		return -2;
-	}
+    if( StringChunk_Init(&(Container->Mappings), NULL) != 0 )
+    {
+        return -2;
+    }
 
-	if( StableBuffer_Init(&(Container->Table)) != 0 )
-	{
-		return -6;
-	}
+    if( StableBuffer_Init(&(Container->Table)) != 0 )
+    {
+        return -6;
+    }
 
-	Container->Load = HostsContainer_Load;
-	Container->Find = HostsContainer_Find;
-	Container->Free = HostsContainer_Free;
+    Container->Load = HostsContainer_Load;
+    Container->Find = HostsContainer_Find;
+    Container->Free = HostsContainer_Free;
 
-	return 0;
+    return 0;
 }

@@ -9,8 +9,8 @@
 
 static BOOL BlockIpv6WhenIpv4Exists = FALSE;
 
-static SOCKET	IncomeSocket;
-static Address_Type	IncomeAddress;
+static SOCKET   IncomeSocket;
+static Address_Type IncomeAddress;
 
 BOOL Hosts_TypeExisting(const char *Domain, HostsRecordType Type)
 {
@@ -112,28 +112,28 @@ int Hosts_Get(IHeader *Header, int BufferLength)
 
 static int Hosts_SocketLoop(void *Unused)
 {
-	static HostsContext	Context;
-	static SocketPuller Puller;
+    static HostsContext Context;
+    static SocketPuller Puller;
 
-    static SOCKET	OutcomeSocket;
-    static Address_Type	OutcomeAddress;
+    static SOCKET   OutcomeSocket;
+    static Address_Type OutcomeAddress;
 
-	static const struct timeval	LongTime = {3600, 0};
-	static const struct timeval	ShortTime = {10, 0};
+    static const struct timeval LongTime = {3600, 0};
+    static const struct timeval ShortTime = {10, 0};
 
-	struct timeval	TimeLimit = LongTime;
+    struct timeval  TimeLimit = LongTime;
 
-	#define LEFT_LENGTH_SL (sizeof(RequestBuffer) - sizeof(IHeader))
-	static char		RequestBuffer[2048];
-	IHeader         *Header = (IHeader *)RequestBuffer;
-	char		    *RequestEntity = RequestBuffer + sizeof(IHeader);
+    #define LEFT_LENGTH_SL (sizeof(RequestBuffer) - sizeof(IHeader))
+    static char     RequestBuffer[2048];
+    IHeader         *Header = (IHeader *)RequestBuffer;
+    char            *RequestEntity = RequestBuffer + sizeof(IHeader);
 
-	OutcomeSocket = TryBindLocal(Ipv6_Aviliable(), 10300, &OutcomeAddress);
+    OutcomeSocket = TryBindLocal(Ipv6_Aviliable(), 10300, &OutcomeAddress);
 
-	if( OutcomeSocket == INVALID_SOCKET )
-	{
-		return -416;
-	}
+    if( OutcomeSocket == INVALID_SOCKET )
+    {
+        return -416;
+    }
 
     if( SocketPuller_Init(&Puller) != 0 )
     {
@@ -150,12 +150,12 @@ static int Hosts_SocketLoop(void *Unused)
 
     srand(time(NULL));
 
-	while( TRUE )
-	{
-	    SOCKET  Pulled;
+    while( TRUE )
+    {
+        SOCKET  Pulled;
 
-	    Pulled = Puller.Select(&Puller, &TimeLimit, NULL, TRUE, FALSE);
-	    if( Pulled == INVALID_SOCKET )
+        Pulled = Puller.Select(&Puller, &TimeLimit, NULL, TRUE, FALSE);
+        if( Pulled == INVALID_SOCKET )
         {
             TimeLimit = LongTime;
             Context.Swep(&Context);
@@ -257,9 +257,9 @@ static int Hosts_SocketLoop(void *Unused)
 
             ShowNormalMessage(NewHeader, 'H');
         } else {}
-	}
+    }
 
-	return 0;
+    return 0;
 }
 
 int Hosts_Init(ConfigFileInfo *ConfigInfo)

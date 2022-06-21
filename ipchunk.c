@@ -4,40 +4,40 @@
 
 static int Compare(IpElement *_1, IpElement *_2)
 {
-	if( _1->IpLength != _2->IpLength )
-	{
-		return  _1->IpLength - _2->IpLength;
-	} else {
-		if( _1->IpLength == 4 )
-		{
-			return _1->Ip.Ipv4 - _2->Ip.Ipv4;
-		} else {
-			return memcmp(_1->Ip.Ipv6, _2->Ip.Ipv6, _1->IpLength);
-		}
-	}
+    if( _1->IpLength != _2->IpLength )
+    {
+        return  _1->IpLength - _2->IpLength;
+    } else {
+        if( _1->IpLength == 4 )
+        {
+            return _1->Ip.Ipv4 - _2->Ip.Ipv4;
+        } else {
+            return memcmp(_1->Ip.Ipv6, _2->Ip.Ipv6, _1->IpLength);
+        }
+    }
 }
 
 int IpChunk_Init(IpChunk *ic)
 {
-	IpElement	Root;
-	Root.IpLength = 10; /* 4 < 10 < 16 */
+    IpElement   Root;
+    Root.IpLength = 10; /* 4 < 10 < 16 */
 
-	if( Bst_Init(&(ic->Chunk), sizeof(IpElement), (CompareFunc)Compare) != 0 )
-	{
-		return -1;
-	}
+    if( Bst_Init(&(ic->Chunk), sizeof(IpElement), (CompareFunc)Compare) != 0 )
+    {
+        return -1;
+    }
 
-	if( StableBuffer_Init(&(ic->Datas)) != 0 )
-	{
-		return -1;
-	}
+    if( StableBuffer_Init(&(ic->Datas)) != 0 )
+    {
+        return -1;
+    }
 
-	if( ic->Chunk.Add(&(ic->Chunk), &Root) == NULL )
+    if( ic->Chunk.Add(&(ic->Chunk), &Root) == NULL )
     {
         return -37;
     }
 
-	return 0;
+    return 0;
 }
 
 int IpChunk_Add(IpChunk *ic,
@@ -49,18 +49,18 @@ int IpChunk_Add(IpChunk *ic,
 {
     StableBuffer *sb = &(ic->Datas);
 
-	IpElement	New;
-	New.IpLength = 4;
-	New.Ip.Ipv4 = Ip;
-	New.Type = Type;
-	New.Data = NULL;
+    IpElement   New;
+    New.IpLength = 4;
+    New.Ip.Ipv4 = Ip;
+    New.Type = Type;
+    New.Data = NULL;
 
-	if( Data != NULL )
-	{
-		New.Data = sb->Add(sb, Data, DataLength, TRUE);
-	}
+    if( Data != NULL )
+    {
+        New.Data = sb->Add(sb, Data, DataLength, TRUE);
+    }
 
-	return ic->Chunk.Add(&(ic->Chunk), &New) == NULL;
+    return ic->Chunk.Add(&(ic->Chunk), &New) == NULL;
 }
 
 int IpChunk_AddFromString(IpChunk *ic,
@@ -81,18 +81,18 @@ int IpChunk_Add6(IpChunk *ic, const char *Ipv6, int Type, const char *Data, uint
 {
     StableBuffer *sb = &(ic->Datas);
 
-	IpElement	New;
-	New.IpLength = 16;
-	memcpy(New.Ip.Ipv6, Ipv6, 16);
-	New.Type = Type;
-	New.Data = NULL;
+    IpElement   New;
+    New.IpLength = 16;
+    memcpy(New.Ip.Ipv6, Ipv6, 16);
+    New.Type = Type;
+    New.Data = NULL;
 
-	if( Data != NULL )
-	{
-		New.Data = sb->Add(sb, Data, DataLength, TRUE);
-	}
+    if( Data != NULL )
+    {
+        New.Data = sb->Add(sb, Data, DataLength, TRUE);
+    }
 
-	return ic->Chunk.Add(&(ic->Chunk), &New) == NULL;
+    return ic->Chunk.Add(&(ic->Chunk), &New) == NULL;
 }
 
 int IpChunk_Add6FromString(IpChunk *ic,
@@ -102,7 +102,7 @@ int IpChunk_Add6FromString(IpChunk *ic,
                            uint32_t DataLength
                            )
 {
-    char	IpNum[16];
+    char    IpNum[16];
 
     IPv6AddressToNum(Ip, IpNum);
 
@@ -126,25 +126,25 @@ int IpChunk_AddAnyFromString(IpChunk *ic,
 
 BOOL IpChunk_Find(IpChunk *ic, uint32_t Ip, int *Type, const char **Data)
 {
-	IpElement	Key;
-	const IpElement	*Result;
+    IpElement   Key;
+    const IpElement *Result;
 
-	if( ic == NULL )
-	{
-		return FALSE;
-	}
+    if( ic == NULL )
+    {
+        return FALSE;
+    }
 
-	Key.IpLength = 4;
-	Key.Ip.Ipv4 = Ip;
-	Key.Type = 0;
-	Key.Data = NULL;
+    Key.IpLength = 4;
+    Key.Ip.Ipv4 = Ip;
+    Key.Type = 0;
+    Key.Data = NULL;
 
-	Result = ic->Chunk.Search(&(ic->Chunk), &Key, NULL);
+    Result = ic->Chunk.Search(&(ic->Chunk), &Key, NULL);
 
-	if( Result == NULL )
-	{
-		return FALSE;
-	} else {
+    if( Result == NULL )
+    {
+        return FALSE;
+    } else {
         if( Type != NULL )
         {
             *Type = Result->Type;
@@ -155,31 +155,31 @@ BOOL IpChunk_Find(IpChunk *ic, uint32_t Ip, int *Type, const char **Data)
             *Data = Result->Data;
         }
 
-		return TRUE;
-	}
+        return TRUE;
+    }
 }
 
 BOOL IpChunk_Find6(IpChunk *ic, const char *Ipv6, int *Type, const char **Data)
 {
-	IpElement	Key;
-	const IpElement	*Result;
+    IpElement   Key;
+    const IpElement *Result;
 
-	if( ic == NULL )
-	{
-		return FALSE;
-	}
+    if( ic == NULL )
+    {
+        return FALSE;
+    }
 
-	Key.IpLength = 16;
-	memcpy(Key.Ip.Ipv6, Ipv6, 16);
-	Key.Type = 0;
-	Key.Data = NULL;
+    Key.IpLength = 16;
+    memcpy(Key.Ip.Ipv6, Ipv6, 16);
+    Key.Type = 0;
+    Key.Data = NULL;
 
-	Result = ic->Chunk.Search(&(ic->Chunk), &Key, NULL);
+    Result = ic->Chunk.Search(&(ic->Chunk), &Key, NULL);
 
-	if( Result == NULL )
-	{
-		return FALSE;
-	} else {
+    if( Result == NULL )
+    {
+        return FALSE;
+    } else {
         if( Type != NULL )
         {
             *Type = Result->Type;
@@ -190,6 +190,6 @@ BOOL IpChunk_Find6(IpChunk *ic, const char *Ipv6, int *Type, const char **Data)
             *Data = Result->Data;
         }
 
-		return TRUE;
-	}
+        return TRUE;
+    }
 }

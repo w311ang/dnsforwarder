@@ -6,18 +6,18 @@
 #include "common.h"
 
 typedef struct _IpElement {
-	int			IpLength;
-	union {
-		uint32_t	Ipv4;
-		char		Ipv6[16];
-	} Ip;
-	int			Type;
-	void        *Data;
+    int         IpLength;
+    union {
+        uint32_t    Ipv4;
+        char        Ipv6[16];
+    } Ip;
+    int         Type;
+    void        *Data;
 } IpElement;
 
 typedef struct _IpChunk{
-	Bst             Chunk;
-	StableBuffer    Datas;
+    Bst             Chunk;
+    StableBuffer    Datas;
 } IpChunk;
 
 int IpChunk_Init(IpChunk *ic);

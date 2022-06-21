@@ -8,9 +8,9 @@ static int SocketPool_Add(SocketPool *sp,
                           int DataLength
                           )
 {
-	SocketUnit su;
+    SocketUnit su;
 
-	su.Sock = Sock;
+    su.Sock = Sock;
 
     if( Data != NULL )
     {
@@ -20,12 +20,12 @@ static int SocketPool_Add(SocketPool *sp,
         su.Data = NULL;
     }
 
-	if( sp->t.Add(&(sp->t), &su) == NULL )
-	{
-		return -27;
-	}
+    if( sp->t.Add(&(sp->t), &su) == NULL )
+    {
+        return -27;
+    }
 
-	return 0;
+    return 0;
 }
 
 static int SocketPool_Del(SocketPool *sp, SOCKET Sock)
@@ -117,7 +117,7 @@ static void SocketPool_Free(SocketPool *sp, BOOL CloseAllSocket)
 
 static int Compare(const SocketUnit *_1, const SocketUnit *_2)
 {
-	return (int)(_1->Sock) - (int)(_2->Sock);
+    return (int)(_1->Sock) - (int)(_2->Sock);
 }
 
 int SocketPool_Init(SocketPool *sp)

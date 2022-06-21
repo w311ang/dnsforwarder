@@ -7,8 +7,8 @@
 #include "common.h"
 
 typedef struct _SocketUnit {
-	SOCKET      Sock;
-	const char *Data;
+    SOCKET      Sock;
+    const char *Data;
 } SocketUnit;
 
 typedef struct _SocketPool SocketPool;
@@ -18,7 +18,7 @@ struct _SocketPool{
     Bst t;
     StableBuffer d;
 
-	/* public */
+    /* public */
     int (*Add)(SocketPool *sp,
                SOCKET Sock,
                const void *Data,

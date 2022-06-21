@@ -4,18 +4,18 @@
 #include "array.h"
 
 typedef struct _Sht_NodeHead{
-	int32_t     Next;
-	uint32_t	HashValue;
+    int32_t     Next;
+    uint32_t    HashValue;
 } Sht_NodeHead;
 
 typedef struct _SimpleHT {
-	Array	Slots;
-	Array	Nodes;
+    Array   Slots;
+    Array   Nodes;
 
-	size_t	MaxLoadFactor;
-	size_t	LeftSpace;
+    size_t  MaxLoadFactor;
+    size_t  LeftSpace;
 
-	uint32_t	(*HashFunction)(const char *, uint32_t);
+    uint32_t    (*HashFunction)(const char *, uint32_t);
 
 } SimpleHT;
 

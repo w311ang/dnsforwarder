@@ -7,21 +7,21 @@
 typedef struct _IHeader IHeader;
 
 struct _IHeader{
-	int32_t _Pad; /* Must be 0 */
+    int32_t _Pad; /* Must be 0 */
 
-	Address_Type    BackAddress;
-	SOCKET          SendBackSocket;
+    Address_Type    BackAddress;
+    SOCKET          SendBackSocket;
 
-	char	        Domain[256];
-	uint32_t        HashValue;
-	DNSRecordType   Type;
+    char            Domain[256];
+    uint32_t        HashValue;
+    DNSRecordType   Type;
 
-	BOOL            ReturnHeader;
-	BOOL		    EDNSEnabled;
+    BOOL            ReturnHeader;
+    BOOL            EDNSEnabled;
 
-	int             EntityLength;
+    int             EntityLength;
 
-	char            Agent[ROUND_UP(LENGTH_OF_IPV6_ADDRESS_ASCII + 1,
+    char            Agent[ROUND_UP(LENGTH_OF_IPV6_ADDRESS_ASCII + 1,
                                    sizeof(void *)
                                    )
                           ];

@@ -69,7 +69,7 @@ PUBFUNC const void *Bst_Add(Bst *t, const void *Data)
     if( t->Root == NULL )
     {
         /* Insert as root */
-		return InsertNode(t, NULL, 0, Data);
+        return InsertNode(t, NULL, 0, Data);
     } else {
         /* Non-root, finding the currect place to insert */
         Bst_NodeHead *Current = t->Root;
@@ -304,9 +304,9 @@ PUBFUNC void Bst_Delete(Bst *t, const void *Node)
 
 PUBFUNC void Bst_Reset(Bst *t)
 {
-	t->Nodes.Clear(&(t->Nodes));
-	t->Root = NULL;
-	t->FreeList = NULL;
+    t->Nodes.Clear(&(t->Nodes));
+    t->Root = NULL;
+    t->FreeList = NULL;
 }
 
 PUBFUNC void Bst_Free(Bst *t)
@@ -316,12 +316,12 @@ PUBFUNC void Bst_Free(Bst *t)
 
 int Bst_Init(Bst *t, int ElementLength, CompareFunc Compare)
 {
-	t->Compare = Compare;
-	t->Root = NULL;
-	t->FreeList = NULL;
-	t->ElementLength = ElementLength;
+    t->Compare = Compare;
+    t->Root = NULL;
+    t->FreeList = NULL;
+    t->ElementLength = ElementLength;
 
-	if( StableBuffer_Init(&(t->Nodes)) != 0 )
+    if( StableBuffer_Init(&(t->Nodes)) != 0 )
     {
         return -497;
     }
@@ -335,5 +335,5 @@ int Bst_Init(Bst *t, int ElementLength, CompareFunc Compare)
     t->Search = Bst_Search;
     t->Successor = Bst_Successor;
 
-	return 0;
+    return 0;
 }

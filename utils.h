@@ -6,9 +6,9 @@
 
 #include "common.h"
 
-#define ROUND_DOWN(val, base)	((val) / (base) * (base))
-#define ROUND(val, base)		ROUND_DOWN((val) + (base) / 2, base)
-#define ROUND_UP(val, base)		ROUND_DOWN((val) + (base) - 1, base)
+#define ROUND_DOWN(val, base)   ((val) / (base) * (base))
+#define ROUND(val, base)        ROUND_DOWN((val) + (base) / 2, base)
+#define ROUND_UP(val, base)     ROUND_DOWN((val) + (base) - 1, base)
 
 #define STRINGIZING(val)        # val
 #define STRINGIZINGINT(val)     STRINGIZING(val)
@@ -19,7 +19,7 @@ typedef int offset_t;
 
 typedef int (*CompareFunc)(const void *, const void *);
 
-#define CURRENT_THREAD_ID	(GET_THREAD_ID())
+#define CURRENT_THREAD_ID   (GET_THREAD_ID())
 
 /* void *SafeMalloc(size_t Bytes);
  * Description:
@@ -29,7 +29,7 @@ typedef int (*CompareFunc)(const void *, const void *);
  * Return value:
  *  The first address of the allocated block of memory.
  */
-#define SafeMalloc	malloc
+#define SafeMalloc  malloc
 
 /* void SafeFree(void *Memory);
  * Description:
@@ -37,7 +37,7 @@ typedef int (*CompareFunc)(const void *, const void *);
  * Parameters:
  *  Memory:The first address of the memory to be freed.
  */
-#define SafeFree	free
+#define SafeFree    free
 
 /* int SafeRealloc(void **Memory_ptr, size_t NewBytes);
  * Description:
@@ -78,7 +78,7 @@ char *GetCurDateAndTime(char *Buffer, int BufferLength);
 
 int Execute(const char *Cmd);
 
-int	Base64Decode(const char *File);
+int Base64Decode(const char *File);
 
 int IPv6AddressToNum(const char *asc, void *Buffer);
 
@@ -90,7 +90,7 @@ int IPv6AddressToAsc(const void *Address, void *Buffer);
 
 int IPv4AddressToAsc(const void *Address, void *Buffer);
 
-int	GetConfigDirectory(char *out);
+int GetConfigDirectory(char *out);
 
 BOOL FileIsReadable(const char *File);
 

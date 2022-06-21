@@ -6,7 +6,7 @@
 typedef struct _ListHead ListHead;
 
 struct _ListHead{;
-	ListHead *Next;
+    ListHead *Next;
 };
 
 typedef struct _LinkedQueue LinkedQueue;

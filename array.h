@@ -5,44 +5,44 @@
 
 typedef struct _Array{
 
-	/* All elements reside here */
-	char		*Data;
+    /* All elements reside here */
+    char        *Data;
 
-	/* Length of one element */
-	int32_t		DataLength;
+    /* Length of one element */
+    int32_t     DataLength;
 
-	/* How many elements are there in this array. Always non-negative. */
-	int32_t		Used;
+    /* How many elements are there in this array. Always non-negative. */
+    int32_t     Used;
 
-	/* How many rooms (one room one element) have been allocated.
-	 *   An Array, normally, grows up (towards high address). In this case,
-	 * `Allocated' is non-negative.
-	 *   Typically, `Allocated' will never be less than `Used'. In most cases,
-	 * `Allocated' is greater than `Used'. If they are equal, this means there
-	 * is no left room for a new element, then we must allocate more
-	 * space (realloc) just before adding new elements. The total allocated
-	 * space is equal to `Allocated' times `DataLength'.
-	 *
-	 *   If `Allocated' is negative, the array grows down (towarding lower address,
-	 * like stack) and won't allocate new space. One using this should guarantee
-	 * there is enough space to hold all elements.
-	 */
-	int32_t	Allocated;
+    /* How many rooms (one room one element) have been allocated.
+     *   An Array, normally, grows up (towards high address). In this case,
+     * `Allocated' is non-negative.
+     *   Typically, `Allocated' will never be less than `Used'. In most cases,
+     * `Allocated' is greater than `Used'. If they are equal, this means there
+     * is no left room for a new element, then we must allocate more
+     * space (realloc) just before adding new elements. The total allocated
+     * space is equal to `Allocated' times `DataLength'.
+     *
+     *   If `Allocated' is negative, the array grows down (towarding lower address,
+     * like stack) and won't allocate new space. One using this should guarantee
+     * there is enough space to hold all elements.
+     */
+    int32_t Allocated;
 }Array;
 
-int Array_Init(	__in Array *a,
-				__in int DataLength,
-				__in int InitialCount,
-				__in BOOL GrowsDown,
-				__in void *TheFirstAddress);
+int Array_Init( __in Array *a,
+                __in int DataLength,
+                __in int InitialCount,
+                __in BOOL GrowsDown,
+                __in void *TheFirstAddress);
 /* Description:
  *  Initialize an Array.
  * Parameters:
- *  a              	: The Array to be initialized.
- *  DataLength     	: The length of one element.
- *  InitialCount   	: The number of initial allocated rooms.
- *                     	If the array grows down, this parameter will be ignored.
- *  GrowsDown      	: Whether it grows down.
+ *  a               : The Array to be initialized.
+ *  DataLength      : The length of one element.
+ *  InitialCount    : The number of initial allocated rooms.
+ *                      If the array grows down, this parameter will be ignored.
+ *  GrowsDown       : Whether it grows down.
  *  TheFirstAddress : (Only) For growing down array, the address of the first
  *                    element (at the highist address). The address is the head
  *                    address of the element, not the tail address.
@@ -51,25 +51,25 @@ int Array_Init(	__in Array *a,
  *  0 on success, a non-zero value otherwise.
  */
 
-#define Array_Init_Static(DataLengrh)	{NULL, (DataLengrh), 0, 0}
+#define Array_Init_Static(DataLengrh)   {NULL, (DataLengrh), 0, 0}
 
-#define Array_IsEmpty(a_ptr)	(((a_ptr)->Used) == 0)
+#define Array_IsEmpty(a_ptr)    (((a_ptr)->Used) == 0)
 /* Description:
  *  Check if an Array is empty.
  * Parameters:
  *  a_ptr : Pointer to an Array to be checked.
  */
 
-#define Array_GetUsed(a_ptr)	((a_ptr)->Used)
+#define Array_GetUsed(a_ptr)    ((a_ptr)->Used)
 /* Description:
  *  Get `Used' of an Array.
  * Parameters:
  *  a_ptr : Pointer to an Array to be gotten.
  */
 
-#define Array_GetDataLength(a_ptr)	((a_ptr)->DataLength)
+#define Array_GetDataLength(a_ptr)  ((a_ptr)->DataLength)
 
-#define Array_GetRawArray(a_ptr)	((a_ptr)->Data)
+#define Array_GetRawArray(a_ptr)    ((a_ptr)->Data)
 
 void *Array_GetBySubscript(__in const Array *a, __in int Subscript);
 /* Description:
@@ -125,7 +125,7 @@ void *Array_SetToSubscript(__in Array *a, __in int Subscript, __in const void *D
 
 void Array_Sort(Array *a, int (*Compare)(const void *, const void *));
 
-#define Array_Clear(a_ptr)	((a_ptr)->Used = 0)
+#define Array_Clear(a_ptr)  ((a_ptr)->Used = 0)
 /* Description:
  *  Remove all elements, but their rooms are still there.
  * Parameters:

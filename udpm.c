@@ -53,7 +53,7 @@ static int UdpM_Cleanup(UdpM *m)
 
 static void UdpM_Works(UdpM *m)
 {
-    static const struct timeval	ShortTime = {10, 0};
+    static const struct timeval ShortTime = {10, 0};
     struct timeval Timeout;
 
     struct sockaddr *addr;
@@ -65,7 +65,7 @@ static void UdpM_Works(UdpM *m)
     #define LEFT_LENGTH  (BUF_LENGTH - sizeof(IHeader))
     char *Entity;
 
-    fd_set	ReadSet, ReadySet;
+    fd_set  ReadSet, ReadySet;
 
     ReceiveBuffer = SafeMalloc(BUF_LENGTH);
     if( ReceiveBuffer == NULL )
@@ -88,7 +88,7 @@ static void UdpM_Works(UdpM *m)
             EFFECTIVE_LOCK_GET(m->Lock);
             if( m->Parallels.addrs == NULL )
             {
-                sa_family_t	family;
+                sa_family_t family;
 
                 addr = AddressList_GetOne(&(m->AddrList), &family);
                 if( addr == NULL )
@@ -284,7 +284,7 @@ static int UdpM_Send(UdpM *m,
 
         } else {
             struct sockaddr *a;
-            sa_family_t	family;
+            sa_family_t family;
 
             int State;
 
@@ -316,7 +316,7 @@ static int UdpM_Send(UdpM *m,
 
 int UdpM_Init(UdpM *m, const char *Services, BOOL Parallel)
 {
-    StringList	Addresses;
+    StringList  Addresses;
     StringListIterator  sli;
     const char *Itr;
 

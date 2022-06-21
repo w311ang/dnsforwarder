@@ -4,26 +4,26 @@
 
 static int Divide(char *Str, const char *Delimiters)
 {
-	int		Count = 0;
-	char	*Itr;
+    int     Count = 0;
+    char    *Itr;
 
-	if( Delimiters == NULL )
+    if( Delimiters == NULL )
     {
         return 1;
     }
 
-	Itr = strpbrk(Str, Delimiters);
-	while( Itr != NULL )
+    Itr = strpbrk(Str, Delimiters);
+    while( Itr != NULL )
     {
         *Itr = '\0';
 
         ++Itr;
-		++Count;
+        ++Count;
 
-		Itr = strpbrk(Itr, Delimiters);
+        Itr = strpbrk(Itr, Delimiters);
     }
 
-	return Count + 1;
+    return Count + 1;
 }
 
 static int StringList_Count(StringList *s)
@@ -266,7 +266,7 @@ int StringList_Init(__in StringList *s,
 {
     StableBuffer *sb;
 
-	if( s == NULL )
+    if( s == NULL )
     {
         return -1;
     }
@@ -287,8 +287,8 @@ int StringList_Init(__in StringList *s,
     s->Clear = StringList_Clear;
     s->Free = StringList_Free;
 
-	if( ori != NULL )
-	{
+    if( ori != NULL )
+    {
         void *Here = sb ->Add(sb, ori, strlen(ori) + 1, FALSE);
         if( Here == NULL )
         {
@@ -296,8 +296,8 @@ int StringList_Init(__in StringList *s,
             return -3;
         }
 
-		Divide(Here, Delimiters);
-	}
+        Divide(Here, Delimiters);
+    }
 
     return 0;
 }

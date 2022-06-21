@@ -7,23 +7,23 @@
 #include "stringlist.h"
 #include "common.h"
 
-#define SET_16_BIT_U_INT(here, val)	(*(uint16_t *)(here) = htons((uint16_t)(val)))
-#define SET_32_BIT_U_INT(here, val)	(*(uint32_t *)(here) = htonl((uint32_t)(val)))
+#define SET_16_BIT_U_INT(here, val) (*(uint16_t *)(here) = htons((uint16_t)(val)))
+#define SET_32_BIT_U_INT(here, val) (*(uint32_t *)(here) = htonl((uint32_t)(val)))
 
 /* Handle DNS header*/
-#define DNSSetQueryIdentifier(dns_start, QId)	SET_16_BIT_U_INT((char *)(dns_start), QId)
+#define DNSSetQueryIdentifier(dns_start, QId)   SET_16_BIT_U_INT((char *)(dns_start), QId)
 
-#define DNSSetFlags(dns_start, Flags)			SET_16_BIT_U_INT((char *)(dns_start) + 2, Flags)
+#define DNSSetFlags(dns_start, Flags)           SET_16_BIT_U_INT((char *)(dns_start) + 2, Flags)
 
-#define DNSSetQuestionCount(dns_start, QC)		SET_16_BIT_U_INT((char *)(dns_start) + 4, QC)
+#define DNSSetQuestionCount(dns_start, QC)      SET_16_BIT_U_INT((char *)(dns_start) + 4, QC)
 
-#define DNSSetAnswerCount(dns_start, AnC)		SET_16_BIT_U_INT((char *)(dns_start) + 6, AnC)
+#define DNSSetAnswerCount(dns_start, AnC)       SET_16_BIT_U_INT((char *)(dns_start) + 6, AnC)
 
-#define DNSSetNameServerCount(dns_start, ASC)	SET_16_BIT_U_INT((char *)(dns_start) + 8, ASC)
+#define DNSSetNameServerCount(dns_start, ASC)   SET_16_BIT_U_INT((char *)(dns_start) + 8, ASC)
 
-#define DNSSetAdditionalCount(dns_start, AdC)	SET_16_BIT_U_INT((char *)(dns_start) + 10, AdC)
+#define DNSSetAdditionalCount(dns_start, AdC)   SET_16_BIT_U_INT((char *)(dns_start) + 10, AdC)
 
-#define DNSLabelMakePointer(pointer_ptr, location)	(((unsigned char *)(pointer_ptr))[0] = (192 + (location) / 256), ((unsigned char *)(pointer_ptr))[1] = (location) % 256)
+#define DNSLabelMakePointer(pointer_ptr, location)  (((unsigned char *)(pointer_ptr))[0] = (192 + (location) / 256), ((unsigned char *)(pointer_ptr))[1] = (location) % 256)
 
 char *DNSLabelizedName(__inout char *Origin, __in size_t OriginSpaceLength);
 

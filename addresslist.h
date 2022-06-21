@@ -10,13 +10,13 @@
 
 typedef struct _AddressList {
 
-	/* An array of `Address_Type' */
-	Array		AddressList;
+    /* An array of `Address_Type' */
+    Array       AddressList;
 
-	/* The `Counter' is used by `AddressList_Advance' and `AddressList_GetOne',
-	 * see them.
-	 */
-	uint32_t	Counter;
+    /* The `Counter' is used by `AddressList_Advance' and `AddressList_GetOne',
+     * see them.
+     */
+    uint32_t    Counter;
 
 } AddressList;
 
@@ -30,8 +30,8 @@ int AddressList_Init(__in AddressList *a);
  *  0 on success, a non-zero value otherwise.
  */
 
-int AddressList_Add(__in	AddressList		*a,
-					__in	Address_Type	*Addr);
+int AddressList_Add(__in    AddressList     *a,
+                    __in    Address_Type    *Addr);
 /* Description:
  *  Add an address in the form of `Address_Type' to an AddressList.
  * Parameters:
@@ -47,10 +47,10 @@ sa_family_t AddressList_ConvertFromString(__out Address_Type    *Out,
                                           __in  int             DefaultPort
                                           );
 
-int AddressList_Add_From_String(__in	AddressList	*a,
-								__in	const char	*Addr_Port,
-								__in	int			DefaultPort
-								);
+int AddressList_Add_From_String(__in    AddressList *a,
+                                __in    const char  *Addr_Port,
+                                __in    int         DefaultPort
+                                );
 /* Description:
  *  Add an address in text to an AddressList.
  * Parameters:
@@ -74,12 +74,12 @@ int AddressList_Advance(__in AddressList *a);
  *  The a->Counter before it increased.
  */
 
-struct sockaddr *AddressList_GetOneBySubscript(__in			AddressList	*a,
-											   __out_opt	sa_family_t	*family,
-											   __in			int			Subscript);
+struct sockaddr *AddressList_GetOneBySubscript(__in         AddressList *a,
+                                               __out_opt    sa_family_t *family,
+                                               __in         int         Subscript);
 
-struct sockaddr *AddressList_GetOne(__in		AddressList	*a,
-									__out_opt	sa_family_t	*family);
+struct sockaddr *AddressList_GetOne(__in        AddressList *a,
+                                    __out_opt   sa_family_t *family);
 /* Description:
  *  Fetch an address from an AddressList. See the implementation for details.
  * Parameters:
@@ -90,13 +90,13 @@ struct sockaddr *AddressList_GetOne(__in		AddressList	*a,
  *  The pointer to the fetched address.
  */
 
-#define AddressList_GetNumberOfAddresses(a_ptr)	( Array_GetUsed(&((a_ptr)->AddressList)) )
+#define AddressList_GetNumberOfAddresses(a_ptr) ( Array_GetUsed(&((a_ptr)->AddressList)) )
 
 /* You should free the return value and *families when they are no longer needed. */
 struct sockaddr **AddressList_GetPtrListOfFamily(AddressList *a, sa_family_t family);
 struct sockaddr **AddressList_GetPtrList(AddressList *a, sa_family_t **families);
 
-#define AddressList_Free(a_ptr)	(Array_Free(&((a_ptr)->AddressList)))
+#define AddressList_Free(a_ptr) (Array_Free(&((a_ptr)->AddressList)))
 /* Description:
  *  Free an initialized AddressList.
  * Return value:

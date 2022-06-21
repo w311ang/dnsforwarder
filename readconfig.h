@@ -18,75 +18,75 @@
  */
 
 /* Set the max length of a key name */
-#define	KEY_NAME_MAX_SIZE	64
+#define KEY_NAME_MAX_SIZE   64
 
 /* A value must have a type. We just need these types for now. */
 typedef enum _OptionType{
     TYPE_ALIAS = -1,
-	TYPE_UNDEFINED = 0,
+    TYPE_UNDEFINED = 0,
 
-	TYPE_INT32,
-	TYPE_BOOLEAN,
-	TYPE_PATH,
-	TYPE_STRING
+    TYPE_INT32,
+    TYPE_BOOLEAN,
+    TYPE_PATH,
+    TYPE_STRING
 } OptionType;
 
 typedef enum _MultilineStrategy{
-	STRATEGY_DEFAULT = 0,
-	STRATEGY_REPLACE,
-	STRATEGY_APPEND,
-	STRATEGY_APPEND_DISCARD_DEFAULT
+    STRATEGY_DEFAULT = 0,
+    STRATEGY_REPLACE,
+    STRATEGY_APPEND,
+    STRATEGY_APPEND_DISCARD_DEFAULT
 } MultilineStrategy;
 
 typedef union _VType{
-	const char  *str;
-	int32_t     INT32;
-	BOOL        boolean;
+    const char  *str;
+    int32_t     INT32;
+    BOOL        boolean;
 } VType;
 
 typedef enum _OptionStatus{
-	STATUS_DEPRECATED = -2,
-	STATUS_UNUSED = 0,
-	STATUS_DEFAULT_VALUE,
-	STATUS_SPECIAL_VALUE
+    STATUS_DEPRECATED = -2,
+    STATUS_UNUSED = 0,
+    STATUS_DEFAULT_VALUE,
+    STATUS_SPECIAL_VALUE
 }OptionStatus;
 
 /* An option */
 typedef struct _Option{
-	/* Designate if this option is used. */
-	OptionStatus	Status;
+    /* Designate if this option is used. */
+    OptionStatus    Status;
 
-	MultilineStrategy	Strategy;
+    MultilineStrategy   Strategy;
 
-	/* Type */
-	OptionType	Type;
+    /* Type */
+    OptionType  Type;
 
-	/* Value holder */
-	union {
-		StringList	str;
-		int32_t     INT32;
-		BOOL		boolean;
+    /* Value holder */
+    union {
+        StringList  str;
+        int32_t     INT32;
+        BOOL        boolean;
 
-		struct {
-		    char    *Target;
-		    char    *Prepending;
-		} Aliasing;
-	} Holder;
+        struct {
+            char    *Target;
+            char    *Prepending;
+        } Aliasing;
+    } Holder;
 
-	char *Delimiters;
+    char *Delimiters;
 
 } ConfigOption;
 
 /* The exposed type(The infomations about a configuration file) to read options from a configuration file. */
 typedef struct _ConfigFileInfo
 {
-	/* Static, once inited, never changed. */
-	FILE	*fp;
+    /* Static, once inited, never changed. */
+    FILE    *fp;
 
     StringList  StrBuffer;
 
-	/* An array of all the options. */
-	StringChunk	Options;
+    /* An array of all the options. */
+    StringChunk Options;
 } ConfigFileInfo;
 
 int ConfigInitInfo(ConfigFileInfo *Info);

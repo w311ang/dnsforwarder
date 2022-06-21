@@ -14,7 +14,7 @@ static int ModuleContext_Swep_Collect(Bst *t,
                                       Array *Pending
                                       )
 {
-    time_t	Now = time(NULL);
+    time_t  Now = time(NULL);
 
     if( Now - Context->t > 2 )
     {
@@ -127,12 +127,12 @@ static int ModuleContextCompare(const void *_1, const void *_2)
     const ModuleContextItem *One = (ModuleContextItem *)_1;
     const ModuleContextItem *Two = (ModuleContextItem *)_2;
 
-	if( One->i != Two->i )
-	{
-		return (int)(One->i) - (int)(Two->i);
-	} else {
-		return One->h.HashValue - Two->h.HashValue;
-	}
+    if( One->i != Two->i )
+    {
+        return (int)(One->i) - (int)(Two->i);
+    } else {
+        return One->h.HashValue - Two->h.HashValue;
+    }
 }
 
 int ModuleContext_Init(ModuleContext *c)

@@ -2,44 +2,44 @@
 #include "statichosts.h"
 #include "logs.h"
 
-static HostsContainer	MainStaticContainer;
+static HostsContainer   MainStaticContainer;
 static BOOL             Inited = FALSE;
 
 int StaticHosts_Init(ConfigFileInfo *ConfigInfo)
 {
-	StringList *AppendHosts = ConfigGetStringList(ConfigInfo, "AppendHosts");
-	StringListIterator  sli;
+    StringList *AppendHosts = ConfigGetStringList(ConfigInfo, "AppendHosts");
+    StringListIterator  sli;
 
-	const char *Itr;
+    const char *Itr;
 
-	if( HostsContainer_Init(&MainStaticContainer) != 0 )
-	{
-		return -17;
-	}
+    if( HostsContainer_Init(&MainStaticContainer) != 0 )
+    {
+        return -17;
+    }
 
-	if( AppendHosts == NULL )
-	{
-		return -22;
-	}
+    if( AppendHosts == NULL )
+    {
+        return -22;
+    }
 
-	if( StringListIterator_Init(&sli, AppendHosts) != 0 )
+    if( StringListIterator_Init(&sli, AppendHosts) != 0 )
     {
         return -27;
     }
 
-	Itr = sli.Next(&sli);
-	while( Itr != NULL )
-	{
+    Itr = sli.Next(&sli);
+    while( Itr != NULL )
+    {
         MainStaticContainer.Load(&MainStaticContainer, Itr);
 
-		Itr = sli.Next(&sli);
-	}
+        Itr = sli.Next(&sli);
+    }
 
-	Inited = TRUE;
+    Inited = TRUE;
 
-	INFO("Loading Appendhosts completed.\n");
+    INFO("Loading Appendhosts completed.\n");
 
-	return 0;
+    return 0;
 }
 
 int StaticHosts_GetCName(const char *Domain, char *Buffer)

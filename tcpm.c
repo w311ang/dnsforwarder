@@ -31,7 +31,7 @@ static SOCKET TcpM_Connect(struct sockaddr  **ServerAddressesList,
 #   define  NUMBER_OF_SOCKETS 5
 
 #ifdef WIN32
-	PTimer  t;
+    PTimer  t;
 #endif
 
     SocketPuller p;
@@ -48,38 +48,38 @@ static SOCKET TcpM_Connect(struct sockaddr  **ServerAddressesList,
     INFO("Connecting to %s ...\n", Type);
 
 #ifdef WIN32
-	PTimer_Start(&t);
+    PTimer_Start(&t);
 #endif
 
     for( i = 0; i < NUMBER_OF_SOCKETS; ++i )
     {
         SOCKET s;
 
-		if( ServerAddressesList[i] == NULL )
-		{
-			break;
-		}
+        if( ServerAddressesList[i] == NULL )
+        {
+            break;
+        }
 
-		s = socket(FamiliesList[i], SOCK_STREAM, IPPROTO_TCP);
+        s = socket(FamiliesList[i], SOCK_STREAM, IPPROTO_TCP);
         if( s == INVALID_SOCKET )
         {
-			continue;
+            continue;
         }
 
         SetSocketNonBlock(s, TRUE);
 
-		if( connect(s,
+        if( connect(s,
                     ServerAddressesList[i],
                     GetAddressLength(FamiliesList[i])
                     )
             != 0 )
-		{
-			if( GET_LAST_ERROR() != CONNECT_FUNCTION_BLOCKED )
-			{
-				CLOSE_SOCKET(s);
-				continue;
-			}
-		}
+        {
+            if( GET_LAST_ERROR() != CONNECT_FUNCTION_BLOCKED )
+            {
+                CLOSE_SOCKET(s);
+                continue;
+            }
+        }
 
         p.Add(&p, s, NULL, 0);
     }
@@ -121,8 +121,8 @@ static int TcpM_SendWrapper(SOCKET Sock, const char *Start, int Length)
 {
 #define DEFAULT_TIME_OUT__SEND 2000 /* ms */
     while( send(Sock, Start, Length, MSG_NOSIGNAL) != Length )
-	{
-		int LastError = GET_LAST_ERROR();
+    {
+        int LastError = GET_LAST_ERROR();
         if( FatalErrorDecideding(LastError) != 0 ||
                 !SocketIsWritable(Sock, DEFAULT_TIME_OUT__SEND)
                 )
@@ -133,17 +133,17 @@ static int TcpM_SendWrapper(SOCKET Sock, const char *Start, int Length)
     }
 
 #undef DEFAULT_TIME_OUT__SEND
-	return Length;
+    return Length;
 }
 
 static int TcpM_RecvWrapper(SOCKET Sock, char *Buffer, int BufferSize)
 {
 #define DEFAULT_TIME_OUT__RECV 2000 /* ms */
-	int Recvlength;
+    int Recvlength;
 
-	while( (Recvlength = recv(Sock, Buffer, BufferSize, 0)) < 0 )
-	{
-		int LastError = GET_LAST_ERROR();
+    while( (Recvlength = recv(Sock, Buffer, BufferSize, 0)) < 0 )
+    {
+        int LastError = GET_LAST_ERROR();
         if( FatalErrorDecideding(LastError) != 0 ||
                 !SocketIsStillReadable(Sock, DEFAULT_TIME_OUT__RECV)
                 )
@@ -151,9 +151,9 @@ static int TcpM_RecvWrapper(SOCKET Sock, char *Buffer, int BufferSize)
             ShowSocketError("Receiving from TCP server or proxy failed", LastError);
             return (-1) * LastError;
         }
-	}
+    }
 #undef DEFAULT_TIME_OUT__RECV
-	return Recvlength;
+    return Recvlength;
 }
 
 static int TcpM_ProxyPreparation(SOCKET Sock,
@@ -167,34 +167,34 @@ static int TcpM_ProxyPreparation(SOCKET Sock,
     unsigned short Port;
     char RecvBuffer[16];
 
-	if( TcpM_SendWrapper(Sock, "\x05\x01\x00", 3) != 3 )
-	{
-		ERRORMSG("Cannot communicate with TCP proxy, negotiation error.\n");
-		return -1;
-	}
+    if( TcpM_SendWrapper(Sock, "\x05\x01\x00", 3) != 3 )
+    {
+        ERRORMSG("Cannot communicate with TCP proxy, negotiation error.\n");
+        return -1;
+    }
 
     if( TcpM_RecvWrapper(Sock, RecvBuffer, 2) != 2 )
     {
-		ERRORMSG("Cannot communicate with TCP proxy, negotiation error.\n");
+        ERRORMSG("Cannot communicate with TCP proxy, negotiation error.\n");
         return -2;
     }
 
-	if( RecvBuffer[0] != '\x05' || RecvBuffer[1] != '\x00' )
-	{
-		/*printf("---------3 : %x %x\n", RecvBuffer[0], RecvBuffer[1]);*/
-		ERRORMSG("Cannot communicate with TCP proxy, negotiation error.\n");
-		return -3;
-	}
+    if( RecvBuffer[0] != '\x05' || RecvBuffer[1] != '\x00' )
+    {
+        /*printf("---------3 : %x %x\n", RecvBuffer[0], RecvBuffer[1]);*/
+        ERRORMSG("Cannot communicate with TCP proxy, negotiation error.\n");
+        return -3;
+    }
 
-	memcpy(AddressInfos, "\x05\x01\x00\x03", 4);
+    memcpy(AddressInfos, "\x05\x01\x00\x03", 4);
 
     if( Family == AF_INET )
     {
         IPv4AddressToAsc(&(((const struct sockaddr_in *)NestedAddress)->sin_addr), AddressString);
-		Port = ((const struct sockaddr_in *)NestedAddress)->sin_port;
+        Port = ((const struct sockaddr_in *)NestedAddress)->sin_port;
     } else {
-		IPv6AddressToAsc(&(((const struct sockaddr_in6 *)NestedAddress)->sin6_addr), AddressString);
-		Port = ((const struct sockaddr_in6 *)NestedAddress)->sin6_port;
+        IPv6AddressToAsc(&(((const struct sockaddr_in6 *)NestedAddress)->sin6_addr), AddressString);
+        Port = ((const struct sockaddr_in6 *)NestedAddress)->sin6_port;
     }
 
     NumberOfCharacter = strlen(AddressString);
@@ -204,78 +204,78 @@ static int TcpM_ProxyPreparation(SOCKET Sock,
            sizeof(Port)
            );
 
-	INFO("Connecting to TCP server.\n");
+    INFO("Connecting to TCP server.\n");
 
-	if( TcpM_SendWrapper(Sock,
+    if( TcpM_SendWrapper(Sock,
                          AddressInfos,
                          4 + 1 + NumberOfCharacter + 2
                          )
      != 4 + 1 + NumberOfCharacter + 2 )
-	{
-	    ERRORMSG("Cannot communicate with TCP proxy, connection to TCP server error.\n");
-		return -4;
-	}
+    {
+        ERRORMSG("Cannot communicate with TCP proxy, connection to TCP server error.\n");
+        return -4;
+    }
 
 /*
-	if( TcpM_SendWrapper(Sock, "\x05\x01\x00\x03", 4) != 4 )
-	{
-	    ERRORMSG("Cannot communicate with TCP proxy, connection to TCP server error.\n");
-		return -4;
-	}
+    if( TcpM_SendWrapper(Sock, "\x05\x01\x00\x03", 4) != 4 )
+    {
+        ERRORMSG("Cannot communicate with TCP proxy, connection to TCP server error.\n");
+        return -4;
+    }
 
-	if( TcpM_SendWrapper(Sock, &NumberOfCharacter, 1) != 1 )
-	{
-		ERRORMSG("Cannot communicate with TCP proxy, connection to TCP server error.\n");
-		return -5;
-	}
-	if( TcpM_SendWrapper(Sock, AddressString, NumberOfCharacter) != NumberOfCharacter )
-	{
-		ERRORMSG("Cannot communicate with TCP proxy, connection to TCP server error.\n");
-		return -6;
-	}
-	if( TcpM_SendWrapper(Sock, (const char *)&Port, sizeof(Port)) != sizeof(Port) )
-	{
-		ERRORMSG("Cannot communicate with TCP proxy, connection to TCP server error.\n");
-		return -7;
-	}
+    if( TcpM_SendWrapper(Sock, &NumberOfCharacter, 1) != 1 )
+    {
+        ERRORMSG("Cannot communicate with TCP proxy, connection to TCP server error.\n");
+        return -5;
+    }
+    if( TcpM_SendWrapper(Sock, AddressString, NumberOfCharacter) != NumberOfCharacter )
+    {
+        ERRORMSG("Cannot communicate with TCP proxy, connection to TCP server error.\n");
+        return -6;
+    }
+    if( TcpM_SendWrapper(Sock, (const char *)&Port, sizeof(Port)) != sizeof(Port) )
+    {
+        ERRORMSG("Cannot communicate with TCP proxy, connection to TCP server error.\n");
+        return -7;
+    }
 */
     if( TcpM_RecvWrapper(Sock, RecvBuffer, 4) != 4 )
     {
-		ERRORMSG("Cannot communicate with TCP proxy, connection to TCP server error.\n");
-		return -9;
+        ERRORMSG("Cannot communicate with TCP proxy, connection to TCP server error.\n");
+        return -9;
     }
 
-	if( RecvBuffer[1] != '\x00' )
-	{
-		ERRORMSG("Cannot communicate with TCP proxy, connection to TCP server error.\n");
-		return -10;
-	}
+    if( RecvBuffer[1] != '\x00' )
+    {
+        ERRORMSG("Cannot communicate with TCP proxy, connection to TCP server error.\n");
+        return -10;
+    }
 
-	switch( RecvBuffer[3] )
-	{
-		case 0x01:
-			NumberOfCharacter = 6;
-			break;
+    switch( RecvBuffer[3] )
+    {
+        case 0x01:
+            NumberOfCharacter = 6;
+            break;
 
-		case 0x03:
-			TcpM_RecvWrapper(Sock, &NumberOfCharacter, 1);
-			NumberOfCharacter += 2;
-			break;
+        case 0x03:
+            TcpM_RecvWrapper(Sock, &NumberOfCharacter, 1);
+            NumberOfCharacter += 2;
+            break;
 
-		case 0x04:
-			NumberOfCharacter = 18;
-			break;
+        case 0x04:
+            NumberOfCharacter = 18;
+            break;
 
-		default:
-			/*printf("------Here : %d %d %d %d\n", RecvBuffer[0], RecvBuffer[1], RecvBuffer[2], RecvBuffer[3]);*/
-			ERRORMSG("Cannot communicate with TCP proxy, connection to TCP server error.\n");
-			return -11;
-	}
-	ClearTCPSocketBuffer(Sock, NumberOfCharacter);
+        default:
+            /*printf("------Here : %d %d %d %d\n", RecvBuffer[0], RecvBuffer[1], RecvBuffer[2], RecvBuffer[3]);*/
+            ERRORMSG("Cannot communicate with TCP proxy, connection to TCP server error.\n");
+            return -11;
+    }
+    ClearTCPSocketBuffer(Sock, NumberOfCharacter);
 
-	INFO("Connected to TCP server.\n");
+    INFO("Connected to TCP server.\n");
 
-	return 0;
+    return 0;
 
 }
 

@@ -9,58 +9,58 @@
 #include "domainstatistic.h"
 #include "rwlock.h"
 
-static Bst			*DisabledTypes = NULL;
+static Bst          *DisabledTypes = NULL;
 
-static StringChunk	*DisabledDomain = NULL;
-static RWLock		DisabledDomainLock;
+static StringChunk  *DisabledDomain = NULL;
+static RWLock       DisabledDomainLock;
 
 static ConfigFileInfo *CurrConfigInfo = NULL;
 
 static int TypeCompare(const int *_1, const int *_2)
 {
-	return *_1 - *_2;
+    return *_1 - *_2;
 }
 
 static int InitBst(Bst **t, int (*CompareFunc)(const void *, const void *))
 {
-	*t = malloc(sizeof(Bst));
-	if( *t == NULL )
-	{
-		return -93;
-	}
+    *t = malloc(sizeof(Bst));
+    if( *t == NULL )
+    {
+        return -93;
+    }
 
-	if( Bst_Init(*t, sizeof(int), CompareFunc) != 0 )
-	{
-		return -102;
-	}
+    if( Bst_Init(*t, sizeof(int), CompareFunc) != 0 )
+    {
+        return -102;
+    }
 
-	return 0;
+    return 0;
 }
 
 static int LoadDomainsFromList(StringChunk *List, StringList *Domains)
 {
-	const char *Str;
+    const char *Str;
 
-	StringListIterator  sli;
+    StringListIterator  sli;
 
-	if( List == NULL || Domains == NULL )
-	{
-		return 0;
-	}
+    if( List == NULL || Domains == NULL )
+    {
+        return 0;
+    }
 
-	if( StringListIterator_Init(&sli, Domains) != 0 )
+    if( StringListIterator_Init(&sli, Domains) != 0 )
     {
         return -1;
     }
 
-	Str = sli.Next(&sli);
-	while( Str != NULL )
-	{
-		StringChunk_Add_Domain(List, Str, NULL, 0);
-		Str = sli.Next(&sli);
-	}
+    Str = sli.Next(&sli);
+    while( Str != NULL )
+    {
+        StringChunk_Add_Domain(List, Str, NULL, 0);
+        Str = sli.Next(&sli);
+    }
 
-	return 0;
+    return 0;
 }
 
 static int FilterDomain_Init(StringChunk **List, ConfigFileInfo *ConfigInfo)
@@ -85,8 +85,8 @@ static int FilterDomain_Init(StringChunk **List, ConfigFileInfo *ConfigInfo)
 static int LoadDomainsFromFile(StringChunk *List, const char *FilePath)
 {
     FILE *fp;
-    ReadLineStatus	Status;
-    char	Domain[512];
+    ReadLineStatus  Status;
+    char    Domain[512];
 
     if( List == NULL || FilePath == NULL )
     {
@@ -100,17 +100,17 @@ static int LoadDomainsFromFile(StringChunk *List, const char *FilePath)
     }
 
     Status = ReadLine(fp, Domain, sizeof(Domain));
-	while( Status != READ_FAILED_OR_END )
-	{
-		if( Status == READ_DONE )
-		{
-			StringChunk_Add_Domain(List, Domain, NULL, 0);
-		} else {
-			ReadLine_GoToNextLine(fp);
-		}
+    while( Status != READ_FAILED_OR_END )
+    {
+        if( Status == READ_DONE )
+        {
+            StringChunk_Add_Domain(List, Domain, NULL, 0);
+        } else {
+            ReadLine_GoToNextLine(fp);
+        }
 
-		Status = ReadLine(fp, Domain, sizeof(Domain));
-	}
+        Status = ReadLine(fp, Domain, sizeof(Domain));
+    }
 
     fclose(fp);
 
@@ -148,43 +148,43 @@ static int FilterDomain_InitFromFile(StringChunk **List, ConfigFileInfo *ConfigI
 
 static int FilterType_Init(ConfigFileInfo *ConfigInfo)
 {
-	StringList *DisableType_Str =
+    StringList *DisableType_Str =
         ConfigGetStringList(ConfigInfo, "DisabledType");
 
-	const char *OneTypePendingToAdd_Str;
-	int OneTypePendingToAdd;
+    const char *OneTypePendingToAdd_Str;
+    int OneTypePendingToAdd;
 
     StringListIterator  sli;
 
-	if( DisableType_Str == NULL )
-	{
-		return 0;
-	}
+    if( DisableType_Str == NULL )
+    {
+        return 0;
+    }
 
-	if( InitBst(&DisabledTypes,
+    if( InitBst(&DisabledTypes,
                 (int (*)(const void *, const void *))TypeCompare
              ) != 0 )
     {
         return -146;
     }
 
-	if( StringListIterator_Init(&sli, DisableType_Str) != 0 )
+    if( StringListIterator_Init(&sli, DisableType_Str) != 0 )
     {
         return -2;
     }
 
-	OneTypePendingToAdd_Str = sli.Next(&sli);
-	while( OneTypePendingToAdd_Str != NULL )
-	{
-		sscanf(OneTypePendingToAdd_Str, "%d", &OneTypePendingToAdd);
-		DisabledTypes->Add(DisabledTypes, &OneTypePendingToAdd);
+    OneTypePendingToAdd_Str = sli.Next(&sli);
+    while( OneTypePendingToAdd_Str != NULL )
+    {
+        sscanf(OneTypePendingToAdd_Str, "%d", &OneTypePendingToAdd);
+        DisabledTypes->Add(DisabledTypes, &OneTypePendingToAdd);
 
-		OneTypePendingToAdd_Str = sli.Next(&sli);
-	}
+        OneTypePendingToAdd_Str = sli.Next(&sli);
+    }
 
-	DisableType_Str->Free(DisableType_Str);
+    DisableType_Str->Free(DisableType_Str);
 
-	return 0;
+    return 0;
 }
 
 static int DisabledDomain_Init(ConfigFileInfo *ConfigInfo)
@@ -230,11 +230,11 @@ int Filter_Init(ConfigFileInfo *ConfigInfo)
         INFO("Disabled types initialized.\n");
     }
 
-	RWLock_Init(DisabledDomainLock);
+    RWLock_Init(DisabledDomainLock);
 
     DisabledDomain_Init(ConfigInfo);
 
-	return 0;
+    return 0;
 }
 
 int Filter_Update(void)
@@ -249,13 +249,13 @@ int Filter_Update(void)
 
 static BOOL IsDisabledType(int Type)
 {
-	if( DisabledTypes != NULL &&
+    if( DisabledTypes != NULL &&
         DisabledTypes->Search(DisabledTypes, &Type, NULL) != NULL )
-	{
-		return TRUE;
-	} else {
-		return FALSE;
-	}
+    {
+        return TRUE;
+    } else {
+        return FALSE;
+    }
 }
 
 static BOOL IsDisabledDomain(const char *Domain, uint32_t HashValue)

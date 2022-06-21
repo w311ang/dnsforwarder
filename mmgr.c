@@ -37,7 +37,7 @@ static StableBuffer *Modules = NULL; /* Storing ModuleInterfaces */
 static Array        *ModuleArray = NULL; /* ModuleInterfaces' references */
 static StringChunk  *Distributor = NULL; /* Domain-to-ModuleInterface mapping */
 
-static RWLock		ModulesLock;
+static RWLock       ModulesLock;
 static ConfigFileInfo *CurrConfigInfo = NULL;
 
 static int MappingAModule(ModuleMap *ModuleMap,

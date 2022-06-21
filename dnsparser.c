@@ -4,141 +4,141 @@
 
 char *DNSJumpOverName(char *NameStart)
 {
-	return NameStart + DNSGetHostName(NULL, INT_MAX, NameStart, NULL, 0);
+    return NameStart + DNSGetHostName(NULL, INT_MAX, NameStart, NULL, 0);
 }
 
 /* Labels length returned */
 int DNSGetHostName(const char *DNSBody, int DNSBodyLength, const char *NameStart, char *buffer, int BufferLength)
 {
-	char *BufferItr = buffer;
-	const char *NameItr = NameStart;
-	int LabelsLength = 0;
-	BOOL Redirected = FALSE;
-	int LabelCount = GET_8_BIT_U_INT(NameItr); /* The amount of characters of the next label */
-	while( LabelCount != 0 )
-	{
-		if( DNSIsLabelPointerStart(LabelCount) )
-		{
-			int LabelPointer = 0;
-			if( Redirected == FALSE )
+    char *BufferItr = buffer;
+    const char *NameItr = NameStart;
+    int LabelsLength = 0;
+    BOOL Redirected = FALSE;
+    int LabelCount = GET_8_BIT_U_INT(NameItr); /* The amount of characters of the next label */
+    while( LabelCount != 0 )
+    {
+        if( DNSIsLabelPointerStart(LabelCount) )
+        {
+            int LabelPointer = 0;
+            if( Redirected == FALSE )
             {
                 LabelsLength += 2;
                 Redirected = TRUE;
             }
-			if( buffer == NULL )
-			{
-				break;
-			}
-			LabelPointer = DNSLabelGetPointer(NameItr);
-			if( LabelPointer > DNSBodyLength )
-			{
-				return -1;
-			}
-			NameItr = DNSBody + DNSLabelGetPointer(NameItr);
-		} else {
-			if( DNSBody != NULL &&
+            if( buffer == NULL )
+            {
+                break;
+            }
+            LabelPointer = DNSLabelGetPointer(NameItr);
+            if( LabelPointer > DNSBodyLength )
+            {
+                return -1;
+            }
+            NameItr = DNSBody + DNSLabelGetPointer(NameItr);
+        } else {
+            if( DNSBody != NULL &&
                 NameItr + LabelCount > DNSBody + DNSBodyLength
                 )
-			{
-				return -1;
-			}
+            {
+                return -1;
+            }
 
-			if( buffer != NULL )
-			{
-				if( BufferItr + LabelCount + 1 - buffer <= BufferLength )
-				{
-					memcpy(BufferItr, NameItr + 1, LabelCount);
-				} else {
-					if( BufferItr == buffer )
-					{
-						if( BufferLength > 0 )
-						{
-							*BufferItr = '\0';
-						}
-					} else {
-						*(BufferItr - 1) = '\0';
-					}
-					return -1;
-				}
-			}
+            if( buffer != NULL )
+            {
+                if( BufferItr + LabelCount + 1 - buffer <= BufferLength )
+                {
+                    memcpy(BufferItr, NameItr + 1, LabelCount);
+                } else {
+                    if( BufferItr == buffer )
+                    {
+                        if( BufferLength > 0 )
+                        {
+                            *BufferItr = '\0';
+                        }
+                    } else {
+                        *(BufferItr - 1) = '\0';
+                    }
+                    return -1;
+                }
+            }
 
-			if( Redirected == FALSE )
-			{
-				LabelsLength += (LabelCount + 1);
-			}
-			NameItr += (1 + LabelCount);
-			if( buffer != NULL )
-			{
-				BufferItr += LabelCount;
-				*BufferItr = '.';
-				++BufferItr;
-			}
-		}
+            if( Redirected == FALSE )
+            {
+                LabelsLength += (LabelCount + 1);
+            }
+            NameItr += (1 + LabelCount);
+            if( buffer != NULL )
+            {
+                BufferItr += LabelCount;
+                *BufferItr = '.';
+                ++BufferItr;
+            }
+        }
 
-		LabelCount = GET_8_BIT_U_INT(NameItr);
-	}
+        LabelCount = GET_8_BIT_U_INT(NameItr);
+    }
 
-	if( buffer != NULL )
-	{
-		if( BufferItr == buffer )
-		{
-			if( BufferLength > 0 )
-			{
-				*BufferItr = '\0';
-			} else {
-				return -1;
-			}
-		} else {
-			*(BufferItr - 1) = '\0';
-		}
-	}
+    if( buffer != NULL )
+    {
+        if( BufferItr == buffer )
+        {
+            if( BufferLength > 0 )
+            {
+                *BufferItr = '\0';
+            } else {
+                return -1;
+            }
+        } else {
+            *(BufferItr - 1) = '\0';
+        }
+    }
 
-	if( Redirected == FALSE )
-	{
-		++LabelsLength;
-	}
+    if( Redirected == FALSE )
+    {
+        ++LabelsLength;
+    }
 
-	return LabelsLength;
+    return LabelsLength;
 }
 
 /* including terminated-zero */
 int DNSGetHostNameLength(const char *DNSBody, int DNSBodyLength, const char *NameStart)
 {
-	const char *NameItr = NameStart;
-	int NameLength = 0;
-	int LabelCount = GET_8_BIT_U_INT(NameItr); /* The amount of characters of the next label */
-	while( LabelCount != 0 )
-	{
-		if( DNSIsLabelPointerStart(LabelCount) )
-		{
-			if( DNSLabelGetPointer(NameItr) > DNSBodyLength )
-			{
-				return INT_MAX; /* Error detected */
-			}
-			NameItr = DNSBody + DNSLabelGetPointer(NameItr);
-		} else {
-			if( NameItr + LabelCount > DNSBody + DNSBodyLength )
-			{
-				return INT_MAX; /* Error detected */
-			}
-			NameLength += (LabelCount + 1);
-			NameItr += (1 + LabelCount);
-		}
+    const char *NameItr = NameStart;
+    int NameLength = 0;
+    int LabelCount = GET_8_BIT_U_INT(NameItr); /* The amount of characters of the next label */
+    while( LabelCount != 0 )
+    {
+        if( DNSIsLabelPointerStart(LabelCount) )
+        {
+            if( DNSLabelGetPointer(NameItr) > DNSBodyLength )
+            {
+                return INT_MAX; /* Error detected */
+            }
+            NameItr = DNSBody + DNSLabelGetPointer(NameItr);
+        } else {
+            if( NameItr + LabelCount > DNSBody + DNSBodyLength )
+            {
+                return INT_MAX; /* Error detected */
+            }
+            NameLength += (LabelCount + 1);
+            NameItr += (1 + LabelCount);
+        }
 
-		LabelCount = GET_8_BIT_U_INT(NameItr);
+        LabelCount = GET_8_BIT_U_INT(NameItr);
 
-		if( NameLength > DNSBodyLength )
+        if( NameLength > DNSBodyLength )
         {
             return INT_MAX; /* Error detected */
         }
-	}
+    }
 
-	if( NameLength == 0 )
-	{
-		return 1;
-	} else {
-		return NameLength;
-	}
+    if( NameLength == 0 )
+    {
+        return 1;
+    } else {
+        return NameLength;
+    }
 }
 
 char *GetAllAnswers(char *DNSBody, int DNSBodyLength, char *Buffer, int BufferLength)
@@ -203,30 +203,30 @@ int DNSCopyLable(const char *DNSBody, char *here, const char *src)
 {
     int FullLength = 0;
 
-	while( TRUE )
-	{
-		if( DNSIsLabelPointerStart(GET_8_BIT_U_INT(src)) )
-		{
-			src = DNSBody + DNSLabelGetPointer(src);
-		} else {
-		    ++FullLength;
+    while( TRUE )
+    {
+        if( DNSIsLabelPointerStart(GET_8_BIT_U_INT(src)) )
+        {
+            src = DNSBody + DNSLabelGetPointer(src);
+        } else {
+            ++FullLength;
 
-		    if( here != NULL )
+            if( here != NULL )
             {
                 *here = *src;
                 ++here;
             }
 
-			if( *src == '\0' )
-			{
-				break;
-			}
+            if( *src == '\0' )
+            {
+                break;
+            }
 
-			++src;
-		}
-	}
+            ++src;
+        }
+    }
 
-	return FullLength;
+    return FullLength;
 }
 
 /**

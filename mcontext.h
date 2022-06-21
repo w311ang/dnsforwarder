@@ -11,7 +11,7 @@ typedef struct _ModuleContext ModuleContext;
 
 struct _ModuleContext{
     /* private */
-    Bst	d;
+    Bst d;
 
     /* public */
     int (*Add)(ModuleContext *c,

@@ -11,8 +11,8 @@ struct _HostsContextItem{
     uint32_t    i; /* Query identifier */
     uint32_t    oi; /* Original identifier */
 
-	char	    RecursedDomain[256];
-	int         RecursedHashValue;
+    char        RecursedDomain[256];
+    int         RecursedHashValue;
 };
 
 PUBFUNC int HostsContext_Add(HostsContext   *c,
@@ -86,7 +86,7 @@ PRIFUNC int HostsContext_Swep_Collect(Bst *t,
 {
     const int TIME_OUT = 2; /* Seconds */
 
-    time_t	Now = time(NULL);
+    time_t  Now = time(NULL);
 
     if( Now - Context->t > TIME_OUT )
     {
@@ -135,12 +135,12 @@ PRIFUNC int HostsContextCompare(const void *_1, const void *_2)
     const HostsContextItem *One = (HostsContextItem *)_1;
     const HostsContextItem *Two = (HostsContextItem *)_2;
 
-	if( One->i != Two->i )
-	{
-		return (int)(One->i) - (int)(Two->i);
-	} else {
-		return One->RecursedHashValue - Two->RecursedHashValue;
-	}
+    if( One->i != Two->i )
+    {
+        return (int)(One->i) - (int)(Two->i);
+    } else {
+        return One->RecursedHashValue - Two->RecursedHashValue;
+    }
 }
 
 int HostsContext_Init(HostsContext *c)

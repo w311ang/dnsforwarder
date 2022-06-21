@@ -5,29 +5,29 @@
 
 /* Other Codes */
 char *DNSLabelizedName(__inout char *Origin, __in size_t OriginSpaceLength){
-	unsigned char *LabelLength = (unsigned char *)Origin;
+    unsigned char *LabelLength = (unsigned char *)Origin;
 
-	if( *Origin == '\0' )
-		return Origin + 1;
+    if( *Origin == '\0' )
+        return Origin + 1;
 
-	if( OriginSpaceLength < strlen(Origin) + 2 )
-		return NULL;
+    if( OriginSpaceLength < strlen(Origin) + 2 )
+        return NULL;
 
-	memmove(Origin + 1, Origin, strlen(Origin) + 1);
+    memmove(Origin + 1, Origin, strlen(Origin) + 1);
 
-	*LabelLength = 0;
-	while(1){
-		++Origin;
+    *LabelLength = 0;
+    while(1){
+        ++Origin;
 
-		if(*Origin == 0) break;
-		if(*Origin != '.') ++(*LabelLength);
-		else {
-			LabelLength = (unsigned char *)Origin;
-			*LabelLength = 0;
-		}
-	}
+        if(*Origin == 0) break;
+        if(*Origin != '.') ++(*LabelLength);
+        else {
+            LabelLength = (unsigned char *)Origin;
+            *LabelLength = 0;
+        }
+    }
 
-	return Origin + 1;
+    return Origin + 1;
 }
 
 /* Compressed length returned */
@@ -144,7 +144,7 @@ static DnsRecordPurpose DnsGenerator_NextPurpose(DnsGenerator *g)
 
 static int DnsGenerator_NamePart(DnsGenerator *g, const char *Name)
 {
-	if( Name == NULL || *Name == '\0' )
+    if( Name == NULL || *Name == '\0' )
     {
         /* Root domain */
         if( LEFT_LENGTH(g) < 1 )
@@ -179,7 +179,7 @@ static int DnsGenerator_NamePart(DnsGenerator *g, const char *Name)
 
 static int DnsGenerator_16Uint(DnsGenerator *g, int Value)
 {
-	if( LEFT_LENGTH(g) < 2 )
+    if( LEFT_LENGTH(g) < 2 )
     {
         return -1;
     }
@@ -193,7 +193,7 @@ static int DnsGenerator_16Uint(DnsGenerator *g, int Value)
 
 static int DnsGenerator_32Uint(DnsGenerator *g, int Value)
 {
-	if( LEFT_LENGTH(g) < 4 )
+    if( LEFT_LENGTH(g) < 4 )
     {
         return -1;
     }
@@ -207,7 +207,7 @@ static int DnsGenerator_32Uint(DnsGenerator *g, int Value)
 
 static int DnsGenerator_IPv4(DnsGenerator *g, const char *ip)
 {
-	if( LEFT_LENGTH(g) < 4 )
+    if( LEFT_LENGTH(g) < 4 )
     {
         return -1;
     }
@@ -221,7 +221,7 @@ static int DnsGenerator_IPv4(DnsGenerator *g, const char *ip)
 
 static int DnsGenerator_IPv6(DnsGenerator *g, const char *ip)
 {
-	if( LEFT_LENGTH(g) < 16 )
+    if( LEFT_LENGTH(g) < 16 )
     {
         return -1;
     }
@@ -245,17 +245,17 @@ static int DnsGenerator_Question(DnsGenerator *g,
         return 1;
     }
 
-	if( DnsGenerator_NamePart(g, Name) != 0 )
+    if( DnsGenerator_NamePart(g, Name) != 0 )
     {
         return -1;
     }
 
-	if( DnsGenerator_16Uint(g, Type) != 0 )
+    if( DnsGenerator_16Uint(g, Type) != 0 )
     {
         return -2;
     }
 
-	if( DnsGenerator_16Uint(g, Klass) != 0 )
+    if( DnsGenerator_16Uint(g, Klass) != 0 )
     {
         return -3;
     }
@@ -264,7 +264,7 @@ static int DnsGenerator_Question(DnsGenerator *g,
                      GET_16_BIT_U_INT(g->NumberOfRecords) + 1
                      );
 
-	return 0;
+    return 0;
 }
 
 static int DnsGenerator_CName(DnsGenerator *g,
@@ -283,32 +283,32 @@ static int DnsGenerator_CName(DnsGenerator *g,
         return 1;
     }
 
-	if( DnsGenerator_NamePart(g, Name) != 0 )
+    if( DnsGenerator_NamePart(g, Name) != 0 )
     {
         return -1;
     }
 
-	if( DnsGenerator_16Uint(g, DNS_TYPE_CNAME) != 0 )
+    if( DnsGenerator_16Uint(g, DNS_TYPE_CNAME) != 0 )
     {
         return -2;
     }
 
-	if( DnsGenerator_16Uint(g, DNS_CLASS_IN) != 0 )
+    if( DnsGenerator_16Uint(g, DNS_CLASS_IN) != 0 )
     {
         return -3;
     }
 
-	if( DnsGenerator_32Uint(g, Ttl) != 0 )
+    if( DnsGenerator_32Uint(g, Ttl) != 0 )
     {
         return -4;
     }
 
-	if( DnsGenerator_16Uint(g, LABEL_LENGTH(CName)) != 0 )
+    if( DnsGenerator_16Uint(g, LABEL_LENGTH(CName)) != 0 )
     {
         return -5;
     }
 
-	if( DnsGenerator_NamePart(g, CName) != 0 )
+    if( DnsGenerator_NamePart(g, CName) != 0 )
     {
         return -6;
     }
@@ -336,32 +336,32 @@ static int DnsGenerator_A(DnsGenerator *g,
         return 1;
     }
 
-	if( DnsGenerator_NamePart(g, Name) != 0 )
+    if( DnsGenerator_NamePart(g, Name) != 0 )
     {
         return -1;
     }
 
-	if( DnsGenerator_16Uint(g, DNS_TYPE_A) != 0 )
+    if( DnsGenerator_16Uint(g, DNS_TYPE_A) != 0 )
     {
         return -2;
     }
 
-	if( DnsGenerator_16Uint(g, DNS_CLASS_IN) != 0 )
+    if( DnsGenerator_16Uint(g, DNS_CLASS_IN) != 0 )
     {
         return -3;
     }
 
-	if( DnsGenerator_32Uint(g, Ttl) != 0 )
+    if( DnsGenerator_32Uint(g, Ttl) != 0 )
     {
         return -4;
     }
 
-	if( DnsGenerator_16Uint(g, 4) != 0 )
+    if( DnsGenerator_16Uint(g, 4) != 0 )
     {
         return -5;
     }
 
-	if( DnsGenerator_IPv4(g, ip) != 0 )
+    if( DnsGenerator_IPv4(g, ip) != 0 )
     {
         return -6;
     }
@@ -389,32 +389,32 @@ static int DnsGenerator_AAAA(DnsGenerator *g,
         return 1;
     }
 
-	if( DnsGenerator_NamePart(g, Name) != 0 )
+    if( DnsGenerator_NamePart(g, Name) != 0 )
     {
         return -1;
     }
 
-	if( DnsGenerator_16Uint(g, DNS_TYPE_AAAA) != 0 )
+    if( DnsGenerator_16Uint(g, DNS_TYPE_AAAA) != 0 )
     {
         return -2;
     }
 
-	if( DnsGenerator_16Uint(g, DNS_CLASS_IN) != 0 )
+    if( DnsGenerator_16Uint(g, DNS_CLASS_IN) != 0 )
     {
         return -3;
     }
 
-	if( DnsGenerator_32Uint(g, Ttl) != 0 )
+    if( DnsGenerator_32Uint(g, Ttl) != 0 )
     {
         return -4;
     }
 
-	if( DnsGenerator_16Uint(g, 16) != 0 )
+    if( DnsGenerator_16Uint(g, 16) != 0 )
     {
         return -5;
     }
 
-	if( DnsGenerator_IPv6(g, ip) != 0 )
+    if( DnsGenerator_IPv6(g, ip) != 0 )
     {
         return -6;
     }
@@ -435,27 +435,27 @@ static int DnsGenerator_EDns(DnsGenerator *g, int UdpPayloadSize)
         return 1;
     }
 
-	if( DnsGenerator_NamePart(g, NULL) != 0 )
+    if( DnsGenerator_NamePart(g, NULL) != 0 )
     {
         return -1;
     }
 
-	if( DnsGenerator_16Uint(g, DNS_TYPE_OPT) != 0 )
+    if( DnsGenerator_16Uint(g, DNS_TYPE_OPT) != 0 )
     {
         return -2;
     }
 
-	if( DnsGenerator_16Uint(g, UdpPayloadSize) != 0 )
+    if( DnsGenerator_16Uint(g, UdpPayloadSize) != 0 )
     {
         return -3;
     }
 
-	if( DnsGenerator_32Uint(g, 0) != 0 )
+    if( DnsGenerator_32Uint(g, 0) != 0 )
     {
         return -4;
     }
 
-	if( DnsGenerator_16Uint(g, 0) != 0 )
+    if( DnsGenerator_16Uint(g, 0) != 0 )
     {
         return -5;
     }
@@ -491,27 +491,27 @@ static int DnsGenerator_RawData(DnsGenerator *g,
         return 2;
     }
 
-	if( DnsGenerator_NamePart(g, Name) != 0 )
+    if( DnsGenerator_NamePart(g, Name) != 0 )
     {
         return -1;
     }
 
-	if( DnsGenerator_16Uint(g, Type) != 0 )
+    if( DnsGenerator_16Uint(g, Type) != 0 )
     {
         return -2;
     }
 
-	if( DnsGenerator_16Uint(g, Klass) != 0 )
+    if( DnsGenerator_16Uint(g, Klass) != 0 )
     {
         return -3;
     }
 
-	if( DnsGenerator_32Uint(g, Ttl) != 0 )
+    if( DnsGenerator_32Uint(g, Ttl) != 0 )
     {
         return -4;
     }
 
-	if( DnsGenerator_16Uint(g, DataLength) != 0 )
+    if( DnsGenerator_16Uint(g, DataLength) != 0 )
     {
         return -5;
     }

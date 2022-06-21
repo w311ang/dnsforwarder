@@ -4,13 +4,13 @@
 #include <stdlib.h> /* exit() */
 
 #ifndef NODOWNLOAD
-	#ifndef WIN32
-		#include <sys/types.h>
-		#include <sys/stat.h>
-		#ifdef DOWNLOAD_LIBCURL
-			#include <curl/curl.h>
-		#endif /* DOWNLOAD_LIBCURL */
-	#endif /* WIN32 */
+    #ifndef WIN32
+        #include <sys/types.h>
+        #include <sys/stat.h>
+        #ifdef DOWNLOAD_LIBCURL
+            #include <curl/curl.h>
+        #endif /* DOWNLOAD_LIBCURL */
+    #endif /* WIN32 */
 #endif /* NODOWNLOAD */
 
 #include "common.h"
@@ -24,27 +24,27 @@
 
 #define VERSION__ "6.2.0"
 
-static char		*ConfigFile;
-static BOOL		DeamonMode;
+static char     *ConfigFile;
+static BOOL     DeamonMode;
 
 static BOOL     ShowMessages = TRUE;
 static BOOL     DebugOn = FALSE;
 
-static ConfigFileInfo	ConfigInfo;
+static ConfigFileInfo   ConfigInfo;
 
 static int EnvironmentInit(void)
 {
-	VType	TmpTypeDescriptor;
-	char	TmpStr[1024];
+    VType   TmpTypeDescriptor;
+    char    TmpStr[1024];
 
-	/* Setting env */
-	GetFileDirectory(TmpStr);
-	strcat(TmpStr, PATH_SLASH_STR);
+    /* Setting env */
+    GetFileDirectory(TmpStr);
+    strcat(TmpStr, PATH_SLASH_STR);
 
-	SetProgramEnvironment("PROGRAMDIRECTORY", TmpStr);
+    SetProgramEnvironment("PROGRAMDIRECTORY", TmpStr);
 
-	strncpy(TmpStr, ConfigFile, sizeof(TmpStr));
-	TmpStr[sizeof(TmpStr) - 1] = '\0';
+    strncpy(TmpStr, ConfigFile, sizeof(TmpStr));
+    TmpStr[sizeof(TmpStr) - 1] = '\0';
 
     if( GetPathPart(TmpStr) == NULL )
     {
@@ -52,10 +52,10 @@ static int EnvironmentInit(void)
         TmpStr[sizeof(TmpStr) - 1] = '\0';
     }
 
-	SetProgramEnvironment("CONFIGFILEDIRECTORY", TmpStr);
+    SetProgramEnvironment("CONFIGFILEDIRECTORY", TmpStr);
 
     /* Initializing configure options */
-	ConfigInitInfo(&ConfigInfo);
+    ConfigInitInfo(&ConfigInfo);
 
     TmpTypeDescriptor.boolean = FALSE;
     ConfigAddOption(&ConfigInfo, "LogOn", STRATEGY_DEFAULT, TYPE_BOOLEAN, TmpTypeDescriptor);
@@ -63,8 +63,8 @@ static int EnvironmentInit(void)
     TmpTypeDescriptor.INT32 = 102400;
     ConfigAddOption(&ConfigInfo, "LogFileThresholdLength", STRATEGY_DEFAULT, TYPE_INT32, TmpTypeDescriptor);
 
-	GetFileDirectory(TmpStr);
-	strcat(TmpStr, PATH_SLASH_STR);
+    GetFileDirectory(TmpStr);
+    strcat(TmpStr, PATH_SLASH_STR);
     TmpTypeDescriptor.str = TmpStr;
     ConfigAddOption(&ConfigInfo, "LogFileFolder", STRATEGY_REPLACE, TYPE_PATH, TmpTypeDescriptor);
 
@@ -108,17 +108,17 @@ static int EnvironmentInit(void)
     TmpTypeDescriptor.boolean = FALSE;
     ConfigAddOption(&ConfigInfo, "DomainStatistic", STRATEGY_DEFAULT, TYPE_BOOLEAN, TmpTypeDescriptor);
 
-	GetFileDirectory(TmpStr);
-	strcat(TmpStr, PATH_SLASH_STR);
-	strcat(TmpStr, "StatisticTemplate.html");
+    GetFileDirectory(TmpStr);
+    strcat(TmpStr, PATH_SLASH_STR);
+    strcat(TmpStr, "StatisticTemplate.html");
     TmpTypeDescriptor.str = TmpStr;
     ConfigAddOption(&ConfigInfo, "DomainStatisticTempletFile", STRATEGY_REPLACE, TYPE_PATH, TmpTypeDescriptor);
 
-	TmpTypeDescriptor.str = "<!-- INSERT HERE -->";
-	ConfigAddOption(&ConfigInfo, "StatisticInsertionPosition", STRATEGY_DEFAULT, TYPE_STRING, TmpTypeDescriptor);
+    TmpTypeDescriptor.str = "<!-- INSERT HERE -->";
+    ConfigAddOption(&ConfigInfo, "StatisticInsertionPosition", STRATEGY_DEFAULT, TYPE_STRING, TmpTypeDescriptor);
 
-	TmpTypeDescriptor.INT32 = 60;
-	ConfigAddOption(&ConfigInfo, "StatisticUpdateInterval", STRATEGY_DEFAULT, TYPE_INT32, TmpTypeDescriptor);
+    TmpTypeDescriptor.INT32 = 60;
+    ConfigAddOption(&ConfigInfo, "StatisticUpdateInterval", STRATEGY_DEFAULT, TYPE_INT32, TmpTypeDescriptor);
 
     TmpTypeDescriptor.str = NULL;
     ConfigAddOption(&ConfigInfo, "Hosts", STRATEGY_APPEND, TYPE_PATH, TmpTypeDescriptor);
@@ -135,9 +135,9 @@ static int EnvironmentInit(void)
     TmpTypeDescriptor.INT32 = 30;
     ConfigAddOption(&ConfigInfo, "HostsRetryInterval", STRATEGY_DEFAULT, TYPE_INT32, TmpTypeDescriptor);
 
-	GetFileDirectory(TmpStr);
-	strcat(TmpStr, PATH_SLASH_STR);
-	strcat(TmpStr, "hosts.txt");
+    GetFileDirectory(TmpStr);
+    strcat(TmpStr, PATH_SLASH_STR);
+    strcat(TmpStr, "hosts.txt");
     TmpTypeDescriptor.str = TmpStr;
     ConfigAddOption(&ConfigInfo, "HostsDownloadPath", STRATEGY_REPLACE, TYPE_PATH, TmpTypeDescriptor);
 
@@ -162,9 +162,9 @@ static int EnvironmentInit(void)
     TmpTypeDescriptor.boolean = TRUE;
     ConfigAddOption(&ConfigInfo, "MemoryCache", STRATEGY_DEFAULT, TYPE_BOOLEAN, TmpTypeDescriptor);
 
-	GetFileDirectory(TmpStr);
-	strcat(TmpStr, PATH_SLASH_STR);
-	strcat(TmpStr, "cache");
+    GetFileDirectory(TmpStr);
+    strcat(TmpStr, PATH_SLASH_STR);
+    strcat(TmpStr, "cache");
     TmpTypeDescriptor.str = TmpStr;
     ConfigAddOption(&ConfigInfo, "CacheFile", STRATEGY_REPLACE, TYPE_PATH, TmpTypeDescriptor);
 
@@ -180,11 +180,11 @@ static int EnvironmentInit(void)
     TmpTypeDescriptor.str = NULL;
     ConfigAddOption(&ConfigInfo, "CacheControl", STRATEGY_APPEND, TYPE_STRING, TmpTypeDescriptor);
 
-	TmpTypeDescriptor.boolean = FALSE;
+    TmpTypeDescriptor.boolean = FALSE;
     ConfigAddOption(&ConfigInfo, "ReloadCache", STRATEGY_DEFAULT, TYPE_BOOLEAN, TmpTypeDescriptor);
 
-	TmpTypeDescriptor.boolean = FALSE;
-	ConfigAddOption(&ConfigInfo, "OverwriteCache", STRATEGY_DEFAULT, TYPE_BOOLEAN, TmpTypeDescriptor);
+    TmpTypeDescriptor.boolean = FALSE;
+    ConfigAddOption(&ConfigInfo, "OverwriteCache", STRATEGY_DEFAULT, TYPE_BOOLEAN, TmpTypeDescriptor);
 
     TmpTypeDescriptor.str = NULL;
     ConfigAddOption(&ConfigInfo, "DisabledType", STRATEGY_APPEND, TYPE_STRING, TmpTypeDescriptor);
@@ -201,7 +201,7 @@ static int EnvironmentInit(void)
     TmpTypeDescriptor.str = NULL;
     ConfigAddOption(&ConfigInfo, "GoodIPListAddIP", STRATEGY_APPEND, TYPE_STRING, TmpTypeDescriptor);
 
-	if( ConfigOpenFile(&ConfigInfo, ConfigFile) != 0 )
+    if( ConfigOpenFile(&ConfigInfo, ConfigFile) != 0 )
     {
         printf("WARNING: Cannot load configuration file : %s. Default options will be used. Or use `-f' to specify other configure file.\n", ConfigFile);
         return 0;
@@ -210,22 +210,22 @@ static int EnvironmentInit(void)
     ConfigRead(&ConfigInfo);
     ConfigCloseFile(&ConfigInfo);
 
-	return 0;
+    return 0;
 }
 
 static int DaemonInit(void)
 {
 #ifdef WIN32
-	char		*CmdLine = GetCommandLine();
-	char		*NewArguments;
+    char        *CmdLine = GetCommandLine();
+    char        *NewArguments;
 
-	BOOL		StartUpStatus;
-	STARTUPINFO	StartUpInfo;
-	PROCESS_INFORMATION ProcessInfo;
+    BOOL        StartUpStatus;
+    STARTUPINFO StartUpInfo;
+    PROCESS_INFORMATION ProcessInfo;
 
-	CmdLine = GoToNextNonSpace(CmdLine);
+    CmdLine = GoToNextNonSpace(CmdLine);
 
-	if( CmdLine[0] != '\"' && CmdLine[1] != ':' )
+    if( CmdLine[0] != '\"' && CmdLine[1] != ':' )
     {
         /* CmdLine doesn't contain module name portion */
 
@@ -255,16 +255,16 @@ static int DaemonInit(void)
         strcpy(NewArguments, CmdLine);
     }
 
-	StartUpInfo.cb = sizeof(StartUpInfo);
-	StartUpInfo.lpReserved = NULL;
-	StartUpInfo.lpDesktop = NULL;
-	StartUpInfo.lpTitle = NULL;
-	StartUpInfo.dwFlags = STARTF_USESHOWWINDOW;
-	StartUpInfo.wShowWindow = SW_HIDE;
-	StartUpInfo.cbReserved2 = 0;
-	StartUpInfo.lpReserved2 = NULL;
+    StartUpInfo.cb = sizeof(StartUpInfo);
+    StartUpInfo.lpReserved = NULL;
+    StartUpInfo.lpDesktop = NULL;
+    StartUpInfo.lpTitle = NULL;
+    StartUpInfo.dwFlags = STARTF_USESHOWWINDOW;
+    StartUpInfo.wShowWindow = SW_HIDE;
+    StartUpInfo.cbReserved2 = 0;
+    StartUpInfo.lpReserved2 = NULL;
 
-	StartUpStatus = CreateProcess(NULL,
+    StartUpStatus = CreateProcess(NULL,
                                   NewArguments,
                                   NULL,
                                   NULL,
@@ -276,18 +276,18 @@ static int DaemonInit(void)
                                   &ProcessInfo
                                   );
 
-	SafeFree(NewArguments);
+    SafeFree(NewArguments);
 
-	if( StartUpStatus != FALSE )
-	{
-		printf("deamon process pid : %lu\n", ProcessInfo.dwProcessId);
-		exit(0);
-	} else {
-		return 1;
-	}
+    if( StartUpStatus != FALSE )
+    {
+        printf("deamon process pid : %lu\n", ProcessInfo.dwProcessId);
+        exit(0);
+    } else {
+        return 1;
+    }
 #else /* WIN32 */
 
-    pid_t	pid;
+    pid_t   pid;
     if( (pid = fork()) < 0 )
     {
         return 1;
@@ -312,66 +312,66 @@ static int DaemonInit(void)
 static int GetDefaultConfigureFile(char *out, int OutLength)
 {
 #ifdef WIN32
-	GetModulePath(out, OutLength);
-	strcat(out, "\\dnsforwarder.config");
+    GetModulePath(out, OutLength);
+    strcat(out, "\\dnsforwarder.config");
 #else /* WIN32 */
-	GetConfigDirectory(out);
-	strcat(out, "/config");
+    GetConfigDirectory(out);
+    strcat(out, "/config");
 #endif /* WIN32 */
-	return 0;
+    return 0;
 }
 
 #ifndef WIN32
 static void PrepareEnvironment(void)
 {
-	char ConfigDirectory[2048];
+    char ConfigDirectory[2048];
 
-	GetConfigDirectory(ConfigDirectory);
+    GetConfigDirectory(ConfigDirectory);
 
-	if( mkdir(ConfigDirectory, S_IRWXU | S_IRGRP | S_IROTH) != 0 )
-	{
-		int		ErrorNum = GET_LAST_ERROR();
-		char	ErrorMessage[320];
-		ErrorMessage[0] = '\0';
+    if( mkdir(ConfigDirectory, S_IRWXU | S_IRGRP | S_IROTH) != 0 )
+    {
+        int     ErrorNum = GET_LAST_ERROR();
+        char    ErrorMessage[320];
+        ErrorMessage[0] = '\0';
 
-		GetErrorMsg(ErrorNum, ErrorMessage, sizeof(ErrorMessage));
+        GetErrorMsg(ErrorNum, ErrorMessage, sizeof(ErrorMessage));
 
-		printf("mkdir : %s failed : %s\n", ConfigDirectory, ErrorMessage);
-	}
+        printf("mkdir : %s failed : %s\n", ConfigDirectory, ErrorMessage);
+    }
 
-	printf("Please put configure file into `%s' and rename it to `config'.\n", ConfigDirectory);
+    printf("Please put configure file into `%s' and rename it to `config'.\n", ConfigDirectory);
 }
 #endif /* WIN32 */
 
 static int ArgParse(int argc, char *argv_ori[])
 {
-	char **argv = argv_ori;
-	++argv;
+    char **argv = argv_ori;
+    ++argv;
     while(*argv != NULL)
     {
-    	if(strcmp("-h", *argv) == 0)
-		{
-			printf("DNSforwarder by several people. Version "VERSION__" . License : GPL v3.\n Time of compilation : %s %s.\n\n", __DATE__, __TIME__);
-			printf("https://github.com/holmium/dnsforwarder\n\n");
-			printf("Usage : %s [args].\n", strrchr(argv_ori[0], PATH_SLASH_CH) == NULL ? argv_ori[0] : strrchr(argv_ori[0], PATH_SLASH_CH) + 1);
-			printf(" [args] is case sensitivity and can be zero or more (in any order) of:\n"
-				  "  -f <FILE>  Use configuration <FILE> instead of the default one.\n"
-				  "  -q         Quiet mode. Do not print any information.\n"
-				  "  -D         Show debug messages.\n"
-				  "  -d         Daemon mode. Running at background.\n"
+        if(strcmp("-h", *argv) == 0)
+        {
+            printf("DNSforwarder by several people. Version "VERSION__" . License : GPL v3.\n Time of compilation : %s %s.\n\n", __DATE__, __TIME__);
+            printf("https://github.com/holmium/dnsforwarder\n\n");
+            printf("Usage : %s [args].\n", strrchr(argv_ori[0], PATH_SLASH_CH) == NULL ? argv_ori[0] : strrchr(argv_ori[0], PATH_SLASH_CH) + 1);
+            printf(" [args] is case sensitivity and can be zero or more (in any order) of:\n"
+                  "  -f <FILE>  Use configuration <FILE> instead of the default one.\n"
+                  "  -q         Quiet mode. Do not print any information.\n"
+                  "  -D         Show debug messages.\n"
+                  "  -d         Daemon mode. Running at background.\n"
 #ifndef WIN32
-				  "\n"
-				  "  -p         Prepare needed environment.\n"
+                  "\n"
+                  "  -p         Prepare needed environment.\n"
 #endif /* WIN32 */
-				  "\n"
-				  "  -h         Show this help.\n"
-				  "\n"
-				  "Output format:\n"
-				  " Date & Time [Udp|Tcp|Cache|Hosts|Refused|Blocked][Client IP][Queried type][Queried domain] : Message size\n"
-				  "    Results\n"
-				  );
-			exit(0);
-		}
+                  "\n"
+                  "  -h         Show this help.\n"
+                  "\n"
+                  "Output format:\n"
+                  " Date & Time [Udp|Tcp|Cache|Hosts|Refused|Blocked][Client IP][Queried type][Queried domain] : Message size\n"
+                  "    Results\n"
+                  );
+            exit(0);
+        }
         if(strcmp("-q", *argv) == 0)
         {
             ShowMessages = FALSE;
@@ -381,14 +381,14 @@ static int ArgParse(int argc, char *argv_ori[])
 
         if(strcmp("-D", *argv) == 0)
         {
-			DebugOn = TRUE;
+            DebugOn = TRUE;
             ++argv;
             continue;
         }
 
         if(strcmp("-d", *argv) == 0)
         {
-			DeamonMode = TRUE;
+            DeamonMode = TRUE;
             ++argv;
             continue;
         }
@@ -401,17 +401,17 @@ static int ArgParse(int argc, char *argv_ori[])
         }
 
 #ifndef WIN32
-		if( strcmp("-p", *argv) == 0 )
-		{
-			PrepareEnvironment();
-			exit(0);
+        if( strcmp("-p", *argv) == 0 )
+        {
+            PrepareEnvironment();
+            exit(0);
 
-			++argv;
+            ++argv;
             continue;
-		}
+        }
 #endif /* WIN32 */
 
-		printf("Unrecognisable arg `%s'. Try `-h'.\n", *argv);
+        printf("Unrecognisable arg `%s'. Try `-h'.\n", *argv);
         ++argv;
     }
 
@@ -448,27 +448,27 @@ int main(int argc, char *argv[])
     }
     #else
         #ifdef DOWNLOAD_LIBCURL
-	curl_global_init(CURL_GLOBAL_ALL);
+    curl_global_init(CURL_GLOBAL_ALL);
         #endif /* DOWNLOAD_LIBCURL */
     #endif /* WIN32 */
 #endif /* NODOWNLOAD */
 
 #ifdef WIN32
-	SetConsoleTitle("dnsforwarder");
+    SetConsoleTitle("dnsforwarder");
 #endif /* WIN32 */
 
-	ArgParse(argc, argv);
+    ArgParse(argc, argv);
 
-	if( ConfigFile == NULL )
-	{
-		ConfigFile = malloc(320);
-		if( ConfigFile == NULL )
-		{
-			return -264;
-		}
+    if( ConfigFile == NULL )
+    {
+        ConfigFile = malloc(320);
+        if( ConfigFile == NULL )
+        {
+            return -264;
+        }
 
-		GetDefaultConfigureFile(ConfigFile, 320);
-	}
+        GetDefaultConfigureFile(ConfigFile, 320);
+    }
 
     printf("DNSforwarder mainly by holmium. Version "VERSION__" . License : GPL v3.\nTime of compilation : %s %s.\n\n", __DATE__, __TIME__);
 
@@ -483,29 +483,29 @@ int main(int argc, char *argv[])
         DeamonMode = FALSE;
     }
 
-	if( DeamonMode )
-	{
-		if( DaemonInit() == 0 )
-		{
-			DeamonInited = TRUE;
-		} else {
-			printf("Daemon init failed, continuing on non-daemon mode. Restart recommended.\n");
-		}
-	}
+    if( DeamonMode )
+    {
+        if( DaemonInit() == 0 )
+        {
+            DeamonInited = TRUE;
+        } else {
+            printf("Daemon init failed, continuing on non-daemon mode. Restart recommended.\n");
+        }
+    }
 
-	if( EnvironmentInit() != 0 )
+    if( EnvironmentInit() != 0 )
     {
         return -498;
     }
 
     putchar('\n');
 
-	if( DeamonInited )
+    if( DeamonInited )
     {
         ShowMessages = FALSE;
     }
 
-	if( Log_Init(&ConfigInfo, ShowMessages, DebugOn) != 0 )
+    if( Log_Init(&ConfigInfo, ShowMessages, DebugOn) != 0 )
     {
         return -291;
     }
@@ -517,7 +517,7 @@ int main(int argc, char *argv[])
         INFO("Running on daemon mode.\n");
     }
 
-	if( TimedTask_Init() != 0 )
+    if( TimedTask_Init() != 0 )
     {
         return -505;
     }
@@ -549,7 +549,7 @@ int main(int argc, char *argv[])
 #endif /* WIN32 */
 #endif /* NODOWNLOAD */
 
-	ExitThisThread();
+    ExitThisThread();
 
     return 0;
 }

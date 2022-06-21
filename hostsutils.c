@@ -124,9 +124,9 @@ HostsUtilsTryResult HostsUtils_Try(IHeader *Header,
                                    HostsContainer *Container
                                    )
 {
-	char *RequestEntity = (char *)(Header + 1);
-	const char	*MatchState;
-	HostsRecordType Type;
+    char *RequestEntity = (char *)(Header + 1);
+    const char  *MatchState;
+    HostsRecordType Type;
 
     if( Header->Type != DNS_TYPE_CNAME &&
         HostsUtils_TypeExisting(Container, Header->Domain, HOSTS_TYPE_CNAME)
@@ -183,8 +183,8 @@ HostsUtilsTryResult HostsUtils_Try(IHeader *Header,
         break;
     }
 
-	if( MatchState != NULL )
-	{
+    if( MatchState != NULL )
+    {
         DnsGenerator g;
 
         char *HereToGenerate = RequestEntity + Header->EntityLength;
@@ -249,9 +249,9 @@ HostsUtilsTryResult HostsUtils_Try(IHeader *Header,
         IHeader_SendBack(Header);
 
         return HOSTSUTILS_TRY_OK;
-	} else {
-	    return HOSTSUTILS_TRY_NONE;
-	}
+    } else {
+        return HOSTSUTILS_TRY_NONE;
+    }
 }
 
 int HostsUtils_Query(SOCKET Socket, /* Both for sending and receiving */
@@ -274,9 +274,9 @@ int HostsUtils_Query(SOCKET Socket, /* Both for sending and receiving */
     IHeader *Header = (IHeader *)RequestBuffer;
     char *RequestEntity = RequestBuffer + sizeof(IHeader);
 
-	DnsGenerator g;
+    DnsGenerator g;
 
-	if( DnsGenerator_Init(&g,
+    if( DnsGenerator_Init(&g,
                           RequestEntity,
                           sizeof(RequestBuffer) - sizeof(IHeader),
                           DNSHeader,

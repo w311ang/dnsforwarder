@@ -11,80 +11,80 @@
 #include "mmgr.h"
 
 static const char   *File = NULL;
-static RWLock		HostsLock;
-static volatile HostsContainer	*MainDynamicContainer = NULL;
+static RWLock       HostsLock;
+static volatile HostsContainer  *MainDynamicContainer = NULL;
 
 static int DynamicHosts_Load(void)
 {
-	FILE			*fp;
-	char			Buffer[320];
-	ReadLineStatus	Status;
+    FILE            *fp;
+    char            Buffer[320];
+    ReadLineStatus  Status;
 
-	HostsContainer *TempContainer;
+    HostsContainer *TempContainer;
 
-	fp = fopen(File, "r");
-	if( fp == NULL )
-	{
-		return -1;
-	}
+    fp = fopen(File, "r");
+    if( fp == NULL )
+    {
+        return -1;
+    }
 
-	TempContainer = (HostsContainer *)SafeMalloc(sizeof(HostsContainer));
-	if( TempContainer == NULL )
-	{
-		fclose(fp);
-		return -1;
-	}
+    TempContainer = (HostsContainer *)SafeMalloc(sizeof(HostsContainer));
+    if( TempContainer == NULL )
+    {
+        fclose(fp);
+        return -1;
+    }
 
-	if( HostsContainer_Init(TempContainer) != 0 )
-	{
-		fclose(fp);
+    if( HostsContainer_Init(TempContainer) != 0 )
+    {
+        fclose(fp);
 
-		SafeFree(TempContainer);
-		return -1;
-	}
+        SafeFree(TempContainer);
+        return -1;
+    }
 
-	while( TRUE )
-	{
-		Status = ReadLine(fp, Buffer, sizeof(Buffer));
-		if( Status == READ_FAILED_OR_END )
+    while( TRUE )
+    {
+        Status = ReadLine(fp, Buffer, sizeof(Buffer));
+        if( Status == READ_FAILED_OR_END )
         {
             break;
         }
 
-		if( Status == READ_TRUNCATED )
-		{
-			ERRORMSG("Hosts is too long : %s\n", Buffer);
-			ReadLine_GoToNextLine(fp);
-			continue;
-		}
+        if( Status == READ_TRUNCATED )
+        {
+            ERRORMSG("Hosts is too long : %s\n", Buffer);
+            ReadLine_GoToNextLine(fp);
+            continue;
+        }
 
         TempContainer->Load(TempContainer, Buffer);
-	}
+    }
 
-	RWLock_WrLock(HostsLock);
-	if( MainDynamicContainer != NULL )
-	{
-	    MainDynamicContainer->Free((HostsContainer *)MainDynamicContainer);
-		SafeFree((void *)MainDynamicContainer);
-	}
-	MainDynamicContainer = TempContainer;
+    RWLock_WrLock(HostsLock);
+    if( MainDynamicContainer != NULL )
+    {
+        MainDynamicContainer->Free((HostsContainer *)MainDynamicContainer);
+        SafeFree((void *)MainDynamicContainer);
+    }
+    MainDynamicContainer = TempContainer;
 
-	RWLock_UnWLock(HostsLock);
+    RWLock_UnWLock(HostsLock);
 
-	INFO("Loading hosts completed.\n");
+    INFO("Loading hosts completed.\n");
 
-	fclose(fp);
-	return 0;
+    fclose(fp);
+    return 0;
 }
 
 /* Arguments for updating  */
 static int          HostsRetryInterval;
 static char         *Script = NULL; /* malloced */
-static const char	**HostsURLs = NULL; /* malloced */
+static const char   **HostsURLs = NULL; /* malloced */
 
 static void GetHostsFromInternet_Failed(int ErrorCode, const char *URL, const char *File1)
 {
-	ERRORMSG("Getting Hosts %s failed. Waiting %d second(s) to try again.\n",
+    ERRORMSG("Getting Hosts %s failed. Waiting %d second(s) to try again.\n",
              URL,
              HostsRetryInterval
              );
@@ -92,12 +92,12 @@ static void GetHostsFromInternet_Failed(int ErrorCode, const char *URL, const ch
 
 static void GetHostsFromInternet_Succeed(const char *URL, const char *File1)
 {
-	INFO("Hosts %s saved.\n", URL);
+    INFO("Hosts %s saved.\n", URL);
 }
 
 static void GetHostsFromInternet_Thread(void *Unused1, void *Unused2)
 {
-	int			DownloadState;
+    int         DownloadState;
 
     if( HostsURLs[1] == NULL )
     {
@@ -138,25 +138,25 @@ static void GetHostsFromInternet_Thread(void *Unused1, void *Unused2)
 
 int DynamicHosts_Init(ConfigFileInfo *ConfigInfo)
 {
-	StringList  *Hosts;
-	int          UpdateInterval;
-	const char  *RawScript;
+    StringList  *Hosts;
+    int          UpdateInterval;
+    const char  *RawScript;
 
-	Hosts = ConfigGetStringList(ConfigInfo, "Hosts");
-	if( Hosts == NULL )
-	{
-		File = NULL;
-		return -151;
-	}
+    Hosts = ConfigGetStringList(ConfigInfo, "Hosts");
+    if( Hosts == NULL )
+    {
+        File = NULL;
+        return -151;
+    }
 
-	Hosts->TrimAll(Hosts, "\"\t ");
+    Hosts->TrimAll(Hosts, "\"\t ");
 
     HostsURLs = Hosts->ToCharPtrArray(Hosts);
-	UpdateInterval = ConfigGetInt32(ConfigInfo, "HostsUpdateInterval");
-	HostsRetryInterval = ConfigGetInt32(ConfigInfo, "HostsRetryInterval");
+    UpdateInterval = ConfigGetInt32(ConfigInfo, "HostsUpdateInterval");
+    HostsRetryInterval = ConfigGetInt32(ConfigInfo, "HostsRetryInterval");
 
-	RawScript = ConfigGetRawString(ConfigInfo, "HostsScript");
-	if( RawScript != NULL )
+    RawScript = ConfigGetRawString(ConfigInfo, "HostsScript");
+    if( RawScript != NULL )
     {
         static const int SIZE_OF_PATH_BUFFER = 1024;
 
@@ -178,28 +178,28 @@ int DynamicHosts_Init(ConfigFileInfo *ConfigInfo)
         Script = NULL;
     }
 
-	RWLock_Init(HostsLock);
+    RWLock_Init(HostsLock);
 
-	File = ConfigGetRawString(ConfigInfo, "HostsDownloadPath");
+    File = ConfigGetRawString(ConfigInfo, "HostsDownloadPath");
 
-	if( HostsRetryInterval < 0 )
-	{
-		ERRORMSG("`HostsRetryInterval' is too small (< 0).\n");
-		File = NULL;
-		return -167;
-	}
+    if( HostsRetryInterval < 0 )
+    {
+        ERRORMSG("`HostsRetryInterval' is too small (< 0).\n");
+        File = NULL;
+        return -167;
+    }
 
-	INFO("Local hosts file : \"%s\"\n", File);
+    INFO("Local hosts file : \"%s\"\n", File);
 
-	if( FileIsReadable(File) )
-	{
-		INFO("Loading the existing hosts file ...\n");
-		DynamicHosts_Load();
-	} else {
-		INFO("Hosts file is unreadable, this may cause some failures.\n");
-	}
+    if( FileIsReadable(File) )
+    {
+        INFO("Loading the existing hosts file ...\n");
+        DynamicHosts_Load();
+    } else {
+        INFO("Hosts file is unreadable, this may cause some failures.\n");
+    }
 
-	if( UpdateInterval <= 0 )
+    if( UpdateInterval <= 0 )
     {
         TimedTask_Add(FALSE,
                       TRUE,
@@ -218,7 +218,7 @@ int DynamicHosts_Init(ConfigFileInfo *ConfigInfo)
                       TRUE);
     }
 
-	return 0;
+    return 0;
 }
 
 int DynamicHosts_GetCName(const char *Domain, char *Buffer)
