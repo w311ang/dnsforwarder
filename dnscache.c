@@ -403,7 +403,7 @@ static uint32_t DNSCache_CacheMinTTL(char *Content, size_t Length, uint32_t NewT
 	return RecordTTL;
 }
 
-/* Item: StrName\x01IntType\x01IntClass\x00StrAndswer\x0A
+/* Item: \xFFStrName\x01IntType\x01IntClass\x00ParsedAnswer\x0A
    ht: StrName\x01IntType\x01IntClass, NtcTriplet
    https://tools.ietf.org/html/rfc1035 */
 static int DNSCache_AddAItemToCache(DnsSimpleParserIterator *i,
@@ -834,6 +834,16 @@ int DNSCache_FetchFromCache(IHeader *h /* Entity followed */, int BufferLength)
 		return -792;
 	}
 
+    /* We did/do NOT cache these types of answers.
+        EDNS0: https://datatracker.ietf.org/doc/html/rfc2671
+        DNSSEC Indicating: https://datatracker.ietf.org/doc/html/rfc3225
+        EDNS Extensions: https://datatracker.ietf.org/doc/html/rfc6891
+     */
+    if( h->EDNSEnabled )
+    {
+        return -4;
+    }
+
     if( DnsSimpleParser_Init(&p, RequestContent, h->EntityLength, FALSE) != 0 )
     {
         return -1;
@@ -866,15 +876,6 @@ int DNSCache_FetchFromCache(IHeader *h /* Entity followed */, int BufferLength)
     g.Header->Flags.RecursionAvailable = 1;
     g.Header->Flags.ResponseCode = 0;
     g.Header->Flags.Type = 0;
-
-    if( h->EDNSEnabled )
-    {
-        while( g.NextPurpose(&g) != DNS_RECORD_PURPOSE_ADDITIONAL );
-        if( g.EDns(&g, 1280) != 0 )
-        {
-            return -4;
-        }
-    }
 
     /* g will no longer be needed, and can be crapped */
     ResultLength = DNSCompress(HereToGenerate, g.Length(&g));
