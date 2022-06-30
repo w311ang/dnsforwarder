@@ -711,6 +711,7 @@ int TcpM_Init(TcpM *m, const char *Services, const char *SocksProxies)
     m->IsServer = 1;
 
     CREATE_THREAD(TcpM_Works, m, m->WorkThread);
+    DETACH_THREAD(m->WorkThread);
 
     return 0;
 }

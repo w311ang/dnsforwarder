@@ -392,7 +392,9 @@ int UdpM_Init(UdpM *m, const char *Services, BOOL Parallel)
     m->Send = UdpM_Send;
 
     CREATE_THREAD(UdpM_Works, m, m->WorkThread);
+    DETACH_THREAD(m->WorkThread);
     CREATE_THREAD(UdpM_Swep_Thread, m, m->SwepThread);
+    DETACH_THREAD(m->SwepThread);
 
     return 0;
 }

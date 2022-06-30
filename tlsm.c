@@ -424,6 +424,7 @@ int TlsM_Init(TlsM *m, const char *Services)
     m->Send = TlsM_Send;
 
     CREATE_THREAD(TlsM_Works, m, m->WorkThread);
+    DETACH_THREAD(m->WorkThread);
 
     return 0;
 }
