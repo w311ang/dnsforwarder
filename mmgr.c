@@ -459,7 +459,7 @@ static int Modules_Init(ModuleMap *ModuleMap, ConfigFileInfo *ConfigInfo)
         }
     }
 
-    INFO("Server groups initialized.\n", Type);
+    INFO("Loading Server Groups completed.\n", Type);
     return 0;
 }
 

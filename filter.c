@@ -193,18 +193,18 @@ static int DisabledDomain_Init(ConfigFileInfo *ConfigInfo)
 
     if( FilterDomain_Init(&TempDisabledDomain, ConfigInfo) != 0 )
     {
-        INFO("Disabled domains was not initialized.\n");
+        INFO("Loading DisabledDomain failed.\n");
         return -1;
     } else {
-        INFO("Disabled domains initialized.\n");
+        INFO("Loading DisabledDomain completed.\n");
     }
 
     if( FilterDomain_InitFromFile(&TempDisabledDomain, ConfigInfo) != 0 )
     {
-        INFO("Disabled list was not initialized.\n");
+        INFO("Loading DisabledList failed.\n");
         return -1;
     } else {
-        INFO("Disabled list initialized.\n");
+        INFO("Loading DisabledList completed.\n");
     }
 
     RWLock_WrLock(DisabledDomainLock);
@@ -225,9 +225,9 @@ int Filter_Init(ConfigFileInfo *ConfigInfo)
 
     if( FilterType_Init(ConfigInfo) != 0 )
     {
-        INFO("Disabled types was not initialized.\n");
+        INFO("Setting DisabledType failed.\n");
     } else {
-        INFO("Disabled types initialized.\n");
+        INFO("Setting DisabledType succeeded.\n");
     }
 
     RWLock_Init(DisabledDomainLock);

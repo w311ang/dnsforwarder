@@ -149,6 +149,8 @@ static int InitListsAndTimes(ConfigFileInfo *ConfigInfo)
         StringChunk_Add(GoodIpList, n, (const char *)&m, sizeof(ListInfo));
     }
 
+    INFO("Loading GoodIPList completed.\n");
+
     return 0;
 }
 
@@ -196,6 +198,8 @@ static int AddToLists(ConfigFileInfo *ConfigInfo)
 
         Array_PushBack(&(m->List), &ip, NULL);
     }
+
+    INFO("Loading GoodIPListAddIP completed.\n");
 
     return 0;
 }
