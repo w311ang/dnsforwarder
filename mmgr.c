@@ -525,11 +525,6 @@ static int Modules_Load(ConfigFileInfo *ConfigInfo)
         return -10;
     }
 
-    if( StringChunk_Init(ModuleMap.Distributor, NULL) != 0 )
-    {
-        return -10;
-    }
-
     ModuleMap.Modules = SafeMalloc(sizeof(StableBuffer));
     if( ModuleMap.Modules == NULL)
     {
