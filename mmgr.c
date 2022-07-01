@@ -590,6 +590,8 @@ static int Modules_Load(ConfigFileInfo *ConfigInfo)
 
 int MMgr_Init(ConfigFileInfo *ConfigInfo)
 {
+    int ret;
+
     if( Filter_Init(ConfigInfo) != 0 )
     {
         return -159;
@@ -614,7 +616,9 @@ int MMgr_Init(ConfigFileInfo *ConfigInfo)
     /* Ordinary modeles */
     RWLock_Init(ModulesLock);
 
-    return Modules_Load(ConfigInfo);
+    ret = Modules_Load(ConfigInfo);
+    INFO("Loading Configuration completed.\n");
+    return ret;
 }
 
 int Modules_Update(void)
@@ -622,7 +626,7 @@ int Modules_Update(void)
     if ( ConfigGetBoolean(CurrConfigInfo, "ReloadGroupFile") )
     {
         Modules_Load(CurrConfigInfo);
-        INFO("Loading GroupFile completed.\n");
+        INFO("Reloading Hosts/GroupFile/DisabledList completed.\n");
     }
     return 0;
 }

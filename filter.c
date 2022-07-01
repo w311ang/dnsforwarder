@@ -242,7 +242,6 @@ int Filter_Update(void)
     if ( ConfigGetBoolean(CurrConfigInfo, "ReloadDisabledList") )
     {
         DisabledDomain_Init(CurrConfigInfo);
-        INFO("Loading DisabledList completed.\n");
     }
     return 0;
 }
