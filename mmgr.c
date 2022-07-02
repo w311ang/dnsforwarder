@@ -487,13 +487,13 @@ static int Modules_SafeCleanup(StableBuffer *Modules)
                 if( strcmp(M->ModuleName, "UDP") == 0 )
                 {
                     M->ModuleUnion.Udp.IsServer = 0;
-                    InUse |= M->ModuleUnion.Udp.Departure != INVALID_SOCKET;
+                    InUse |= M->ModuleUnion.Udp.WorkThread != NULL;
                     InUse |= M->ModuleUnion.Udp.SwepThread != NULL;
                 }
                 else if( strcmp(M->ModuleName, "TCP") == 0 )
                 {
                     M->ModuleUnion.Tcp.IsServer = 0;
-                    InUse |= M->ModuleUnion.Tcp.Departure != INVALID_SOCKET;
+                    InUse |= M->ModuleUnion.Tcp.WorkThread != NULL;
                 }
             }
         }

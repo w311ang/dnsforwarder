@@ -37,16 +37,24 @@ static int UdpM_Swep_Thread(UdpM *m)
         SLEEP(10000);
     }
 
+    SLEEP(3000); // Let all contexts expire.
+    SwepTask(m, (SwepCallback)SweepWorks);
+
     m->SwepThread = NULL;
+
     return 0;
 }
 
 static int UdpM_Cleanup(UdpM *m)
 {
     m->IsServer = 0;
-    SwepTask(m, (SwepCallback)SweepWorks);
-    AddressList_Free(&(m->AddrList));
+
     CLOSE_SOCKET(m->Departure);
+    m->Departure = INVALID_SOCKET;
+
+    AddressList_Free(&(m->AddrList));
+
+    m->WorkThread = NULL;
 
     return 0;
 }
@@ -234,10 +242,8 @@ static void UdpM_Works(UdpM *m)
         DomainStatistic_Add(Header, STATISTIC_TYPE_UDP);
     }
 
-    UdpM_Cleanup(m);
     SafeFree(ReceiveBuffer);
-
-    m->Departure = INVALID_SOCKET;
+    UdpM_Cleanup(m);
 }
 
 static int UdpM_Send(UdpM *m,

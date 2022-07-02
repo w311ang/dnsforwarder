@@ -375,12 +375,18 @@ PUBFUNC int TcpM_Send(TcpM *m,
 static int TcpM_Cleanup(TcpM *m)
 {
     m->IsServer = 0;
+
+    CLOSE_SOCKET(m->Departure);
+    m->Departure = INVALID_SOCKET;
+    m->Puller.CloseAll(&(m->Puller), INVALID_SOCKET);
+    m->Puller.Free(&(m->Puller));
+
+    SLEEP(3000); // Let all contexts expire.
     m->Context.Swep(&(m->Context), (SwepCallback)SweepWorks, m);
     AddressList_Free(&(m->ServiceList));
     AddressList_Free(&(m->SocksProxyList));
-    m->Puller.CloseAll(&(m->Puller), INVALID_SOCKET);
-    m->Puller.Free(&(m->Puller));
-    CLOSE_SOCKET(m->Departure);
+
+    m->WorkThread = NULL;
 
     return 0;
 }
@@ -586,10 +592,8 @@ static int TcpM_Works(TcpM *m)
         }
     }
 
-    TcpM_Cleanup(m);
     SafeFree(ReceiveBuffer);
-
-    m->Departure = INVALID_SOCKET;
+    TcpM_Cleanup(m);
 
     return 0;
 }
