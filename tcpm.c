@@ -30,9 +30,7 @@ static SOCKET TcpM_Connect(struct sockaddr  **ServerAddressesList,
 #   define  CONNECT_TIMEOUT 5
 #   define  NUMBER_OF_SOCKETS 5
 
-#ifdef WIN32
     PTimer  t;
-#endif
 
     SocketPuller p;
     int i; /* Loop */
@@ -47,9 +45,7 @@ static SOCKET TcpM_Connect(struct sockaddr  **ServerAddressesList,
 
     INFO("Connecting to %s ...\n", Type);
 
-#ifdef WIN32
     PTimer_Start(&t);
-#endif
 
     for( i = 0; i < NUMBER_OF_SOCKETS; ++i )
     {
@@ -100,18 +96,10 @@ static SOCKET TcpM_Connect(struct sockaddr  **ServerAddressesList,
     {
         INFO("Connecting to %s timed out.\n", Type);
     } else {
-#ifdef WIN32
         INFO("TCP connection to %s established. Time consumed : %lums\n",
              Type,
              PTimer_End(&t)
              );
-#else
-        INFO("TCP connection to %s established. Time consumed : %d.%ds\n",
-             Type,
-             CONNECT_TIMEOUT == TimeLimit.tv_sec ? 0 : ((int)(CONNECT_TIMEOUT - 1 - TimeLimit.tv_sec)),
-             CONNECT_TIMEOUT == TimeLimit.tv_sec ? 0 : ((int)(1000000 - TimeLimit.tv_usec))
-             );
-#endif
     }
 
     return Final;

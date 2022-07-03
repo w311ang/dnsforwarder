@@ -6,6 +6,7 @@
 #include "timedtask.h"
 #include "socketpuller.h"
 #include "logs.h"
+#include "ptimer.h"
 
 typedef struct _ListInfo{
     int     Interval;
@@ -74,12 +75,14 @@ static struct sockaddr_in *CheckAList(struct sockaddr_in *Ips, int Count)
 static int ThreadJod(const char *Domain, ListInfo *inf)
 {
     struct sockaddr_in *Fastest, *First;
+    PTimer  tm;
 
     if( inf == NULL )
     {
         return -159;
     }
 
+    PTimer_Start(&tm);
     Fastest = CheckAList((struct sockaddr_in *)Array_GetRawArray(&(inf->List)),
                          Array_GetUsed(&(inf->List))
                          );
@@ -88,9 +91,10 @@ static int ThreadJod(const char *Domain, ListInfo *inf)
     {
         struct sockaddr_in t;
 
-        INFO("The fastest ip for `%s' is %s\n",
+        INFO("The fastest ip for `%s' is %s: %lums.\n",
              Domain,
-             inet_ntoa(Fastest->sin_addr)
+             inet_ntoa(Fastest->sin_addr),
+             PTimer_End(&tm)
              );
 
         First = Array_GetBySubscript(&(inf->List), 0);
