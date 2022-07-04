@@ -123,15 +123,6 @@ static int EnvironmentInit(void)
     TmpTypeDescriptor.str = NULL;
     ConfigAddOption(&ConfigInfo, "Hosts", STRATEGY_APPEND, TYPE_PATH, TmpTypeDescriptor);
 
-    TmpTypeDescriptor.INT32 = 18000;
-    ConfigAddOption(&ConfigInfo, "HostsUpdateInterval", STRATEGY_DEFAULT, TYPE_INT32, TmpTypeDescriptor);
-
-    TmpTypeDescriptor.boolean = TRUE;
-    ConfigAddOption(&ConfigInfo, "ReloadDisabledList", STRATEGY_DEFAULT, TYPE_BOOLEAN, TmpTypeDescriptor);
-
-    TmpTypeDescriptor.boolean = TRUE;
-    ConfigAddOption(&ConfigInfo, "ReloadGroupFile", STRATEGY_DEFAULT, TYPE_BOOLEAN, TmpTypeDescriptor);
-
     TmpTypeDescriptor.INT32 = 30;
     ConfigAddOption(&ConfigInfo, "HostsRetryInterval", STRATEGY_DEFAULT, TYPE_INT32, TmpTypeDescriptor);
 
@@ -144,11 +135,20 @@ static int EnvironmentInit(void)
     TmpTypeDescriptor.str = NULL;
     ConfigAddOption(&ConfigInfo, "HostsScript", STRATEGY_REPLACE, TYPE_STRING, TmpTypeDescriptor);
 
+    TmpTypeDescriptor.str = NULL;
+    ConfigAddOption(&ConfigInfo, "AppendHosts", STRATEGY_APPEND, TYPE_STRING, TmpTypeDescriptor);
+
     TmpTypeDescriptor.boolean = FALSE;
     ConfigAddOption(&ConfigInfo, "BlockIpv6WhenIpv4Exists", STRATEGY_DEFAULT, TYPE_BOOLEAN, TmpTypeDescriptor);
 
-    TmpTypeDescriptor.str = NULL;
-    ConfigAddOption(&ConfigInfo, "AppendHosts", STRATEGY_APPEND, TYPE_STRING, TmpTypeDescriptor);
+    TmpTypeDescriptor.INT32 = 18000;
+    ConfigAddOption(&ConfigInfo, "ModulesUpdateInterval", STRATEGY_DEFAULT, TYPE_INT32, TmpTypeDescriptor);
+
+    TmpTypeDescriptor.boolean = TRUE;
+    ConfigAddOption(&ConfigInfo, "ReloadDisabledList", STRATEGY_DEFAULT, TYPE_BOOLEAN, TmpTypeDescriptor);
+
+    TmpTypeDescriptor.boolean = TRUE;
+    ConfigAddOption(&ConfigInfo, "ReloadGroupFile", STRATEGY_DEFAULT, TYPE_BOOLEAN, TmpTypeDescriptor);
 
     TmpTypeDescriptor.boolean = TRUE;
     ConfigAddOption(&ConfigInfo, "UseCache", STRATEGY_DEFAULT, TYPE_BOOLEAN, TmpTypeDescriptor);

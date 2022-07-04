@@ -152,7 +152,7 @@ int DynamicHosts_Init(ConfigFileInfo *ConfigInfo)
     Hosts->TrimAll(Hosts, "\"\t ");
 
     HostsURLs = Hosts->ToCharPtrArray(Hosts);
-    UpdateInterval = ConfigGetInt32(ConfigInfo, "HostsUpdateInterval");
+    UpdateInterval = ConfigGetInt32(ConfigInfo, "ModulesUpdateInterval");
     HostsRetryInterval = ConfigGetInt32(ConfigInfo, "HostsRetryInterval");
 
     RawScript = ConfigGetRawString(ConfigInfo, "HostsScript");
