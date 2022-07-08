@@ -52,6 +52,7 @@ static int UdpM_Cleanup(UdpM *m)
     CLOSE_SOCKET(m->Departure);
     m->Departure = INVALID_SOCKET;
 
+    SafeFree(m->Parallels.addrs);
     AddressList_Free(&(m->AddrList));
 
     m->WorkThread = NULL;
