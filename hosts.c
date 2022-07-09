@@ -11,6 +11,7 @@ static BOOL BlockIpv6WhenIpv4Exists = FALSE;
 
 static SOCKET   IncomeSocket;
 static Address_Type IncomeAddress;
+static SocketPuller Puller;
 
 BOOL Hosts_TypeExisting(const char *Domain, HostsRecordType Type)
 {
@@ -110,10 +111,15 @@ int Hosts_Get(IHeader *Header, int BufferLength)
     }
 }
 
+static void Hosts_SocketCleanup(void)
+{
+    Puller.CloseAll(&Puller, INVALID_SOCKET);
+    Puller.Free(&Puller);
+}
+
 static int Hosts_SocketLoop(void *Unused)
 {
     static HostsContext Context;
-    static SocketPuller Puller;
 
     static SOCKET   OutcomeSocket;
     static Address_Type OutcomeAddress;
@@ -142,6 +148,8 @@ static int Hosts_SocketLoop(void *Unused)
 
     Puller.Add(&Puller, IncomeSocket, NULL, 0);
     Puller.Add(&Puller, OutcomeSocket, NULL, 0);
+
+    atexit(Hosts_SocketCleanup);
 
     if( HostsContext_Init(&Context) != 0 )
     {

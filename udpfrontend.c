@@ -99,6 +99,8 @@ static void UdpFrontend_Work(void *Unused)
         MMgr_Send(Header, BUF_LENGTH);
     }
     SafeFree(ReceiveBuffer);
+    Frontend.CloseAll(&Frontend, INVALID_SOCKET);
+    Frontend.Free(&Frontend);
 }
 
 void UdpFrontend_StartWork(void)

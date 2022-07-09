@@ -195,7 +195,9 @@ static void TimeTask_Work(void *Unused)
                 TimeTask_ReduceTime(BeforeWaiting - *tv);
             }
 
-            if( TimeTask_ReallyAdd(New) != 0 )
+            int r = TimeTask_ReallyAdd(New);
+            WinMsgQue_FreeMsg(New);
+            if( r != 0 )
             {
                 /** TODO: Show fatal error */
                 break;
@@ -203,15 +205,14 @@ static void TimeTask_Work(void *Unused)
 
             if( i != NULL )
             {
-                if( TimeTask_ReallyAdd(i) != 0 )
+                r = TimeTask_ReallyAdd(i);
+                LinkedQueue_FreeNode(i);
+                if( r != 0 )
                 {
                     /** TODO: Show fatal error */
                     break;
                 }
-                LinkedQueue_FreeNode(i);
             }
-
-            WinMsgQue_FreeMsg(New);
         }
     }
 #else /* WIN32 */

@@ -497,6 +497,7 @@ int main(int argc, char *argv[])
     {
         return -498;
     }
+    atexit(CleanupConfig);
 
     putchar('\n');
 
@@ -540,8 +541,6 @@ int main(int argc, char *argv[])
     }
 
     UdpFrontend_StartWork();
-
-    atexit(CleanupConfig);
 
     ExitThisThread();
 
