@@ -352,7 +352,7 @@ static int ArgParse(int argc, char *argv_ori[])
         if(strcmp("-h", *argv) == 0)
         {
             printf("DNSforwarder by several people. Version "VERSION__" . License : GPL v3.\n Time of compilation : %s %s.\n\n", __DATE__, __TIME__);
-            printf("https://github.com/holmium/dnsforwarder\n\n");
+            printf("https://github.com/lifenjoiner/dnsforwarder\n\n");
             printf("Usage : %s [args].\n", strrchr(argv_ori[0], PATH_SLASH_CH) == NULL ? argv_ori[0] : strrchr(argv_ori[0], PATH_SLASH_CH) + 1);
             printf(" [args] is case sensitivity and can be zero or more (in any order) of:\n"
                   "  -f <FILE>  Use configuration <FILE> instead of the default one.\n"
@@ -440,18 +440,18 @@ int main(int argc, char *argv[])
     BOOL DeamonInited = FALSE;
 #endif /* WIN32 */
 
-#ifndef NODOWNLOAD
-    #ifdef WIN32
+#if !defined(NODOWNLOAD) && defined(DOWNLOAD_LIBCURL)
+    curl_global_init(CURL_GLOBAL_ALL);
+    atexit(curl_global_cleanup);
+#else
+#ifdef WIN32
     if( WSAStartup(MAKEWORD(2, 2), &wdata) != 0 )
     {
         return -244;
     }
-    #else
-        #ifdef DOWNLOAD_LIBCURL
-    curl_global_init(CURL_GLOBAL_ALL);
-        #endif /* DOWNLOAD_LIBCURL */
-    #endif /* WIN32 */
-#endif /* NODOWNLOAD */
+    atexit(CleanupWSA);
+#endif /* WIN32 */
+#endif
 
 #ifdef WIN32
     SetConsoleTitle("dnsforwarder");
@@ -542,12 +542,6 @@ int main(int argc, char *argv[])
     UdpFrontend_StartWork();
 
     atexit(CleanupConfig);
-
-#ifndef NODOWNLOAD
-#ifdef WIN32
-    atexit(CleanupWSA);
-#endif /* WIN32 */
-#endif /* NODOWNLOAD */
 
     ExitThisThread();
 

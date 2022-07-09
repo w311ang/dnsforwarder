@@ -500,12 +500,13 @@ static int Modules_SafeCleanup(StableBuffer *Modules)
 
         if( !InUse )
         {
-            Modules->Free(Modules);
-            SafeFree((void *)Modules);
+            break;
         }
 
         SLEEP(1000);
     }
+    Modules->Free(Modules);
+    SafeFree((void *)Modules);
     INFO("Last Modules freed.\n");
 
     return 0;
