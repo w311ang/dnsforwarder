@@ -369,8 +369,7 @@ static int TcpM_Cleanup(TcpM *m)
     m->Puller.CloseAll(&(m->Puller), INVALID_SOCKET);
     m->Puller.Free(&(m->Puller));
 
-    SLEEP(3000); // Let all contexts expire.
-    m->Context.Swep(&(m->Context), (SwepCallback)SweepWorks, m);
+    ModuleContext_Free(&(m->Context));
     AddressList_Free(&(m->ServiceList));
     AddressList_Free(&(m->SocksProxyList));
 

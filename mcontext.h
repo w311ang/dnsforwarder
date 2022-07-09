@@ -25,6 +25,8 @@ struct _ModuleContext{
     void (*Swep)(ModuleContext *c, SwepCallback cb, void *Arg);
 };
 
+void ModuleContext_Free(ModuleContext *c);
+
 int ModuleContext_Init(ModuleContext *c);
 
 #endif // MCONTEXT_H_INCLUDED

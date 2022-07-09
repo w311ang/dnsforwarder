@@ -135,6 +135,11 @@ static int ModuleContextCompare(const void *_1, const void *_2)
     }
 }
 
+void ModuleContext_Free(ModuleContext *c)
+{
+    c->d.Free(&(c->d));
+}
+
 int ModuleContext_Init(ModuleContext *c)
 {
     if( c == NULL )

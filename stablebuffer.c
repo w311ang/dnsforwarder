@@ -43,6 +43,7 @@ static StableBuffer_MetaInfo *Realloc(Array *MetaInfo, int DataLength)
     s = Array_PushBack(MetaInfo, &m, NULL);
     if( s < 0 )
     {
+        SafeFree(m.Start);
         return NULL;
     }
 

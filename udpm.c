@@ -31,14 +31,13 @@ static int SwepTask(UdpM *m, SwepCallback cb)
 
 static int UdpM_Swep_Thread(UdpM *m)
 {
-    while( m->IsServer )
+    while( m->IsServer || m->WorkThread != NULL)
     {
         SwepTask(m, (SwepCallback)SweepWorks);
         SLEEP(10000);
     }
 
-    SLEEP(3000); // Let all contexts expire.
-    SwepTask(m, (SwepCallback)SweepWorks);
+    ModuleContext_Free(&(m->Context));
 
     m->SwepThread = NULL;
 
