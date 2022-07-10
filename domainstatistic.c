@@ -188,6 +188,14 @@ static int DomainStatistic_Works(void *Unused, void *Unused2)
     return 0;
 }
 
+static void DomainStatistic_Cleanup(void)
+{
+    if( MainFile != NULL )
+    {
+        fclose(MainFile);
+    }
+}
+
 int DomainStatistic_Init(ConfigFileInfo *ConfigInfo)
 {
     BOOL DomainStatistic = ConfigGetBoolean(ConfigInfo, "DomainStatistic");
@@ -224,6 +232,8 @@ int DomainStatistic_Init(ConfigFileInfo *ConfigInfo)
         ERRORMSG("Writing %s failed.\n", FilePath);
         return 3;
     }
+
+    atexit(DomainStatistic_Cleanup);
 
     EFFECTIVE_LOCK_INIT(StatisticLock);
     StringChunk_Init(&MainChunk, NULL);
