@@ -589,6 +589,11 @@ static int Modules_Load(ConfigFileInfo *ConfigInfo)
     return 0;
 }
 
+static void Modules_Cleanup(void)
+{
+    Modules_SafeCleanup(Modules);
+}
+
 int MMgr_Init(ConfigFileInfo *ConfigInfo)
 {
     int ret;
@@ -618,7 +623,10 @@ int MMgr_Init(ConfigFileInfo *ConfigInfo)
     RWLock_Init(ModulesLock);
 
     ret = Modules_Load(ConfigInfo);
+    atexit(Modules_Cleanup);
+
     INFO("Loading Configuration completed.\n");
+
     return ret;
 }
 
