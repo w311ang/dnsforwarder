@@ -3,6 +3,11 @@
 #include "cachettlcrtl.h"
 #include "logs.h"
 
+void CacheTtlCrtl_Free(CacheTtlCtrl *c)
+{
+    StringChunk_Free(c, TRUE);
+}
+
 int CacheTtlCrtl_Init(CacheTtlCtrl *c)
 {
     return StringChunk_Init((StringChunk *)c, NULL);

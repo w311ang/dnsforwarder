@@ -22,6 +22,8 @@ typedef struct _CtrlContent {
 
 typedef StringChunk CacheTtlCtrl;
 
+void CacheTtlCrtl_Free(CacheTtlCtrl *c);
+
 int CacheTtlCrtl_Init(CacheTtlCtrl *c);
 
 int CacheTtlCrtl_Add(CacheTtlCtrl *c, const char *Domain, int State, uint32_t Coefficient, uint32_t Increment, int Infection);

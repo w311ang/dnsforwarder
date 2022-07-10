@@ -21,9 +21,10 @@ static BOOL             CacheParallel = FALSE;
 
 static RWLock           CacheLock;
 
-static FileHandle       CacheFileHandle;
-static MappingHandle    CacheMappingHandle;
-static char             *MapStart;
+static FileHandle       CacheFileHandle = INVALID_FILE;
+static MappingHandle    CacheMappingHandle = INVALID_MAP;
+static char             *MapStart = NULL;
+static BOOL             MemoryCache = FALSE;
 
 static int32_t          CacheSize;
 static BOOL             IgnoreTTL;
@@ -178,6 +179,27 @@ static int InitCacheInfo(ConfigFileInfo *ConfigInfo, BOOL Reload)
     return 0;
 }
 
+static void DNSCache_Cleanup(void)
+{
+    if( CacheFileHandle != INVALID_FILE )
+    {
+        if(CacheMappingHandle != INVALID_MAP)
+        {
+            UNMAP_FILE(MapStart, CacheSize);
+            DESTROY_MAPPING(CacheMappingHandle);
+        }
+        CLOSE_FILE(CacheFileHandle);
+    }
+    if( TtlCtrl != NULL)
+    {
+        CacheTtlCrtl_Free(TtlCtrl);
+    }
+    if( MemoryCache && MapStart != NULL )
+    {
+        SafeFree(MapStart);
+    }
+}
+
 int DNSCache_Init(ConfigFileInfo *ConfigInfo)
 {
     int         _CacheSize = ConfigGetInt32(ConfigInfo, "CacheSize");
@@ -210,6 +232,8 @@ int DNSCache_Init(ConfigFileInfo *ConfigInfo)
         }
     }
 
+    atexit(DNSCache_Cleanup);
+
     if( ctc != NULL )
     {
         CacheTtlCrtl_Add_From_StringList(TtlCtrl, ctc);
@@ -237,6 +261,7 @@ int DNSCache_Init(ConfigFileInfo *ConfigInfo)
 
     if( ConfigGetBoolean(ConfigInfo, "MemoryCache") == TRUE )
     {
+        MemoryCache = TRUE;
         MapStart = SafeMalloc(CacheSize);
 
         if( MapStart == NULL )
