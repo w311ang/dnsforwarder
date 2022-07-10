@@ -17,6 +17,12 @@ static int Compare(IpElement *_1, IpElement *_2)
     }
 }
 
+void IpChunk_Free(IpChunk *ic)
+{
+    ic->Chunk.Free(&(ic->Chunk));
+    ic->Datas.Free(&(ic->Datas));
+}
+
 int IpChunk_Init(IpChunk *ic)
 {
     IpElement   Root;

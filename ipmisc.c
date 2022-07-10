@@ -134,6 +134,11 @@ static void IPMisc_SetBlockNegative(IPMisc *m, BOOL Value)
     m->BlockNegative = Value;
 }
 
+static void IPMisc_Free(IPMisc *m)
+{
+    IpChunk_Free(&(m->c));
+}
+
 int IPMisc_Init(IPMisc *m)
 {
     if( m == NULL || IpChunk_Init(&(m->c)) != 0 )
@@ -156,6 +161,11 @@ int IPMisc_Init(IPMisc *m)
 static IPMisc   IpMiscSingleton;
 static BOOL     SingletonInited = FALSE;
 
+static void IpMiscSingleton_Cleanup(void)
+{
+    IPMisc_Free(&IpMiscSingleton);
+}
+
 int IpMiscSingleton_Init(ConfigFileInfo *ConfigInfo)
 {
     StringList *BlockIP = ConfigGetStringList(ConfigInfo, "BlockIP");
@@ -175,6 +185,7 @@ int IpMiscSingleton_Init(ConfigFileInfo *ConfigInfo)
     {
         return -147;
     }
+    atexit(IpMiscSingleton_Cleanup);
 
     IpMiscSingleton.SetBlockNegative(&IpMiscSingleton, BlockNegative);
 

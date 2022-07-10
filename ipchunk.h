@@ -20,6 +20,8 @@ typedef struct _IpChunk{
     StableBuffer    Datas;
 } IpChunk;
 
+void IpChunk_Free(IpChunk *ic);
+
 int IpChunk_Init(IpChunk *ic);
 
 int IpChunk_Add(IpChunk *ic,
