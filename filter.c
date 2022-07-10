@@ -146,6 +146,15 @@ static int FilterDomain_InitFromFile(StringChunk **List, ConfigFileInfo *ConfigI
     return 0;
 }
 
+static void FilterType_Cleanup(void)
+{
+    if(DisabledTypes != NULL)
+    {
+        DisabledTypes->Free(DisabledTypes);
+        free(DisabledTypes);
+    }
+}
+
 static int FilterType_Init(ConfigFileInfo *ConfigInfo)
 {
     StringList *DisableType_Str =
@@ -187,6 +196,15 @@ static int FilterType_Init(ConfigFileInfo *ConfigInfo)
     return 0;
 }
 
+static void DisabledDomain_Cleanup(void)
+{
+    if( DisabledDomain != NULL )
+    {
+        StringChunk_Free(DisabledDomain, TRUE);
+        SafeFree((void *)DisabledDomain);
+    }
+}
+
 static int DisabledDomain_Init(ConfigFileInfo *ConfigInfo)
 {
     StringChunk    *TempDisabledDomain = NULL;
@@ -208,11 +226,7 @@ static int DisabledDomain_Init(ConfigFileInfo *ConfigInfo)
     }
 
     RWLock_WrLock(DisabledDomainLock);
-    if( DisabledDomain != NULL )
-    {
-        StringChunk_Free(DisabledDomain, TRUE);
-        SafeFree((void *)DisabledDomain);
-    }
+    DisabledDomain_Cleanup();
     DisabledDomain = TempDisabledDomain;
     RWLock_UnWLock(DisabledDomainLock);
 
@@ -229,10 +243,12 @@ int Filter_Init(ConfigFileInfo *ConfigInfo)
     } else {
         INFO("Setting DisabledType succeeded.\n");
     }
+    atexit(FilterType_Cleanup);
 
     RWLock_Init(DisabledDomainLock);
 
     DisabledDomain_Init(ConfigInfo);
+    atexit(DisabledDomain_Cleanup);
 
     return 0;
 }
