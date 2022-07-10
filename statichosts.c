@@ -5,6 +5,11 @@
 static HostsContainer   MainStaticContainer;
 static BOOL             Inited = FALSE;
 
+static void StaticHosts_Cleanup(void)
+{
+    MainStaticContainer.Free(&MainStaticContainer);
+}
+
 int StaticHosts_Init(ConfigFileInfo *ConfigInfo)
 {
     StringList *AppendHosts = ConfigGetStringList(ConfigInfo, "AppendHosts");
@@ -16,6 +21,7 @@ int StaticHosts_Init(ConfigFileInfo *ConfigInfo)
     {
         return -17;
     }
+    atexit(StaticHosts_Cleanup);
 
     if( AppendHosts == NULL )
     {
