@@ -18,6 +18,14 @@ static char FilePath[MAX_PATH_BUFFER];
 
 static EFFECTIVE_LOCK   PrintLock;
 
+static void Log_Cleanup(void)
+{
+    if( LogFile == NULL )
+    {
+        fclose(LogFile);
+    }
+}
+
 int Log_Init(ConfigFileInfo *ConfigInfo, BOOL PrintScreen, BOOL Debug)
 {
     PrintConsole = PrintScreen;
@@ -58,6 +66,7 @@ int Log_Init(ConfigFileInfo *ConfigInfo, BOOL PrintScreen, BOOL Debug)
         fseek(LogFile, 0, SEEK_END);
         CurrentLength = ftell(LogFile);
     }
+    atexit(Log_Cleanup);
 
     ThresholdLength = ConfigGetInt32(ConfigInfo, "LogFileThresholdLength");
     if( ThresholdLength <= 0 )
