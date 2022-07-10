@@ -14,6 +14,15 @@ static const char   *File = NULL;
 static RWLock       HostsLock;
 static volatile HostsContainer  *MainDynamicContainer = NULL;
 
+static void DynamicHosts_Cleanup(void)
+{
+    if( MainDynamicContainer != NULL )
+    {
+        MainDynamicContainer->Free((HostsContainer *)MainDynamicContainer);
+        SafeFree((void *)MainDynamicContainer);
+    }
+}
+
 static int DynamicHosts_Load(void)
 {
     FILE            *fp;
@@ -62,11 +71,7 @@ static int DynamicHosts_Load(void)
     }
 
     RWLock_WrLock(HostsLock);
-    if( MainDynamicContainer != NULL )
-    {
-        MainDynamicContainer->Free((HostsContainer *)MainDynamicContainer);
-        SafeFree((void *)MainDynamicContainer);
-    }
+    DynamicHosts_Cleanup();
     MainDynamicContainer = TempContainer;
 
     RWLock_UnWLock(HostsLock);
@@ -198,6 +203,8 @@ int DynamicHosts_Init(ConfigFileInfo *ConfigInfo)
     } else {
         INFO("Hosts file is unreadable, this may cause some failures.\n");
     }
+
+    atexit(DynamicHosts_Cleanup);
 
     if( UpdateInterval <= 0 )
     {
