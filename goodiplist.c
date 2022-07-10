@@ -236,12 +236,22 @@ static int AddTask(void)
     return 0;
 }
 
+static void GoodIpList_Cleanup(void)
+{
+    if(GoodIpList != NULL)
+    {
+        StringChunk_Free(GoodIpList, TRUE);
+        SafeFree(GoodIpList);
+    }
+}
+
 int GoodIpList_Init(ConfigFileInfo *ConfigInfo)
 {
     if( InitListsAndTimes(ConfigInfo) != 0 )
     {
         return -1;
     }
+    atexit(GoodIpList_Cleanup);
 
     if( AddToLists(ConfigInfo) != 0 )
     {
