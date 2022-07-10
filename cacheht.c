@@ -124,24 +124,6 @@ int32_t CacheHT_FindUnusedNode(CacheHT      *h,
     return CacheHT_CreateNewNode(h, ChunkSize, Out, Boundary);
 }
 
-static void ThereIsAnEnd(CacheHT *h, int Slot_i, Cht_Slot *Slot)
-{
-    int i = Slot->Next;
-    Cht_Node *Node;
-
-    while( i >= 0 )
-    {
-        Node = Array_GetBySubscript(&(h->NodeChunk), i);
-
-        if( Node->Slot != Slot_i )
-        {
-            printf("--------------------ERROR\n");
-        }
-
-        i = Node->Next;
-    }
-}
-
 int CacheHT_InsertToSlot(CacheHT    *h,
                          const char *Key,
                          int        Node_index,
