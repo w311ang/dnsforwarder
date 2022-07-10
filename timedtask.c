@@ -290,12 +290,13 @@ static void TimeTask_Work(void *Unused)
 
             if( i != NULL )
             {
-                if( TimeTask_ReallyAdd(i) != 0 )
+                int r = TimeTask_ReallyAdd(i);
+                LinkedQueue_FreeNode(i);
+                if( r != 0 )
                 {
                     /** TODO: Show fatal error */
                     break;
                 }
-                LinkedQueue_FreeNode(i);
             }
 
             break;
@@ -368,6 +369,15 @@ static int Compare(const void *One, const void *Two)
 #endif /* WIN32 */
 }
 
+static void TimedTask_Cleanup(void)
+{
+    TimeQueue.Free(&TimeQueue);
+#ifdef WIN32
+    MsgQue.q.Free(&(MsgQue.q));
+#else /* WIN32 */
+#endif /* WIN32 */
+}
+
 int TimedTask_Init(void)
 {
     ThreadHandle t;
@@ -380,6 +390,8 @@ int TimedTask_Init(void)
     {
         return -20;
     }
+
+    atexit(TimedTask_Cleanup);
 
 #ifdef WIN32
     if( WinMsgQue_Init(&MsgQue, sizeof(TaskInfo)) != 0 )
