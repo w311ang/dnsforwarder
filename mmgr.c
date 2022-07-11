@@ -28,15 +28,12 @@ typedef struct _ModuleInterface {
 } ModuleInterface;
 
 typedef struct _ModuleMap {
-    StableBuffer *Modules;
-    Array        *ModuleArray;
-    StringChunk  *Distributor;
+    StableBuffer *Modules;      /* Storing ModuleInterfaces */
+    Array        *ModuleArray;  /* ModuleInterfaces' references */
+    StringChunk  *Distributor;  /* Domain-to-ModuleInterface mapping */
 } ModuleMap;
 
-static StableBuffer *Modules = NULL; /* Storing ModuleInterfaces */
-static Array        *ModuleArray = NULL; /* ModuleInterfaces' references */
-static StringChunk  *Distributor = NULL; /* Domain-to-ModuleInterface mapping */
-
+static ModuleMap    *CurModuleMap = NULL;
 static RWLock       ModulesLock;
 static ConfigFileInfo *CurrConfigInfo = NULL;
 
@@ -463,14 +460,38 @@ static int Modules_Init(ModuleMap *ModuleMap, ConfigFileInfo *ConfigInfo)
     return 0;
 }
 
-static int Modules_SafeCleanup(StableBuffer *Modules)
+static void Modules_Free(ModuleMap *ModuleMap)
+{
+    if( ModuleMap == NULL )
+    {
+        return;
+    }
+    if( ModuleMap->Modules != NULL )
+    {
+        ModuleMap->Modules->Free(ModuleMap->Modules);
+        SafeFree((void *)ModuleMap->Modules);
+    }
+    if( ModuleMap->ModuleArray != NULL )
+    {
+        Array_Free(ModuleMap->ModuleArray);
+        SafeFree((void *)ModuleMap->ModuleArray);
+    }
+    if( ModuleMap->Distributor != NULL )
+    {
+        StringChunk_Free(ModuleMap->Distributor, TRUE);
+        SafeFree((void *)ModuleMap->Distributor);
+    }
+    SafeFree(ModuleMap);
+}
+
+static int Modules_SafeCleanup(ModuleMap *ModuleMap)
 {
     StableBufferIterator BI;
     ModuleInterface *M = NULL;
     int i, BytesOfMetaInfo;
     BOOL InUse = TRUE;
 
-    if( StableBufferIterator_Init(&BI, Modules) != 0 )
+    if( ModuleMap == NULL  || StableBufferIterator_Init(&BI, ModuleMap->Modules) != 0 )
     {
         return -1;
     }
@@ -505,8 +526,8 @@ static int Modules_SafeCleanup(StableBuffer *Modules)
 
         SLEEP(1000);
     }
-    Modules->Free(Modules);
-    SafeFree((void *)Modules);
+
+    Modules_Free(ModuleMap);
     INFO("Last Modules freed.\n");
 
     return 0;
@@ -514,36 +535,46 @@ static int Modules_SafeCleanup(StableBuffer *Modules)
 
 static int Modules_Load(ConfigFileInfo *ConfigInfo)
 {
-    ModuleMap ModuleMap = {NULL};
-
+    ModuleMap *NewModuleMap;
     ThreadHandle th;
     int ret;
 
     CurrConfigInfo = ConfigInfo;
 
-    if( InitChunk(&(ModuleMap.Distributor)) != 0 )
+    NewModuleMap = SafeMalloc(sizeof(ModuleMap));
+    if( NewModuleMap == NULL )
     {
-        return -10;
+        return -1;
     }
 
-    ModuleMap.Modules = SafeMalloc(sizeof(StableBuffer));
-    if( ModuleMap.Modules == NULL)
+    NewModuleMap->Distributor = NULL;
+    if( InitChunk(&(NewModuleMap->Distributor)) != 0 )
     {
-        return -27;
+        ret = -10;
+        goto ModulesFree;
     }
 
-    if( StableBuffer_Init(ModuleMap.Modules) != 0 )
+    NewModuleMap->Modules = SafeMalloc(sizeof(StableBuffer));
+    if( NewModuleMap->Modules == NULL)
     {
-        return -27;
+        ret = -27;
+        goto ModulesFree;
     }
 
-    ModuleMap.ModuleArray = SafeMalloc(sizeof(Array));
-    if( ModuleMap.ModuleArray == NULL)
+    if( StableBuffer_Init(NewModuleMap->Modules) != 0 )
     {
-        return -27;
+        ret = -27;
+        goto ModulesFree;
     }
 
-    if( Array_Init(ModuleMap.ModuleArray,
+    NewModuleMap->ModuleArray = SafeMalloc(sizeof(Array));
+    if( NewModuleMap->ModuleArray == NULL)
+    {
+        ret = -98;
+        goto ModulesFree;
+    }
+
+    if( Array_Init(NewModuleMap->ModuleArray,
                    sizeof(ModuleInterface *),
                    0,
                    FALSE,
@@ -551,47 +582,35 @@ static int Modules_Load(ConfigFileInfo *ConfigInfo)
                    )
        != 0 )
     {
-        return -98;
+        ret = -98;
+        goto ModulesFree;
     }
 
-    ret = Modules_Init(&ModuleMap, ConfigInfo);
+    ret = Modules_Init(NewModuleMap, ConfigInfo);
 
     if (ret)
     {
-        return ret;
+        goto ModulesFree;
     }
 
     RWLock_WrLock(ModulesLock);
 
-    if( Distributor != NULL )
-    {
-        StringChunk_Free(Distributor, TRUE);
-        SafeFree((void *)Distributor);
-    }
-    Distributor = ModuleMap.Distributor;
-
-    if( ModuleArray != NULL )
-    {
-        Array_Free(ModuleArray);
-        SafeFree((void *)ModuleArray);
-    }
-    ModuleArray = ModuleMap.ModuleArray;
-
-    if( Modules != NULL )
-    {
-        CREATE_THREAD(Modules_SafeCleanup, Modules, th);
-        DETACH_THREAD(th);
-    }
-    Modules = ModuleMap.Modules;
+    CREATE_THREAD(Modules_SafeCleanup, CurModuleMap, th);
+    DETACH_THREAD(th);
+    CurModuleMap = NewModuleMap;
 
     RWLock_UnWLock(ModulesLock);
 
     return 0;
+
+ModulesFree:
+    Modules_Free(NewModuleMap);
+    return ret;
 }
 
 static void Modules_Cleanup(void)
 {
-    Modules_SafeCleanup(Modules);
+    Modules_SafeCleanup(CurModuleMap);
 }
 
 int MMgr_Init(ConfigFileInfo *ConfigInfo)
@@ -668,17 +687,17 @@ int MMgr_Send(IHeader *h, int BufferLength)
 
     RWLock_RdLock(ModulesLock);
 
-    if( StringChunk_Domain_Match(Distributor,
+    if( StringChunk_Domain_Match(CurModuleMap->Distributor,
                                  h->Domain,
                                  &(h->HashValue),
                                  (void **)&i
                                  )
        )
     {
-    } else if( Array_GetUsed(ModuleArray) > 0 ){
-        i = Array_GetBySubscript(ModuleArray,
+    } else if( Array_GetUsed(CurModuleMap->ModuleArray) > 0 ){
+        i = Array_GetBySubscript(CurModuleMap->ModuleArray,
                                  (int)(*(uint16_t *)IHEADER_TAIL(h)) %
-                                     Array_GetUsed(ModuleArray)
+                                 Array_GetUsed(CurModuleMap->ModuleArray)
                                  );
     } else {
         i = NULL;
