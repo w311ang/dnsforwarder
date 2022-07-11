@@ -26,6 +26,8 @@ int StringList_Init(__in StringList *s,
                     __in const char *Delimiters
                     );
 
+void FreeCharPtrArray(char **s);
+
 /**
  Iterator
 */

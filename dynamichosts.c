@@ -14,12 +14,27 @@ static const char   *File = NULL;
 static RWLock       HostsLock;
 static volatile HostsContainer  *MainDynamicContainer = NULL;
 
-static void DynamicHosts_Cleanup(void)
+/* Arguments for updating  */
+static int          HostsRetryInterval;
+static char         *Script = NULL; /* malloced */
+static const char   **HostsURLs = NULL; /* malloced */
+
+static void DynamicHosts_ContainerCleanup(void)
 {
     if( MainDynamicContainer != NULL )
     {
         MainDynamicContainer->Free((HostsContainer *)MainDynamicContainer);
         SafeFree((void *)MainDynamicContainer);
+    }
+}
+
+static void DynamicHosts_Cleanup(void)
+{
+    DynamicHosts_ContainerCleanup();
+    FreeCharPtrArray((char **)HostsURLs);
+    if( Script != NULL )
+    {
+        SafeFree(Script);
     }
 }
 
@@ -71,7 +86,8 @@ static int DynamicHosts_Load(void)
     }
 
     RWLock_WrLock(HostsLock);
-    DynamicHosts_Cleanup();
+
+    DynamicHosts_ContainerCleanup();
     MainDynamicContainer = TempContainer;
 
     RWLock_UnWLock(HostsLock);
@@ -81,11 +97,6 @@ static int DynamicHosts_Load(void)
     fclose(fp);
     return 0;
 }
-
-/* Arguments for updating  */
-static int          HostsRetryInterval;
-static char         *Script = NULL; /* malloced */
-static const char   **HostsURLs = NULL; /* malloced */
 
 static void GetHostsFromInternet_Failed(int ErrorCode, const char *URL, const char *File1)
 {
@@ -160,6 +171,8 @@ int DynamicHosts_Init(ConfigFileInfo *ConfigInfo)
     UpdateInterval = ConfigGetInt32(ConfigInfo, "ModulesUpdateInterval");
     HostsRetryInterval = ConfigGetInt32(ConfigInfo, "HostsRetryInterval");
 
+    atexit(DynamicHosts_Cleanup);
+
     RawScript = ConfigGetRawString(ConfigInfo, "HostsScript");
     if( RawScript != NULL )
     {
@@ -203,8 +216,6 @@ int DynamicHosts_Init(ConfigFileInfo *ConfigInfo)
     } else {
         INFO("Hosts file is unreadable, this may cause some failures.\n");
     }
-
-    atexit(DynamicHosts_Cleanup);
 
     if( UpdateInterval <= 0 )
     {

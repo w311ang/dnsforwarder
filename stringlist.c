@@ -184,6 +184,15 @@ static const char **StringList_ToCharPtrArray(StringList *s)
     return ret;
 }
 
+void FreeCharPtrArray(char **s)
+{
+    while( *s != NULL )
+    {
+        SafeFree(*s);
+        ++s;
+    }
+}
+
 /* Unsafe operation, it may change strings' positions */
 static void StringList_TrimAll(StringList *s, const char *Garbage)
 {
