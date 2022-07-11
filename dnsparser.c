@@ -685,6 +685,7 @@ static int DnsSimpleParserIterator_ParseLabeledName(DnsSimpleParserIterator *i,
     /* Static max length assumed to be 127+1 */
     char Example[128];
     char *Resulting;
+    int ret = 0;
 
     int HostNameLength; /* Including terminated-zero */
     int LabelLength;
@@ -739,13 +740,8 @@ static int DnsSimpleParserIterator_ParseLabeledName(DnsSimpleParserIterator *i,
 
     if( LabelLength < 0 )
     {
-        if( Resulting != Example )
-        {
-            SafeFree(Resulting);
-        }
-
         *Buffer = '\0';
-        return 0;
+        goto EXIT;
     }
 
     if( ReplaceStr_WithLengthChecking(Buffer,
@@ -755,26 +751,23 @@ static int DnsSimpleParserIterator_ParseLabeledName(DnsSimpleParserIterator *i,
                                       )
        == NULL )
     {
-        if( Resulting != Example )
-        {
-            SafeFree(Resulting);
-        }
-
         *Buffer = '\0';
-        return 0;
-    }
-
-    if( Resulting != Example )
-    {
-        SafeFree(Resulting);
+        goto EXIT;
     }
 
     if( AcutalDataLength != NULL )
     {
         *AcutalDataLength = LabelLength;
     }
+    ret = 1;
 
-    return 1;
+EXIT:
+    if( Resulting != Example )
+    {
+        SafeFree(Resulting);
+    }
+
+    return ret;
 }
 
 static int DnsSimpleParserIterator_ParseCName(DnsSimpleParserIterator *i,
@@ -927,6 +920,7 @@ static int DnsSimpleParserIterator_ParseSingleTxt(DnsSimpleParserIterator *i,
     /* Static max length assumed to be 127+1 */
     char Example[128];
     char *Resulting;
+    int ret = 0;
 
     int StringLength = GET_8_BIT_U_INT(Data);
 
@@ -971,24 +965,22 @@ static int DnsSimpleParserIterator_ParseSingleTxt(DnsSimpleParserIterator *i,
        == NULL )
     {
         *Buffer = '\0';
-
-        if( Resulting != Example )
-        {
-            SafeFree(Resulting);
-        }
-        return 0;
+        ret = 0;
+        goto EXIT;
     }
 
     if( AcutalDataLength != NULL )
     {
         *AcutalDataLength = StringLength + 1;
     }
+    ret = 1;
 
+EXIT:
     if( Resulting != Example )
     {
         SafeFree(Resulting);
     }
-    return 1;
+    return ret;
 }
 
 typedef int (*Parser)(DnsSimpleParserIterator *i,

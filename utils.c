@@ -187,36 +187,35 @@ int Base64Decode(const char *File)
 
     if( fseek(fp, 0L, SEEK_END) != 0 )
     {
-        fclose(fp);
-        return -2;
+        ret = -2;
+        goto EXIT_1;
     }
 
     FileSize = ftell(fp);
 
     if( FileSize < 0 )
     {
-        fclose(fp);
-        return -3;
+        ret = -3;
+        goto EXIT_1;
     }
 
     if( fseek(fp, 0L, SEEK_SET) != 0 )
     {
-        fclose(fp);
-        return -4;
+        ret = -4;
+        goto EXIT_1;
     }
 
     FileContent = SafeMalloc(FileSize);
     if( FileContent == NULL )
     {
-        fclose(fp);
-        return -5;
+        ret = -5;
+        goto EXIT_1;
     }
 
     if( fread(FileContent, 1, FileSize, fp) != FileSize )
     {
-        SafeFree(FileContent);
-        fclose(fp);
-        return -6;
+        ret = -6;
+        goto EXIT_2;
     }
 
     fclose(fp);
@@ -230,38 +229,38 @@ int Base64Decode(const char *File)
 
     if( CryptStringToBinary((LPCSTR)FileContent, FileSize, 0x00000001, NULL, &OutFileSize, NULL, NULL) != TRUE )
     {
-        SafeFree(FileContent);
-        fclose(fp);
-        return -8;
+        ret = -8;
+        goto EXIT_2;
     }
 
     ResultContent = SafeMalloc(OutFileSize);
     if( ResultContent == NULL )
     {
-        SafeFree(FileContent);
-        fclose(fp);
-        return -9;
+        ret = -9;
+        goto EXIT_2;
     }
 
 
     if( CryptStringToBinary((LPCSTR)FileContent, FileSize, 0x00000001, (BYTE *)ResultContent, &OutFileSize, NULL, NULL) != TRUE )
     {
-        SafeFree(ResultContent);
-        SafeFree(FileContent);
-        fclose(fp);
-        return -9;
+        ret = -10;
+        goto EXIT_3;
     }
 
     fwrite(ResultContent, 1, OutFileSize, fp);
+    ret = 0;
 
+EXIT_3:
     SafeFree(ResultContent);
+EXIT_2:
     SafeFree(FileContent);
+EXIT_1:
     fclose(fp);
-    return 0;
+    return ret;
 
 #else /* WIN32 */
 #ifdef BASE64_DECODER_OPENSSL
-    BIO *ub64, *bmem;
+    BIO *ub64, *bmem *bmem_2;
 
     FILE *fp = fopen(File, "rb");
     long FileSize;
@@ -276,96 +275,96 @@ int Base64Decode(const char *File)
 
     if( fseek(fp, 0L, SEEK_END) != 0 )
     {
-        fclose(fp);
-        return -2;
+        ret = -2;
+        goto EXIT_1;
     }
 
     FileSize = ftell(fp);
 
     if( FileSize < 0 )
     {
-        fclose(fp);
-        return -3;
+        ret = -3;
+        goto EXIT_1;
     }
 
     if( fseek(fp, 0L, SEEK_SET) != 0 )
     {
-        fclose(fp);
-        return -4;
+        ret = -4;
+        goto EXIT_1;
     }
 
     FileContent = SafeMalloc(FileSize);
     if( FileContent == NULL )
     {
-        fclose(fp);
-        return -5;
+        ret = -5;
+        goto EXIT_1;
     }
 
     if( fread(FileContent, 1, FileSize, fp) != FileSize )
     {
-        SafeFree(FileContent);
-        fclose(fp);
-        return -6;
+        ret = -6;
+        goto EXIT_2;
     }
 
     fclose(fp);
 
-    ub64 = BIO_new(BIO_f_base64());
-    if( ub64 == NULL )
+    fp = fopen(File, "wb");
+    if( fp == NULL )
     {
         SafeFree(FileContent);
         return -7;
     }
 
-    bmem = BIO_new_mem_buf(FileContent, FileSize);
+    ub64 = BIO_new(BIO_f_base64());
     if( ub64 == NULL )
     {
-        SafeFree(FileContent);
-        return -8;
+        ret = -8;
+        goto EXIT_2;
     }
 
-    fp = fopen(File, "wb");
-    if( fp == NULL )
+    bmem = BIO_new_mem_buf(FileContent, FileSize);
+    if( bmem == NULL )
     {
-        BIO_free_all(bmem);
-        SafeFree(FileContent);
-        return -9;
+        ret = -9;
+        goto EXIT_3;
     }
 
-    bmem = BIO_push(ub64, bmem);
-    if( bmem== NULL )
+    bmem_2 = BIO_push(ub64, bmem);
+    if( bmem_2 == NULL )
     {
-        SafeFree(FileContent);
-        fclose(fp);
-        return -10;
+        ret = -10;
+        goto EXIT_4;
     }
+    bmem = bmem_2;
 
     ResultContent = SafeMalloc(FileSize);
     if( ResultContent == NULL )
     {
-        BIO_free_all(bmem);
-        SafeFree(FileContent);
-        fclose(fp);
-        return -11;
+        ret = -11;
+        goto EXIT_4;
     }
 
     OutputSize = BIO_read(bmem, ResultContent, FileSize);
     if( OutputSize < 1 )
     {
-        BIO_free_all(bmem);
-        SafeFree(ResultContent);
-        SafeFree(FileContent);
-        fclose(fp);
-        return -12;
+        ret = -12;
+        goto EXIT_5;
     }
 
     fwrite(ResultContent, 1, OutputSize, fp);
+    ret = 0;
 
-    BIO_free_all(bmem);
+EXIT_5:
     SafeFree(ResultContent);
+EXIT_4:
+    BIO_free_all(bmem);
+EXIT_3:
+    BIO_free_all(ub64);
+EXIT_2:
     SafeFree(FileContent);
+EXIT_1:
     fclose(fp);
-    return 0;
+    return ret;
 #endif /* BASE64_DECODER_OPENSSL */
 #ifdef BASE64_DECODER_UUDECODE
     char Cmd[2048];
