@@ -43,6 +43,8 @@ int StringChunk_Init(StringChunk *dl, StringList *List)
 
         if( StringList_Init(dl->List, NULL, NULL) != 0 )
         {
+            SafeFree(dl->List);
+            dl->List = NULL;
             return -5;
         }
     } else {
@@ -346,6 +348,8 @@ int InitChunk(StringChunk **dl)
 
     if( StringChunk_Init(*dl, NULL) < 0 )
     {
+        free(*dl);
+        *dl = NULL;
         return -82;
     }
 

@@ -31,6 +31,8 @@ static int InitBst(Bst **t, int (*CompareFunc)(const void *, const void *))
 
     if( Bst_Init(*t, sizeof(int), CompareFunc) != 0 )
     {
+        free(*t);
+        *t = NULL;
         return -102;
     }
 

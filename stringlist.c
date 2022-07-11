@@ -170,7 +170,7 @@ static const char **StringList_ToCharPtrArray(StringList *s)
         ret[Index] = StringDup(ci);
         if( ret[Index] == NULL )
         {
-            /** WARNING: Memory leak occured */
+            SafeFree(ret);
             return NULL;
         }
 

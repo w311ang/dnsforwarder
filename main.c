@@ -463,6 +463,7 @@ int main(int argc, char *argv[])
 
     ArgParse(argc, argv);
 
+    atexit(CleanupConfig);
     if( ConfigFile == NULL )
     {
         ConfigFile = malloc(320);
@@ -501,7 +502,6 @@ int main(int argc, char *argv[])
     {
         return -498;
     }
-    atexit(CleanupConfig);
 
     putchar('\n');
 
