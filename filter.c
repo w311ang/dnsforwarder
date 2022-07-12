@@ -12,7 +12,7 @@
 static Bst          *DisabledTypes = NULL;
 
 static StringChunk  *DisabledDomain = NULL;
-static RWLock       DisabledDomainLock;
+static RWLock       DisabledDomainLock = {NULL};
 
 static ConfigFileInfo *CurrConfigInfo = NULL;
 
@@ -155,6 +155,7 @@ static void FilterType_Cleanup(void)
         DisabledTypes->Free(DisabledTypes);
         free(DisabledTypes);
     }
+    RWLock_Destroy(DisabledDomainLock);
 }
 
 static int FilterType_Init(ConfigFileInfo *ConfigInfo)

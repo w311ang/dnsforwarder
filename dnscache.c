@@ -19,7 +19,7 @@
 static BOOL             Inited = FALSE;
 static BOOL             CacheParallel = FALSE;
 
-static RWLock           CacheLock;
+static RWLock           CacheLock = {NULL};
 
 static FileHandle       CacheFileHandle = INVALID_FILE;
 static MappingHandle    CacheMappingHandle = INVALID_MAP;
@@ -198,6 +198,7 @@ static void DNSCache_Cleanup(void)
     {
         SafeFree(MapStart);
     }
+    RWLock_Destroy(CacheLock);
 }
 
 int DNSCache_Init(ConfigFileInfo *ConfigInfo)

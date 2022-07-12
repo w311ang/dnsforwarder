@@ -34,7 +34,7 @@ typedef struct _ModuleMap {
 } ModuleMap;
 
 static ModuleMap    *CurModuleMap = NULL;
-static RWLock       ModulesLock;
+static RWLock       ModulesLock = {NULL};
 static ConfigFileInfo *CurrConfigInfo = NULL;
 
 static int MappingAModule(ModuleMap *ModuleMap,
@@ -610,7 +610,11 @@ ModulesFree:
 
 static void Modules_Cleanup(void)
 {
-    Modules_Free(CurModuleMap);
+    if( CurModuleMap != NULL )
+    {
+        Modules_Free(CurModuleMap);
+    }
+    RWLock_Destroy(ModulesLock);
 }
 
 int MMgr_Init(ConfigFileInfo *ConfigInfo)

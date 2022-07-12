@@ -11,7 +11,7 @@
 #include "mmgr.h"
 
 static const char   *File = NULL;
-static RWLock       HostsLock;
+static RWLock       HostsLock = {NULL};
 static volatile HostsContainer  *MainDynamicContainer = NULL;
 
 /* Arguments for updating  */
@@ -36,6 +36,7 @@ static void DynamicHosts_Cleanup(void)
     {
         SafeFree(Script);
     }
+    RWLock_Destroy(HostsLock);
 }
 
 static int DynamicHosts_Load(void)
