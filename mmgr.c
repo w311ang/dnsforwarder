@@ -610,7 +610,7 @@ ModulesFree:
 
 static void Modules_Cleanup(void)
 {
-    Modules_SafeCleanup(CurModuleMap);
+    Modules_Free(CurModuleMap);
 }
 
 int MMgr_Init(ConfigFileInfo *ConfigInfo)
