@@ -373,7 +373,7 @@ static void TimedTask_Cleanup(void)
 {
     TimeQueue.Free(&TimeQueue);
 #ifdef WIN32
-    MsgQue.q.Free(&(MsgQue.q));
+    WinMsgQue_Destroy(&MsgQue);
 #else /* WIN32 */
 #endif /* WIN32 */
 }

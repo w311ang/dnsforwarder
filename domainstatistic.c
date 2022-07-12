@@ -194,6 +194,7 @@ static void DomainStatistic_Cleanup(void)
     {
         fclose(MainFile);
     }
+    EFFECTIVE_LOCK_DESTROY(StatisticLock);
 }
 
 int DomainStatistic_Init(ConfigFileInfo *ConfigInfo)

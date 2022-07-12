@@ -65,6 +65,12 @@ static int Compare(const void *One, const void *Two)
     return 0;
 }
 
+void WinMsgQue_Destroy(WinMsgQue *q)
+{
+    q->q.Free(&(q->q));
+    EFFECTIVE_LOCK_DESTROY(q->l);
+}
+
 int WinMsgQue_Init(WinMsgQue *q, int MsgSize)
 {
     if( LinkedQueue_Init(&(q->q), MsgSize, Compare) != 0 )

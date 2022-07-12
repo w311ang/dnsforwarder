@@ -53,6 +53,7 @@ static int UdpM_Cleanup(UdpM *m)
 
     SafeFree(m->Parallels.addrs);
     AddressList_Free(&(m->AddrList));
+    EFFECTIVE_LOCK_DESTROY(m->Lock);
 
     m->WorkThread = NULL;
 

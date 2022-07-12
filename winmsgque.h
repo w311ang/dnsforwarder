@@ -18,6 +18,8 @@ struct _WinMsgQue{
     void *(*Wait)(WinMsgQue *q, DWORD *Milliseconds);
 };
 
+void WinMsgQue_Destroy(WinMsgQue *q);
+
 int WinMsgQue_Init(WinMsgQue *q, int MsgSize);
 
 #define WinMsgQue_FreeMsg(m_ptr)    LinkedQueue_FreeNode(m_ptr)

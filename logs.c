@@ -24,6 +24,7 @@ static void Log_Cleanup(void)
     {
         fclose(LogFile);
     }
+    EFFECTIVE_LOCK_DESTROY(PrintLock);
 }
 
 int Log_Init(ConfigFileInfo *ConfigInfo, BOOL PrintScreen, BOOL Debug)
