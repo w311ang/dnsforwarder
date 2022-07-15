@@ -162,7 +162,6 @@ int DynamicHosts_Init(ConfigFileInfo *ConfigInfo)
     Hosts = ConfigGetStringList(ConfigInfo, "Hosts");
     if( Hosts == NULL )
     {
-        File = NULL;
         return -151;
     }
 

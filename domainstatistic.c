@@ -42,6 +42,7 @@ static int GetPreAndPost(ConfigFileInfo *ConfigInfo)
     char    *ip = NULL;
     int FileSize;
     char    *FileContent = NULL;
+
     if( TemplateFile == NULL )
     {
         return -1;
@@ -63,15 +64,13 @@ static int GetPreAndPost(ConfigFileInfo *ConfigInfo)
 
     if( GetTextFileContent(TemplateFile, FileContent) != 0 )
     {
-        SafeFree(FileContent);
-        return -1;
+        goto EXIT;
     }
 
     ip = strstr(FileContent, InsertionPosString);
     if( ip == NULL )
     {
-        SafeFree(FileContent);
-        return -1;
+        goto EXIT;
     }
 
     PreOutput = FileContent;
@@ -79,6 +78,10 @@ static int GetPreAndPost(ConfigFileInfo *ConfigInfo)
     *ip = '\0';
 
     return 0;
+
+EXIT:
+    SafeFree(FileContent);
+    return -1;
 }
 
 static int DomainStatistic_Works(void *Unused, void *Unused2)
@@ -190,9 +193,13 @@ static int DomainStatistic_Works(void *Unused, void *Unused2)
 
 static void DomainStatistic_Cleanup(void)
 {
-    if( MainFile != NULL )
+    if( PreOutput != NULL )
     {
-        fclose(MainFile);
+        SafeFree((void *)PreOutput);
+        if( MainFile != NULL )
+        {
+            fclose(MainFile);
+        }
     }
     EFFECTIVE_LOCK_DESTROY(StatisticLock);
 }
@@ -222,6 +229,8 @@ int DomainStatistic_Init(ConfigFileInfo *ConfigInfo)
         return 0;
     }
 
+    atexit(DomainStatistic_Cleanup);
+
     GetFileDirectory(FilePath);
     strcat(FilePath, PATH_SLASH_STR);
     strcat(FilePath, "statistic.html");
@@ -233,8 +242,6 @@ int DomainStatistic_Init(ConfigFileInfo *ConfigInfo)
         ERRORMSG("Writing %s failed.\n", FilePath);
         return 3;
     }
-
-    atexit(DomainStatistic_Cleanup);
 
     EFFECTIVE_LOCK_INIT(StatisticLock);
     StringChunk_Init(&MainChunk, NULL);

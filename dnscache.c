@@ -196,6 +196,7 @@ static void DNSCache_Cleanup(void)
     }
     if( MemoryCache && MapStart != NULL )
     {
+        CacheHT_Free(CacheInfo);
         SafeFree(MapStart);
     }
     RWLock_Destroy(CacheLock);

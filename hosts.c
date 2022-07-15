@@ -149,8 +149,6 @@ static int Hosts_SocketLoop(void *Unused)
     Puller.Add(&Puller, IncomeSocket, NULL, 0);
     Puller.Add(&Puller, OutcomeSocket, NULL, 0);
 
-    atexit(Hosts_SocketCleanup);
-
     if( HostsContext_Init(&Context) != 0 )
     {
         return -431;
@@ -267,6 +265,8 @@ static int Hosts_SocketLoop(void *Unused)
         } else {}
     }
 
+    HostsContext_Cleanup(&Context);
+
     return 0;
 }
 
@@ -288,6 +288,8 @@ int Hosts_Init(ConfigFileInfo *ConfigInfo)
     {
         return -25;
     }
+
+    atexit(Hosts_SocketCleanup);
 
     CREATE_THREAD(Hosts_SocketLoop, NULL, t);
     DETACH_THREAD(t);

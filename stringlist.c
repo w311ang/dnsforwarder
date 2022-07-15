@@ -298,7 +298,7 @@ int StringList_Init(__in StringList *s,
 
     if( ori != NULL )
     {
-        void *Here = sb ->Add(sb, ori, strlen(ori) + 1, FALSE);
+        void *Here = sb->Add(sb, ori, strlen(ori) + 1, FALSE);
         if( Here == NULL )
         {
             sb->Free(sb);

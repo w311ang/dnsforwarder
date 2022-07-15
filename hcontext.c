@@ -143,6 +143,11 @@ PRIFUNC int HostsContextCompare(const void *_1, const void *_2)
     }
 }
 
+void HostsContext_Cleanup(HostsContext *c)
+{
+    c->t.Free(&(c->t));
+}
+
 int HostsContext_Init(HostsContext *c)
 {
     if( Bst_Init(&(c->t),

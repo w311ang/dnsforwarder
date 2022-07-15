@@ -30,6 +30,8 @@ struct _HostsContext
 
 };
 
+void HostsContext_Cleanup(HostsContext *c);
+
 int HostsContext_Init(HostsContext *c);
 
 #endif // HCONTEXT_H_INCLUDED

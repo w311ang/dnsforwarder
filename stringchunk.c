@@ -9,6 +9,8 @@ typedef struct _EntryForString{
 
 int StringChunk_Init(StringChunk *dl, StringList *List)
 {
+    int ret;
+
     if( dl == NULL )
     {
         return 0;
@@ -21,15 +23,14 @@ int StringChunk_Init(StringChunk *dl, StringList *List)
 
     if( Array_Init(&(dl->List_W_Pos), sizeof(EntryForString), 0, FALSE, NULL) != 0 )
     {
-        SimpleHT_Free(&(dl->List_Pos));
-        return -2;
+        ret = -2;
+        goto EXIT_1;
     }
 
     if( StableBuffer_Init(&(dl->AdditionalDataChunk)) != 0 )
     {
-        SimpleHT_Free(&(dl->List_Pos));
-        Array_Free(&(dl->List_W_Pos));
-        return -3;
+        ret = -3;
+        goto EXIT_2;
     }
 
     /* Whether to use external `StringList' to store strings. */
@@ -38,20 +39,31 @@ int StringChunk_Init(StringChunk *dl, StringList *List)
         dl->List = SafeMalloc(sizeof(StringList));
         if( dl->List == NULL )
         {
-            return -4;
+            ret = -4;
+            goto EXIT_3;
         }
 
         if( StringList_Init(dl->List, NULL, NULL) != 0 )
         {
-            SafeFree(dl->List);
-            dl->List = NULL;
-            return -5;
+            ret = -5;
+            goto EXIT_4;
         }
     } else {
         dl->List = List;
     }
 
     return 0;
+
+EXIT_4:
+    SafeFree(dl->List);
+    dl->List = NULL;
+EXIT_3:
+    dl->AdditionalDataChunk.Free(&(dl->AdditionalDataChunk));
+EXIT_2:
+    SimpleHT_Free(&(dl->List_Pos));
+EXIT_1:
+    Array_Free(&(dl->List_W_Pos));
+    return ret;
 }
 
 int StringChunk_Add(StringChunk *dl,

@@ -132,8 +132,13 @@ static int InitListsAndTimes(ConfigFileInfo *ConfigInfo)
     }
 
     GoodIpList = SafeMalloc(sizeof(StringChunk));
-    if( GoodIpList != NULL && StringChunk_Init(GoodIpList, NULL) != 0 )
+    if( GoodIpList == NULL )
     {
+        return -3;
+    }
+    if( StringChunk_Init(GoodIpList, NULL) != 0 )
+    {
+        SafeFree(GoodIpList);
         return -3;
     }
 
