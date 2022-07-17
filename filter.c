@@ -223,6 +223,8 @@ static int DisabledDomain_Init(ConfigFileInfo *ConfigInfo)
 
     if( FilterDomain_InitFromFile(&TempDisabledDomain, ConfigInfo) != 0 )
     {
+        StringChunk_Free(TempDisabledDomain, TRUE);
+        SafeFree(TempDisabledDomain);
         INFO("Loading DisabledList failed.\n");
         return -1;
     } else {

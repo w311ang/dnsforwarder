@@ -23,6 +23,7 @@ int SimpleHT_Init(SimpleHT *ht, int DataLength, size_t MaxLoadFactor, uint32_t (
 
     if( Array_Init(&(ht->Nodes), sizeof(Sht_NodeHead) + DataLength, 0, FALSE, NULL) != 0 )
     {
+        Array_Free(&(ht->Slots));
         return -2;
     }
 

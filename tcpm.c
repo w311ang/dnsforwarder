@@ -378,6 +378,8 @@ static int TcpM_Cleanup(TcpM *m)
     SafeFree(m->ServiceFamilies);
     AddressList_Free(&(m->SocksProxyList));
     SafeFree(*(m->SocksProxies));
+    SafeFree(*(m->SocksProxies));
+    SafeFree(m->SocksProxyFamilies);
     SafeFree(m->SocksProxyFamilies);
 
     m->WorkThread = NULL;
@@ -594,6 +596,8 @@ static int TcpM_Works(TcpM *m)
 
 int TcpM_Init(TcpM *m, const char *Services, const char *SocksProxies)
 {
+    int ret;
+
     if( m == NULL || Services == NULL )
     {
         return -7;
@@ -606,13 +610,15 @@ int TcpM_Init(TcpM *m, const char *Services, const char *SocksProxies)
 
     if( SocketPuller_Init(&(m->Puller)) != 0 )
     {
-        return -389;
+        ret = -389;
+        goto EXIT_1;
     }
 
     m->Incoming = TryBindLocal(Ipv6_Aviliable(), 10400, &(m->IncomingAddr));
     if( m->Incoming == INVALID_SOCKET )
     {
-        return -357;
+        ret = -357;
+        goto EXIT_1;
     }
 
     m->Puller.Add(&(m->Puller), m->Incoming, NULL, 0);
@@ -621,7 +627,8 @@ int TcpM_Init(TcpM *m, const char *Services, const char *SocksProxies)
 
     if( AddressList_Init(&(m->ServiceList)) != 0 )
     {
-        return -17;
+        ret = -17;
+        goto EXIT_2;
     } else {
         StringList l;
         StringListIterator i;
@@ -629,14 +636,16 @@ int TcpM_Init(TcpM *m, const char *Services, const char *SocksProxies)
 
         if( StringList_Init(&l, Services, ", ") != 0 )
         {
-            return -23;
+            ret = -23;
+            goto EXIT_2;
         }
 
         l.TrimAll(&l, "\t .");
 
         if( StringListIterator_Init(&i, &l) != 0 )
         {
-            return -29;
+            ret = -29;
+            goto EXIT_2;
         }
 
         while( (Itr = i.Next(&i)) != NULL )
@@ -654,7 +663,8 @@ int TcpM_Init(TcpM *m, const char *Services, const char *SocksProxies)
 
             if( m->Services == NULL )
             {
-                return -45;
+                ret = -45;
+                goto EXIT_3;
             }
         }
     }
@@ -664,7 +674,8 @@ int TcpM_Init(TcpM *m, const char *Services, const char *SocksProxies)
         /* Proxied */
         if( AddressList_Init(&(m->SocksProxyList)) != 0 )
         {
-            return -53;
+            ret = -53;
+            goto EXIT_4;
         } else {
             StringList l;
             StringListIterator i;
@@ -672,14 +683,17 @@ int TcpM_Init(TcpM *m, const char *Services, const char *SocksProxies)
 
             if( StringList_Init(&l, SocksProxies, ", ") != 0 )
             {
-                return -61;
+                ret = -61;
+                goto EXIT_5;
             }
 
             l.TrimAll(&l, "\t .");
 
             if( StringListIterator_Init(&i, &l) != 0 )
             {
-                return -58;
+                l.Free(&l);
+                ret = -58;
+                goto EXIT_5;
             }
 
             while( (Itr = i.Next(&i)) != NULL )
@@ -695,7 +709,8 @@ int TcpM_Init(TcpM *m, const char *Services, const char *SocksProxies)
 
             if( m->SocksProxies == NULL )
             {
-                return -84;
+                ret = -84;
+                goto EXIT_5;
             }
         }
     } else {
@@ -712,4 +727,17 @@ int TcpM_Init(TcpM *m, const char *Services, const char *SocksProxies)
     DETACH_THREAD(m->WorkThread);
 
     return 0;
+
+EXIT_5:
+    AddressList_Free(&(m->SocksProxyList));
+EXIT_4:
+    SafeFree(*(m->Services));
+EXIT_3:
+    AddressList_Free(&(m->ServiceList));
+EXIT_2:
+    m->Puller.CloseAll(&(m->Puller), INVALID_SOCKET);
+    m->Puller.Free(&(m->Puller));
+EXIT_1:
+    ModuleContext_Free(&(m->Context));
+    return ret;
 }

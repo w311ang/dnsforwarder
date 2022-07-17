@@ -407,6 +407,7 @@ int HostsContainer_Init(HostsContainer *Container)
 
     if( StableBuffer_Init(&(Container->Table)) != 0 )
     {
+        StringChunk_Free(&(Container->Mappings), TRUE);
         return -6;
     }
 

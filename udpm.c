@@ -326,6 +326,7 @@ int UdpM_Init(UdpM *m, const char *Services, BOOL Parallel)
     StringList  Addresses;
     StringListIterator  sli;
     const char *Itr;
+    int ret;
 
     if( m == NULL || Services == NULL )
     {
@@ -342,14 +343,14 @@ int UdpM_Init(UdpM *m, const char *Services, BOOL Parallel)
 
     if( StringListIterator_Init(&sli, &Addresses) != 0 )
     {
-        Addresses.Free(&Addresses);
-        return -169;
+        ret = -169;
+        goto EXIT_1;
     }
 
     if( AddressList_Init(&(m->AddrList)) != 0 )
     {
-        Addresses.Free(&Addresses);
-        return -171;
+        ret = -171;
+        goto EXIT_1;
     }
 
     Itr = sli.Next(&sli);
@@ -369,7 +370,8 @@ int UdpM_Init(UdpM *m, const char *Services, BOOL Parallel)
                                           )
            == NULL )
         {
-            return -184;
+            ret = -184;
+            goto EXIT_2;
         }
 
         m->Parallels.addrs =
@@ -387,7 +389,8 @@ int UdpM_Init(UdpM *m, const char *Services, BOOL Parallel)
 
     if( ModuleContext_Init(&(m->Context)) != 0 )
     {
-        return -143;
+        ret = -143;
+        goto EXIT_3;
     }
 
     m->CountOfTimeout = 0;
@@ -404,4 +407,14 @@ int UdpM_Init(UdpM *m, const char *Services, BOOL Parallel)
     DETACH_THREAD(m->SwepThread);
 
     return 0;
+
+EXIT_3:
+    SafeFree(m->Parallels.addrs);
+EXIT_2:
+    AddressList_Free(&(m->AddrList));
+    return ret;
+
+EXIT_1:
+    Addresses.Free(&Addresses);
+    return ret;
 }
