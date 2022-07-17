@@ -38,6 +38,7 @@ static int UdpM_Swep_Thread(UdpM *m)
     }
 
     ModuleContext_Free(&(m->Context));
+    EFFECTIVE_LOCK_DESTROY(m->Lock);
 
     m->SwepThread = NULL;
 
@@ -53,7 +54,6 @@ static int UdpM_Cleanup(UdpM *m)
 
     SafeFree(m->Parallels.addrs);
     AddressList_Free(&(m->AddrList));
-    EFFECTIVE_LOCK_DESTROY(m->Lock);
 
     m->WorkThread = NULL;
 
