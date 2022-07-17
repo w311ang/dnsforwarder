@@ -528,7 +528,7 @@ static int Modules_SafeCleanup(ModuleMap *ModuleMap)
     }
 
     Modules_Free(ModuleMap);
-    INFO("Last Modules freed.\n");
+    INFO("Last GroupFile Modules freed.\n");
 
     return 0;
 }
@@ -601,10 +601,13 @@ static int Modules_Load(ConfigFileInfo *ConfigInfo)
 
     RWLock_UnWLock(ModulesLock);
 
+    INFO("Loading GroupFile(s) completed.\n");
+
     return 0;
 
 ModulesFree:
     Modules_Free(NewModuleMap);
+    INFO("Loading GroupFile(s) failed.\n");
     return ret;
 }
 
@@ -658,7 +661,6 @@ int Modules_Update(void)
     if ( ConfigGetBoolean(CurrConfigInfo, "ReloadGroupFile") )
     {
         Modules_Load(CurrConfigInfo);
-        INFO("Reloading GroupFile completed.\n");
     }
     return 0;
 }

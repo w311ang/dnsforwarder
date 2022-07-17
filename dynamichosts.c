@@ -47,22 +47,19 @@ static int DynamicHosts_Load(void)
     fp = fopen(File, "r");
     if( fp == NULL )
     {
-        return -1;
+        goto EXIT_1;
     }
 
     TempContainer = (HostsContainer *)SafeMalloc(sizeof(HostsContainer));
     if( TempContainer == NULL )
     {
-        fclose(fp);
-        return -1;
+        goto EXIT_2;
     }
 
     if( HostsContainer_Init(TempContainer) != 0 )
     {
-        fclose(fp);
-
         SafeFree(TempContainer);
-        return -1;
+        goto EXIT_2;
     }
 
     while( TRUE )
@@ -94,6 +91,12 @@ static int DynamicHosts_Load(void)
 
     fclose(fp);
     return 0;
+
+EXIT_2:
+    fclose(fp);
+EXIT_1:
+    INFO("Loading hosts failed.\n");
+    return -1;
 }
 
 static void GetHostsFromInternet_Failed(int ErrorCode, const char *URL, const char *File1)
@@ -145,6 +148,8 @@ static void GetHostsFromInternet_Thread(void *Unused1, void *Unused2)
         DynamicHosts_Load();
         Filter_Update();
         Modules_Update();
+
+        INFO("Reloading Modules completed.\n");
     } else {
         ERRORMSG("Getting hosts file(s) failed.\n");
     }
