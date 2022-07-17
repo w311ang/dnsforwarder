@@ -32,10 +32,7 @@ static void DynamicHosts_Cleanup(void)
 {
     DynamicHosts_ContainerCleanup();
     FreeCharPtrArray((char **)HostsURLs);
-    if( Script != NULL )
-    {
-        SafeFree(Script);
-    }
+    SafeFree(Script);
     RWLock_Destroy(HostsLock);
 }
 

@@ -658,7 +658,7 @@ int Modules_Update(void)
     if ( ConfigGetBoolean(CurrConfigInfo, "ReloadGroupFile") )
     {
         Modules_Load(CurrConfigInfo);
-        INFO("Reloading Hosts/GroupFile/DisabledList completed.\n");
+        INFO("Reloading GroupFile completed.\n");
     }
     return 0;
 }

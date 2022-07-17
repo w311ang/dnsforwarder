@@ -366,20 +366,19 @@ static int TcpM_Cleanup(TcpM *m)
 
     CLOSE_SOCKET(m->Departure);
     m->Departure = INVALID_SOCKET;
+    CLOSE_SOCKET(m->Incoming);
+    m->Incoming = INVALID_SOCKET;
     m->Puller.CloseAll(&(m->Puller), INVALID_SOCKET);
     m->Puller.Free(&(m->Puller));
 
     ModuleContext_Free(&(m->Context));
+
     AddressList_Free(&(m->ServiceList));
+    SafeFree(*(m->Services));
+    SafeFree(m->ServiceFamilies);
     AddressList_Free(&(m->SocksProxyList));
-    if( *(m->Services) != NULL )
-    {
-        SafeFree(*(m->Services));
-    }
-    if( m->ServiceFamilies != NULL )
-    {
-        SafeFree(m->ServiceFamilies);
-    }
+    SafeFree(*(m->SocksProxies));
+    SafeFree(m->SocksProxyFamilies);
 
     m->WorkThread = NULL;
 

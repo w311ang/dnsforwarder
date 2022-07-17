@@ -421,10 +421,7 @@ static int ArgParse(int argc, char *argv_ori[])
 static void CleanupConfig(void)
 {
     ConfigFree(&ConfigInfo);
-    if( ConfigFile != NULL )
-    {
-        free(ConfigFile);
-    }
+    free(ConfigFile);
 }
 
 static void CleanupWSA(void)
