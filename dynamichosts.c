@@ -19,18 +19,18 @@ static int          HostsRetryInterval;
 static char         *Script = NULL; /* malloced */
 static const char   **HostsURLs = NULL; /* malloced */
 
-static void DynamicHosts_ContainerCleanup(void)
+static void DynamicHosts_ContainerCleanup(HostsContainer *DynamicContainer)
 {
-    if( MainDynamicContainer != NULL )
+    if( DynamicContainer != NULL )
     {
-        MainDynamicContainer->Free((HostsContainer *)MainDynamicContainer);
-        SafeFree((void *)MainDynamicContainer);
+        DynamicContainer->Free(DynamicContainer);
+        SafeFree(DynamicContainer);
     }
 }
 
 static void DynamicHosts_Cleanup(void)
 {
-    DynamicHosts_ContainerCleanup();
+    DynamicHosts_ContainerCleanup((HostsContainer *)MainDynamicContainer);
     FreeCharPtrArray((char **)HostsURLs);
     SafeFree(Script);
     RWLock_Destroy(HostsLock);
@@ -82,7 +82,7 @@ static int DynamicHosts_Load(void)
 
     RWLock_WrLock(HostsLock);
 
-    DynamicHosts_ContainerCleanup();
+    DynamicHosts_ContainerCleanup((HostsContainer *)MainDynamicContainer);
     MainDynamicContainer = TempContainer;
 
     RWLock_UnWLock(HostsLock);

@@ -155,6 +155,7 @@ static void FilterType_Cleanup(void)
         DisabledTypes->Free(DisabledTypes);
         free(DisabledTypes);
     }
+
     RWLock_Destroy(DisabledDomainLock);
 }
 
@@ -246,9 +247,10 @@ int Filter_Init(ConfigFileInfo *ConfigInfo)
     } else {
         INFO("Setting DisabledType succeeded.\n");
     }
-    atexit(FilterType_Cleanup);
 
     RWLock_Init(DisabledDomainLock);
+
+    atexit(FilterType_Cleanup);
 
     DisabledDomain_Init(ConfigInfo);
     atexit(DisabledDomain_Cleanup);
