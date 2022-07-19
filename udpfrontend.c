@@ -99,8 +99,6 @@ static void UdpFrontend_Work(void *Unused)
         MMgr_Send(Header, BUF_LENGTH);
     }
     SafeFree(ReceiveBuffer);
-    Frontend.CloseAll(&Frontend, INVALID_SOCKET);
-    Frontend.Free(&Frontend);
 }
 
 void UdpFrontend_StartWork(void)
@@ -109,6 +107,12 @@ void UdpFrontend_StartWork(void)
 
     CREATE_THREAD(UdpFrontend_Work, NULL, t);
     DETACH_THREAD(t);
+}
+
+static void UdpFrontend_Cleanup(void)
+{
+    Frontend.CloseAll(&Frontend, INVALID_SOCKET);
+    Frontend.Free(&Frontend);
 }
 
 int UdpFrontend_Init(ConfigFileInfo *ConfigInfo, BOOL StartWork)
@@ -181,6 +185,8 @@ int UdpFrontend_Init(ConfigFileInfo *ConfigInfo, BOOL StartWork)
         INFO("UDP interface %s opened.\n", One);
         ++Count;
     }
+
+    atexit(UdpFrontend_Cleanup);
 
     if( Count == 0 )
     {
