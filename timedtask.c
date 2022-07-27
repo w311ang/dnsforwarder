@@ -158,7 +158,8 @@ static void TimeTask_Work(void *Unused)
 #ifdef WIN32
     static TaskInfo *i = NULL;
     static DWORD *tv = NULL;
-    static DWORD BeforeWaiting = 0;
+    DWORD BeforeWaiting = 0;
+    DWORD ElapsedTime = 0;
 
     while( TRUE )
     {
@@ -174,10 +175,15 @@ static void TimeTask_Work(void *Unused)
         }
 
         New = MsgQue.Wait(&MsgQue, tv);
+        if( tv != NULL )
+        {
+            ElapsedTime = BeforeWaiting - *tv;
+        }
+
         if( New == NULL )
         {
             /* Run the task */
-            TimeTask_ReduceTime(BeforeWaiting - *tv);
+            TimeTask_ReduceTime(ElapsedTime);
 
             if( i->Asynchronous )
             {
@@ -189,19 +195,7 @@ static void TimeTask_Work(void *Unused)
             }
 
         } else {
-            /* Receive a new task from other thread */
-            if( tv != NULL )
-            {
-                TimeTask_ReduceTime(BeforeWaiting - *tv);
-            }
-
-            int r = TimeTask_ReallyAdd(New);
-            WinMsgQue_FreeMsg(New);
-            if( r != 0 )
-            {
-                /** TODO: Show fatal error */
-                break;
-            }
+            int r;
 
             if( i != NULL )
             {
@@ -212,6 +206,20 @@ static void TimeTask_Work(void *Unused)
                     /** TODO: Show fatal error */
                     break;
                 }
+            }
+
+            /* Receive a new task from other thread */
+            if( tv != NULL )
+            {
+                TimeTask_ReduceTime(ElapsedTime);
+            }
+
+            r = TimeTask_ReallyAdd(New);
+            WinMsgQue_FreeMsg(New);
+            if( r != 0 )
+            {
+                /** TODO: Show fatal error */
+                break;
             }
         }
     }
