@@ -172,7 +172,7 @@ void Array_Fill(Array *a, int Num, const void *DataSample)
 
 void Array_Free(Array *a)
 {
-    if( a->Allocated >= 0 )
+    if( a->Allocated > 0 )
     {
         SafeFree(a->Data);
     }
