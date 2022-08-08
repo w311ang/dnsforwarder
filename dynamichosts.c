@@ -115,6 +115,7 @@ static void GetHostsFromInternet_Succeed(const char *URL, const char *File1)
 
 static void GetHostsFromInternet_Thread(void *Unused1, void *Unused2)
 {
+#if !defined(TEST_RELOADING)
     int         DownloadState;
 
     if( HostsURLs[1] == NULL )
@@ -145,15 +146,18 @@ static void GetHostsFromInternet_Thread(void *Unused1, void *Unused2)
                 ERRORMSG("Hosts script running failed.\n");
             }
         }
+#endif
 
         DynamicHosts_Load();
         Filter_Update();
         Modules_Update();
 
         INFO("Reloading Modules completed.\n");
+#if !defined(TEST_RELOADING)
     } else {
         ERRORMSG("Getting hosts file(s) failed.\n");
     }
+#endif
 }
 
 int DynamicHosts_Init(ConfigFileInfo *ConfigInfo)
