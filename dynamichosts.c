@@ -80,6 +80,8 @@ static int DynamicHosts_Load(void)
         TempContainer->Load(TempContainer, Buffer);
     }
 
+    fclose(fp);
+
     RWLock_WrLock(HostsLock);
 
     DynamicHosts_ContainerCleanup((HostsContainer *)MainDynamicContainer);
@@ -89,7 +91,6 @@ static int DynamicHosts_Load(void)
 
     INFO("Loading hosts completed.\n");
 
-    fclose(fp);
     return 0;
 
 EXIT_2:
