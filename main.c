@@ -420,6 +420,8 @@ static int ArgParse(int argc, char *argv_ori[])
 
 static void CleanupConfig(void)
 {
+    if(ConfigInfo.Options.List == NULL)
+        return;
     ConfigFree(&ConfigInfo);
     free(ConfigFile);
 }
