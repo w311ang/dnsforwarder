@@ -424,10 +424,12 @@ static void CleanupConfig(void)
     free(ConfigFile);
 }
 
+#ifdef WIN32
 static void CleanupWSA(void)
 {
     WSACleanup();
 }
+#endif /* WIN32 */
 
 int main(int argc, char *argv[])
 {
