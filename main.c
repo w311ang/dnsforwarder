@@ -420,14 +420,18 @@ static int ArgParse(int argc, char *argv_ori[])
 
 static void CleanupConfig(void)
 {
+    if(ConfigInfo.Options.List == NULL)
+        return;
     ConfigFree(&ConfigInfo);
     free(ConfigFile);
 }
 
+#ifdef WIN32
 static void CleanupWSA(void)
 {
     WSACleanup();
 }
+#endif /* WIN32 */
 
 int main(int argc, char *argv[])
 {
