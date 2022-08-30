@@ -24,11 +24,11 @@ static void SweepWorks(IHeader *h, int Number, TcpM *Module)
 
 static SOCKET TcpM_Connect(struct sockaddr  **ServerAddressesList,
                            sa_family_t      *FamiliesList,
-                           const char       *Type
+                           const char       *Type,
+                           const char       *Name
                            )
 {
 #   define  CONNECT_TIMEOUT 5
-#   define  NUMBER_OF_SOCKETS 5
 
     PTimer  t;
 
@@ -43,18 +43,13 @@ static SOCKET TcpM_Connect(struct sockaddr  **ServerAddressesList,
         return -23;
     }
 
-    INFO("Connecting to %s ...\n", Type);
+    DEBUG("Connecting to %s: %s ...\n", Type, Name);
 
     PTimer_Start(&t);
 
-    for( i = 0; i < NUMBER_OF_SOCKETS; ++i )
+    for( i = 0; ServerAddressesList[i] != NULL; ++i )
     {
         SOCKET s;
-
-        if( ServerAddressesList[i] == NULL )
-        {
-            break;
-        }
 
         s = socket(FamiliesList[i], SOCK_STREAM, IPPROTO_TCP);
         if( s == INVALID_SOCKET )
@@ -83,7 +78,7 @@ static SOCKET TcpM_Connect(struct sockaddr  **ServerAddressesList,
     if( p.IsEmpty(&p) )
     {
         p.Free(&p);
-        INFO("Connecting to %s failed, 90.\n", Type);
+        INFO("Connecting to %s: %s failed, 90.\n", Type, Name);
         return INVALID_SOCKET;
     }
 
@@ -94,9 +89,9 @@ static SOCKET TcpM_Connect(struct sockaddr  **ServerAddressesList,
 
     if( Final == INVALID_SOCKET )
     {
-        INFO("Connecting to %s timed out.\n", Type);
+        INFO("Connecting to %s timed out: %s.\n", Type, Name);
     } else {
-        INFO("TCP connection to %s established. Time consumed : %lums\n",
+        INFO("TCP connection to %s is established: %lums\n",
              Type,
              PTimer_End(&t)
              );
@@ -283,7 +278,7 @@ static int TcpM_Send_Actual(TcpM *m, IHeader *h /* Entity followed */)
         if( m->SocksProxies == NULL )
         {
             /* Non-proxied */
-            s = TcpM_Connect(m->Services, m->ServiceFamilies, "server");
+            s = TcpM_Connect(m->Services, m->ServiceFamilies, "server", m->ServiceName);
             if( s == INVALID_SOCKET )
             {
                 return -122;
@@ -295,7 +290,8 @@ static int TcpM_Send_Actual(TcpM *m, IHeader *h /* Entity followed */)
 
             s = TcpM_Connect(m->SocksProxies,
                              m->SocksProxyFamilies,
-                             "proxy"
+                             "proxy",
+                             m->ProxyName
                              );
 
             if( s == INVALID_SOCKET )
@@ -439,17 +435,13 @@ static int TcpM_Works(TcpM *m)
                 CLOSE_SOCKET(s);
                 m->Departure = INVALID_SOCKET;
 
-                if( m->SocksProxies == NULL )
-                {
-                    INFO("TCP server closed the connection.\n");
-                } else {
-                    INFO("TCP proxy closed the connection.\n");
-                }
+                DEBUG("TCP connection to %s is closed.\n",
+                        m->SocksProxies != NULL ? "proxy" : "server");
 
                 /* Try again */
                 if( !Retried )
                 {
-                    INFO("TCP query retrying...\n");
+                    INFO("TCP query retrying ...\n");
 
                     TcpM_Send_Actual(m, Header);
 
@@ -722,6 +714,8 @@ int TcpM_Init(TcpM *m, const char *Services, const char *SocksProxies)
 
     m->Send = TcpM_Send;
 
+    m->ServiceName = Services;
+    m->ProxyName = SocksProxies;
     m->IsServer = 1;
 
     CREATE_THREAD(TcpM_Works, m, m->WorkThread);

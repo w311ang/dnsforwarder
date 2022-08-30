@@ -1,4 +1,5 @@
 #include <string.h>
+#include <time.h>
 #include "stringchunk.h"
 #include "utils.h"
 
@@ -222,6 +223,55 @@ BOOL StringChunk_Match_OnlyWildCard(StringChunk *dl,
     return FALSE;
 }
 
+BOOL StringChunk_Match_OnlyWildCard_GetOne(StringChunk *dl,
+                                            const char  *Str,
+                                            void        **Data
+                                            )
+{
+    Array           Matches;
+    Array           *wl;
+
+    EntryForString *FoundEntry;
+
+    int loop;
+
+    if( dl == NULL )
+    {
+        return FALSE;
+    }
+
+    if( Array_Init(&Matches, sizeof(void *), 4, FALSE, NULL) != 0 )
+    {
+        return FALSE;
+    }
+
+    wl = &(dl->List_W_Pos);
+
+    for( loop = 0; loop != Array_GetUsed(wl); ++loop )
+    {
+        FoundEntry = (EntryForString *)Array_GetBySubscript(wl, loop);
+        if( FoundEntry != NULL )
+        {
+            const char *FoundString = FoundEntry->str;
+            if( WILDCARD_MATCH(FoundString, Str) == WILDCARD_MATCHED )
+            {
+                Array_PushBack(&Matches, &(FoundEntry->Data), NULL);
+            }
+        }
+    }
+
+    srand(time(NULL));
+    if( Data != NULL && Array_GetUsed(&Matches) > 0 )
+    {
+        *Data = *((void **)Array_GetBySubscript(&Matches, rand() % Array_GetUsed(&Matches)));
+    } else {
+        *Data = NULL;
+    }
+    Array_Free(&Matches);
+
+    return *Data != NULL;
+}
+
 BOOL StringChunk_Match(StringChunk *dl, const char *Str, uint32_t *HashValue, void **Data)
 {
     return (StringChunk_Match_NoWildCard(dl, Str, HashValue, Data) ||
@@ -277,6 +327,11 @@ BOOL StringChunk_Match_Exacly(StringChunk *dl, const char *Str, uint32_t *HashVa
 
 BOOL StringChunk_Domain_Match_NoWildCard(StringChunk *dl, const char *Domain, uint32_t *HashValue, void **Data)
 {
+    if( dl == NULL )
+    {
+        return FALSE;
+    }
+
     if( StringChunk_Match_NoWildCard(dl, Domain, HashValue, Data) == TRUE )
     {
         return TRUE;
@@ -299,13 +354,14 @@ BOOL StringChunk_Domain_Match_NoWildCard(StringChunk *dl, const char *Domain, ui
 
 BOOL StringChunk_Domain_Match(StringChunk *dl, const char *Domain, uint32_t *HashValue, void **Data)
 {
-    if( dl == NULL )
-    {
-        return FALSE;
-    }
-
     return (StringChunk_Domain_Match_NoWildCard(dl, Domain, HashValue, Data) ||
             StringChunk_Match_OnlyWildCard(dl, Domain, Data) );
+}
+
+BOOL StringChunk_Domain_Match_WildCardRandom(StringChunk *dl, const char *Domain, uint32_t *HashValue, void **Data)
+{
+    return (StringChunk_Domain_Match_NoWildCard(dl, Domain, HashValue, Data) ||
+            StringChunk_Match_OnlyWildCard_GetOne(dl, Domain, Data) );
 }
 
 /* Start by 0 */

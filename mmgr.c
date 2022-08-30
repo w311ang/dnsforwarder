@@ -693,11 +693,11 @@ int MMgr_Send(IHeader *h, int BufferLength)
 
     RWLock_RdLock(ModulesLock);
 
-    if( StringChunk_Domain_Match(CurModuleMap->Distributor,
-                                 h->Domain,
-                                 &(h->HashValue),
-                                 (void **)&i
-                                 )
+    if( StringChunk_Domain_Match_WildCardRandom(CurModuleMap->Distributor,
+                                                 h->Domain,
+                                                 &(h->HashValue),
+                                                 (void **)&i
+                                                 )
        )
     {
     } else if( Array_GetUsed(CurModuleMap->ModuleArray) > 0 ){

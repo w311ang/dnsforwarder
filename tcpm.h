@@ -21,10 +21,12 @@ struct _TcpM {
 
     int IsServer;
 
+    const char      *ServiceName;
     AddressList     ServiceList;
     struct sockaddr **Services;
     sa_family_t     *ServiceFamilies;
 
+    const char      *ProxyName;
     AddressList     SocksProxyList;
     struct sockaddr **SocksProxies;
     sa_family_t     *SocksProxyFamilies;
