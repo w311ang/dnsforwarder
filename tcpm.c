@@ -374,12 +374,13 @@ static int TcpM_Cleanup(TcpM *m)
     ModuleContext_Free(&(m->Context));
 
     AddressList_Free(&(m->ServiceList));
-    SafeFree(*(m->Services));
+    SafeFree(m->Services);
     SafeFree(m->ServiceFamilies);
     AddressList_Free(&(m->SocksProxyList));
-    SafeFree(*(m->SocksProxies));
-    SafeFree(*(m->SocksProxies));
-    SafeFree(m->SocksProxyFamilies);
+    if( m->SocksProxies != NULL )
+    {
+        SafeFree(*(m->SocksProxies));
+    }
     SafeFree(m->SocksProxyFamilies);
 
     m->WorkThread = NULL;
