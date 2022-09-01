@@ -9,7 +9,7 @@ typedef struct _IHeader IHeader;
 struct _IHeader{
     int32_t _Pad; /* Must be 0 */
 
-    Address_Type    BackAddress;
+    Address_Type    BackAddress; /* UDP requires it while TCP doesn't */
     SOCKET          SendBackSocket;
 
     char            Domain[256];

@@ -356,7 +356,9 @@ static int Modules_InitFromFile(ModuleMap *ModuleMap, StringListIterator *i)
     if( !StringChunk_Match_NoWildCard(&Args,
                                       "protocol",
                                       NULL,
-                                      (void **)&Protocol
+                                      (void **)&Protocol,
+                                      NULL,
+                                      NULL
                                       ) ||
         Protocol == NULL
         )
@@ -370,12 +372,8 @@ static int Modules_InitFromFile(ModuleMap *ModuleMap, StringListIterator *i)
         const char *Services = NULL;
         const char *Parallel = "on";
 
-        StringChunk_Match_NoWildCard(&Args, "server", NULL, (void **)&Services);
-        StringChunk_Match_NoWildCard(&Args,
-                                     "parallel",
-                                     NULL,
-                                     (void **)&Parallel
-                                     );
+        StringChunk_Match_NoWildCard(&Args, "server", NULL, (void **)&Services, NULL, NULL);
+        StringChunk_Match_NoWildCard(&Args, "parallel", NULL, (void **)&Parallel, NULL, NULL);
 
         if( Udp_Init_Core(ModuleMap, Services, &Domains, Parallel) != 0 )
         {
@@ -388,8 +386,8 @@ static int Modules_InitFromFile(ModuleMap *ModuleMap, StringListIterator *i)
         const char *Services = NULL;
         const char *Proxies = "no";
 
-        StringChunk_Match_NoWildCard(&Args, "server", NULL, (void **)&Services);
-        StringChunk_Match_NoWildCard(&Args, "proxy", NULL, (void **)&Proxies);
+        StringChunk_Match_NoWildCard(&Args, "server", NULL, (void **)&Services, NULL, NULL);
+        StringChunk_Match_NoWildCard(&Args, "proxy", NULL, (void **)&Proxies, NULL, NULL);
 
         if( Tcp_Init_Core(ModuleMap, Services, &Domains, Proxies) != 0 )
         {
@@ -665,6 +663,22 @@ int Modules_Update(void)
     return 0;
 }
 
+static BOOL ModuleFitRequest(const void **Data, const void *Expected)
+{
+    ModuleInterface *m = *(ModuleInterface **)Data;
+    Address_Type *BackAddress = (Address_Type *)Expected;
+
+    if( BackAddress->family == AF_UNSPEC ) /* TCP */
+    {
+        if( strcmp(m->ModuleName, "UDP") == 0 )
+        {
+            return FALSE;
+        }
+    }
+
+    return TRUE;
+}
+
 int MMgr_Send(IHeader *h, int BufferLength)
 {
     ModuleInterface **i;
@@ -696,7 +710,9 @@ int MMgr_Send(IHeader *h, int BufferLength)
     if( StringChunk_Domain_Match_WildCardRandom(CurModuleMap->Distributor,
                                                  h->Domain,
                                                  &(h->HashValue),
-                                                 (void **)&i
+                                                 (void **)&i,
+                                                 ModuleFitRequest,
+                                                 &(h->BackAddress)
                                                  )
        )
     {

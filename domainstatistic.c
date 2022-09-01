@@ -278,7 +278,9 @@ int DomainStatistic_Add(IHeader *h, StatisticType Type)
         if( StringChunk_Match(&MainChunk,
                               h->Domain,
                               &(h->HashValue),
-                              (void **)&ExistInfo
+                              (void **)&ExistInfo,
+                              NULL,
+                              NULL
                               )
             == FALSE )
         {

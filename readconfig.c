@@ -126,7 +126,7 @@ static ConfigOption *GetOptionOfAInfo(ConfigFileInfo *Info,
 {
     ConfigOption *Option;
 
-    if( StringChunk_Match_NoWildCard(&(Info->Options), KeyName, NULL, (void **)&Option) == TRUE )
+    if( StringChunk_Match_NoWildCard(&(Info->Options), KeyName, NULL, (void **)&Option, NULL, NULL) == TRUE )
     {
         if( Option->Type == TYPE_ALIAS )
         {

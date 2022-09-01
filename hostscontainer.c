@@ -98,7 +98,7 @@ PUBFUNC const void *HostsContainer_Find(HostsContainer  *Container,
     const TableNode **Matched = NULL;
     const TableNode *IP = NULL;
 
-    if( !StringChunk_Match(&(Container->Mappings), Name, NULL, (void **)&Matched) )
+    if( !StringChunk_Match(&(Container->Mappings), Name, NULL, (void **)&Matched, NULL, NULL) )
     {
         return NULL;
     }
@@ -151,7 +151,7 @@ PRIFUNC const void *HostsContainer_FindExist(HostsContainer  *Container,
     const TableNode **Matched = NULL;
     const TableNode *IP = NULL;
 
-    if( !StringChunk_Match_Exacly(&(Container->Mappings), Name, NULL, (void **)&Matched) )
+    if( !StringChunk_Match_Exacly(&(Container->Mappings), Name, NULL, (void **)&Matched, NULL, NULL) )
     {
         return NULL;
     }

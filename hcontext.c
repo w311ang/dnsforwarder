@@ -42,10 +42,8 @@ PUBFUNC int HostsContext_Add(HostsContext   *c,
 }
 
 PUBFUNC int HostsContext_FindAndRemove(HostsContext *c,
-
                                        /* Entity followed */
                                        IHeader      *Input,
-
                                        /* Entity followed */
                                        IHeader      *Output
                                        )

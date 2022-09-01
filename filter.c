@@ -290,7 +290,7 @@ static BOOL IsDisabledDomain(const char *Domain, uint32_t HashValue)
     }
 
     RWLock_RdLock(DisabledDomainLock);
-    ret = StringChunk_Domain_Match(DisabledDomain, Domain, &HashValue, NULL);
+    ret = StringChunk_Domain_Match(DisabledDomain, Domain, &HashValue, NULL, NULL, NULL);
     RWLock_UnRLock(DisabledDomainLock);
 
     return ret;

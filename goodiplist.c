@@ -197,7 +197,10 @@ static int AddToLists(ConfigFileInfo *ConfigInfo)
         if( StringChunk_Match_NoWildCard(GoodIpList,
                                          n,
                                          NULL,
-                                         (void **)&m)
+                                         (void **)&m,
+                                         NULL,
+                                         NULL
+                                         )
             == FALSE
             )
         {
@@ -277,7 +280,9 @@ const char *GoodIpList_Get(const char *List)
     if( StringChunk_Match_NoWildCard(GoodIpList,
                                      List,
                                      NULL,
-                                     (void **)&m
+                                     (void **)&m,
+                                     NULL,
+                                     NULL
                                      )
        == TRUE )
     {
