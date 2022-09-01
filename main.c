@@ -23,6 +23,7 @@
 #include "domainstatistic.h"
 
 #define VERSION__ "6.4.1"
+#define DESCRIPTIONS "DNSforwarder\nVersion: "VERSION__". License: GPL v3.\nTime of compilation: "__DATE__" "__TIME__".\n\n"
 
 static char     *ConfigFile;
 static BOOL     DeamonMode;
@@ -351,8 +352,8 @@ static int ArgParse(int argc, char *argv_ori[])
     {
         if(strcmp("-h", *argv) == 0)
         {
-            printf("DNSforwarder by several people. Version "VERSION__" . License : GPL v3.\n Time of compilation : %s %s.\n\n", __DATE__, __TIME__);
-            printf("https://github.com/lifenjoiner/dnsforwarder\n\n");
+            printf(DESCRIPTIONS);
+            printf("https://github.com/lifenjoiner/dnsforwarder, originated from holmium.\n\n");
             printf("Usage : %s [args].\n", strrchr(argv_ori[0], PATH_SLASH_CH) == NULL ? argv_ori[0] : strrchr(argv_ori[0], PATH_SLASH_CH) + 1);
             printf(" [args] is case sensitivity and can be zero or more (in any order) of:\n"
                   "  -f <FILE>  Use configuration <FILE> instead of the default one.\n"
@@ -478,7 +479,7 @@ int main(int argc, char *argv[])
         GetDefaultConfigureFile(ConfigFile, 320);
     }
 
-    printf("DNSforwarder mainly by holmium. Version "VERSION__" . License : GPL v3.\nTime of compilation : %s %s.\n\n", __DATE__, __TIME__);
+    printf(DESCRIPTIONS);
 
 #ifndef WIN32
     printf("Please run `dnsforwarder -p' if something goes wrong.\n\n");
