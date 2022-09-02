@@ -142,9 +142,14 @@ BOOL IHeader_Blocked(IHeader *h /* Entity followed */)
     return (ap && !(h->EDNSEnabled));
 }
 
+BOOL IHeader_IsFromTCP(IHeader *h)
+{
+    return (h->BackAddress.family == AF_UNSPEC);
+}
+
 int IHeader_SendBack(IHeader *h /* Entity followed */)
 {
-    if( h->BackAddress.family == AF_UNSPEC )
+    if( IHeader_IsFromTCP(h) )
     {
         /* TCP */
         uint16_t TcpLength = htons(h->EntityLength);

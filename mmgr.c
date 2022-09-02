@@ -666,11 +666,16 @@ int Modules_Update(void)
 static BOOL ModuleFitRequest(const void **Data, const void *Expected)
 {
     ModuleInterface *m = *(ModuleInterface **)Data;
-    Address_Type *BackAddress = (Address_Type *)Expected;
+    IHeader *h = (IHeader *)Expected;
 
-    if( BackAddress->family == AF_UNSPEC ) /* TCP */
+    if( IHeader_IsFromTCP(h) )
     {
         if( strcmp(m->ModuleName, "UDP") == 0 )
+        {
+            return FALSE;
+        }
+    } else if( ConfigGetBoolean(CurrConfigInfo, "EnableUDPtoTCP") == FALSE ) {
+        if( strcmp(m->ModuleName, "TCP") == 0 )
         {
             return FALSE;
         }
@@ -712,7 +717,7 @@ int MMgr_Send(IHeader *h, int BufferLength)
                                                  &(h->HashValue),
                                                  (void **)&i,
                                                  ModuleFitRequest,
-                                                 &(h->BackAddress)
+                                                 h
                                                  )
        )
     {

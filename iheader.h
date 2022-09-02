@@ -51,6 +51,8 @@ int IHeader_AddFakeEdns(IHeader *h, int BufferLength);
 
 BOOL IHeader_Blocked(IHeader *h /* Entity followed */);
 
+BOOL IHeader_IsFromTCP(IHeader *h);
+
 int IHeader_SendBack(IHeader *h /* Entity followed */);
 
 int IHeader_SendBackRefusedMessage(IHeader *h);
