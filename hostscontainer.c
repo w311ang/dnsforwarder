@@ -151,7 +151,7 @@ PRIFUNC const void *HostsContainer_FindExist(HostsContainer  *Container,
     const TableNode **Matched = NULL;
     const TableNode *IP = NULL;
 
-    if( !StringChunk_Match_Exacly(&(Container->Mappings), Name, NULL, (void **)&Matched, NULL, NULL) )
+    if( !StringChunk_Match_Exactly(&(Container->Mappings), Name, NULL, (void **)&Matched, NULL, NULL) )
     {
         return NULL;
     }

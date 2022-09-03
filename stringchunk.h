@@ -67,7 +67,7 @@ BOOL StringChunk_Match(StringChunk  *dl,
                         void        *Expected
                         );
 
-BOOL StringChunk_Match_Exacly(StringChunk   *dl,
+BOOL StringChunk_Match_Exactly(StringChunk  *dl,
                                 const char  *Str,
                                 uint32_t    *HashValue,
                                 void        **Data,

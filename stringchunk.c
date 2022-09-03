@@ -302,7 +302,7 @@ BOOL StringChunk_Match(StringChunk  *dl,
         StringChunk_Match_OnlyWildCard(dl, Str, Data, cb, Expected));
 }
 
-static BOOL StringChunk_Match_WildCard_Exacly(StringChunk   *dl,
+static BOOL StringChunk_Match_WildCard_Exactly(StringChunk  *dl,
                                             const char      *Str,
                                             void            **Data,
                                             DataCompare     cb,
@@ -349,7 +349,7 @@ static BOOL StringChunk_Match_WildCard_Exacly(StringChunk   *dl,
     return FALSE;
 }
 
-BOOL StringChunk_Match_Exacly(StringChunk   *dl,
+BOOL StringChunk_Match_Exactly(StringChunk  *dl,
                                 const char  *Str,
                                 uint32_t    *HashValue,
                                 void        **Data,
@@ -358,7 +358,7 @@ BOOL StringChunk_Match_Exacly(StringChunk   *dl,
                                 )
 {
     return (StringChunk_Match_NoWildCard(dl, Str, HashValue, Data, cb, Expected) ||
-        StringChunk_Match_WildCard_Exacly(dl, Str, Data, cb, Expected));
+        StringChunk_Match_WildCard_Exactly(dl, Str, Data, cb, Expected));
 }
 
 BOOL StringChunk_Domain_Match_NoWildCard(StringChunk    *dl,
