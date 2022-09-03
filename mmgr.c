@@ -256,6 +256,8 @@ PROTOCOL UDP
 SERVER 1.2.4.8,127.0.0.1
 PARALLEL ON
 
+LIST domainlist.txt
+
 example.com
 
 #############################
@@ -263,6 +265,8 @@ example.com
 PROTOCOL TCP
 SERVER 1.2.4.8,127.0.0.1
 PROXY NO
+
+LIST domainlist.txt
 
 example.com
 
@@ -289,6 +293,9 @@ static int Modules_InitFromFile(ModuleMap *ModuleMap, StringListIterator *i)
     ReadLineStatus  Status;
 
     const char *Protocol = NULL;
+    const char *List = NULL;
+
+    int ret = 0;
 
     FileOri = i->Next(i);
 
@@ -313,16 +320,19 @@ static int Modules_InitFromFile(ModuleMap *ModuleMap, StringListIterator *i)
 
     if( StringChunk_Init(&Args, NULL) != 0 )
     {
+        fclose(fp);
         return -230;
     }
 
     if( StringList_Init(&Domains, NULL, NULL) != 0 )
     {
-        return -235;
+        fclose(fp);
+        ret = -235;
+        goto EXIT_1;
     }
 
     do {
-        char Buffer[384];
+        char Buffer[MAX_PATH_BUFFER];
         const char *Value;
 
         Status = ReadLine(fp, Buffer, sizeof(Buffer));
@@ -364,7 +374,56 @@ static int Modules_InitFromFile(ModuleMap *ModuleMap, StringListIterator *i)
         )
     {
         ERRORMSG("No protocol specified, file \"%s\".\n", File);
-        return -270;
+        ret = -270;
+        goto EXIT_2;
+    }
+
+    if( StringChunk_Match_NoWildCard(&Args, "list", NULL, (void **)&List, NULL, NULL) && List != NULL )
+    {
+        char ListFile[MAX_PATH_BUFFER];
+
+        strncpy(ListFile, List, sizeof(ListFile));
+        ListFile[sizeof(ListFile) - 1] = '\0';
+
+        ReplaceStr(ListFile, "\"", "");
+
+        ExpandPath(ListFile, sizeof(ListFile));
+
+        fp = fopen(ListFile, "r");
+        if( fp == NULL )
+        {
+            WARNING("Cannot open group domain list file \"%s\".\n", ListFile);
+        } else {
+            do {
+                char Buffer[MAX_PATH_BUFFER];
+
+                Status = ReadLine(fp, Buffer, sizeof(Buffer));
+
+                if( Status == READ_TRUNCATED )
+                {
+                    WARNING("Line is too long %s, file \"%s\".\n", Buffer, ListFile);
+                    Status = ReadLine_GoToNextLine(fp);
+                    continue;
+                }
+
+                if( Status == READ_FAILED_OR_END )
+                {
+                    break;
+                }
+
+                StrToLower(Buffer);
+
+                Domains.Add(&Domains, Buffer, NULL);
+            } while( TRUE );
+
+            fclose(fp);
+        }
+    }
+
+    if( Domains.Count(&Domains) == 0 )
+    {
+        ret = 0;
+        goto EXIT_2;
     }
 
     if( strcmp(Protocol, "udp") == 0 )
@@ -378,7 +437,7 @@ static int Modules_InitFromFile(ModuleMap *ModuleMap, StringListIterator *i)
         if( Udp_Init_Core(ModuleMap, Services, &Domains, Parallel) != 0 )
         {
             ERRORMSG("Loading group file \"%s\" failed.\n", File);
-            return -337;
+            ret = -337;
         }
 
     } else if( strcmp(Protocol, "tcp") == 0 )
@@ -392,18 +451,20 @@ static int Modules_InitFromFile(ModuleMap *ModuleMap, StringListIterator *i)
         if( Tcp_Init_Core(ModuleMap, Services, &Domains, Proxies) != 0 )
         {
             ERRORMSG("Loading group file \"%s\" failed.\n", File);
-            return -233;
+            ret = -233;
         }
 
     } else {
         ERRORMSG("Unknown protocol %s, file \"%s\".\n", Protocol, File);
-        return -281;
+        ret = -281;
     }
 
-    StringChunk_Free(&Args, TRUE);
+EXIT_2:
     Domains.Free(&Domains);
+EXIT_1:
+    StringChunk_Free(&Args, TRUE);
 
-    return 0;
+    return ret;
 }
 
 static int Modules_Init(ModuleMap *ModuleMap, ConfigFileInfo *ConfigInfo)
