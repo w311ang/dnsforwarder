@@ -37,6 +37,12 @@ static ModuleMap    *CurModuleMap = NULL;
 static RWLock       ModulesLock = {NULL};
 static ConfigFileInfo *CurrConfigInfo = NULL;
 
+static void DomainList_Tidy(StringList *DomainList)
+{
+    DomainList->TrimAll(DomainList, "\t .");
+    DomainList->LowercaseAll(DomainList);
+}
+
 static int MappingAModule(ModuleMap *ModuleMap,
                           ModuleInterface *Stored,
                           StringList *DomainList
@@ -44,9 +50,6 @@ static int MappingAModule(ModuleMap *ModuleMap,
 {
     StringListIterator  i;
     const char *OneDomain;
-
-    DomainList->TrimAll(DomainList, "\t .");
-    DomainList->LowercaseAll(DomainList);
 
     if( StringListIterator_Init(&i, DomainList) != 0 )
     {
@@ -159,6 +162,8 @@ static int Udp_Init(ModuleMap *ModuleMap, StringListIterator *i)
         return -148;
     }
 
+    DomainList_Tidy(&DomainList);
+
     if( Udp_Init_Core(ModuleMap, Services, &DomainList, Parallel) != 0 )
     {
         return -153;
@@ -239,6 +244,8 @@ static int Tcp_Init(ModuleMap *ModuleMap, StringListIterator *i)
     {
         return -148;
     }
+
+    DomainList_Tidy(&DomainList);
 
     if( Tcp_Init_Core(ModuleMap, Services, &DomainList, Proxies) != 0 )
     {
@@ -419,6 +426,8 @@ static int Modules_InitFromFile(ModuleMap *ModuleMap, StringListIterator *i)
             fclose(fp);
         }
     }
+
+    DomainList_Tidy(&Domains);
 
     if( Domains.Count(&Domains) == 0 )
     {

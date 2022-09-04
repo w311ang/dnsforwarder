@@ -86,15 +86,15 @@ static int EnvironmentInit(void)
     /* UDPGroup 1.2.4.8,114.114.114.114 * on */
     ConfigAddAlias(&ConfigInfo, "ServerGroup", "UDPGroup", "UDP", NULL);
 
-    TmpTypeDescriptor.boolean = FALSE;
-    ConfigAddOption(&ConfigInfo, "EnableUDPtoTCP", STRATEGY_DEFAULT, TYPE_BOOLEAN, TmpTypeDescriptor);
-
     /* TCPGroup 1.2.4.8,114.114.114.114 example.com 192.168.50.5:8080, 192.168.50.6:8080*/
     /* TCPGroup 1.2.4.8,114.114.114.114 * no*/
     ConfigAddAlias(&ConfigInfo, "ServerGroup", "TCPGroup", "TCP", NULL);
 
     /* TLSGroup getdnsapi.net:853:185.49.141.38|foxZRnIh9gZpWnl+zEiKa0EJ2rdCGroMWm02gaxSc9S= example.com */
     ConfigAddAlias(&ConfigInfo, "ServerGroup", "TLSGroup", "TLS", NULL);
+
+    TmpTypeDescriptor.boolean = FALSE;
+    ConfigAddOption(&ConfigInfo, "EnableUDPtoTCP", STRATEGY_DEFAULT, TYPE_BOOLEAN, TmpTypeDescriptor);
 
     TmpTypeDescriptor.str = NULL;
     ConfigAddOption(&ConfigInfo, "BlockIP", STRATEGY_APPEND, TYPE_STRING, TmpTypeDescriptor);
