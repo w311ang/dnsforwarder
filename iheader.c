@@ -149,31 +149,34 @@ BOOL IHeader_IsFromTCP(IHeader *h)
 
 int IHeader_SendBack(IHeader *h /* Entity followed */)
 {
+    char *Content;
+    int Length;
+
     if( IHeader_IsFromTCP(h) )
     {
         /* TCP */
-        uint16_t TcpLength = htons(h->EntityLength);
+        Content = (char *)(IHEADER_TAIL(h)) - 2;
+        Length = h->EntityLength + 2;
 
-        memcpy((char *)(IHEADER_TAIL(h)) - 2, &TcpLength, 2);
+        DNSSetTcpLength(Content, h->EntityLength);
 
         if( send(h->SendBackSocket,
-                 (char *)(IHEADER_TAIL(h)) - 2,
-                 h->EntityLength + 2,
+                 Content,
+                 Length,
                  MSG_NOSIGNAL
                  )
-            != h->EntityLength )
+            != Length )
         {
             /** TODO: Show error */
             return -112;
         }
+
+        CLOSE_SOCKET(h->SendBackSocket);
     } else {
         /* UDP */
-        const char *Content;
-        int Length;
-
         if( h->ReturnHeader )
         {
-            Content = (const char *)h;
+            Content = (char *)h;
             Length = h->EntityLength + sizeof(IHeader);
         } else {
             Content = IHEADER_TAIL(h);

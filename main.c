@@ -19,6 +19,7 @@
 #include "logs.h"
 #include "mmgr.h"
 #include "udpfrontend.h"
+#include "tcpfrontend.h"
 #include "timedtask.h"
 #include "domainstatistic.h"
 
@@ -76,6 +77,10 @@ static int EnvironmentInit(void)
     ConfigSetDefaultValue(&ConfigInfo, TmpTypeDescriptor, "UDPLocal");
 
     TmpTypeDescriptor.str = NULL;
+    ConfigAddOption(&ConfigInfo, "TCPLocal", STRATEGY_APPEND_DISCARD_DEFAULT, TYPE_STRING, TmpTypeDescriptor);
+    ConfigSetStringDelimiters(&ConfigInfo, "TCPLocal", ",");
+
+    TmpTypeDescriptor.str = NULL;
     ConfigAddOption(&ConfigInfo, "ServerGroup", STRATEGY_APPEND_DISCARD_DEFAULT, TYPE_STRING, TmpTypeDescriptor);
     ConfigSetStringDelimiters(&ConfigInfo, "ServerGroup", "\t ");
     TmpTypeDescriptor.str = "UDP 1.2.4.8,114.114.114.114 * on";
@@ -95,6 +100,9 @@ static int EnvironmentInit(void)
 
     TmpTypeDescriptor.boolean = FALSE;
     ConfigAddOption(&ConfigInfo, "EnableUDPtoTCP", STRATEGY_DEFAULT, TYPE_BOOLEAN, TmpTypeDescriptor);
+
+    TmpTypeDescriptor.boolean = FALSE;
+    ConfigAddOption(&ConfigInfo, "EnableTCPtoUDP", STRATEGY_DEFAULT, TYPE_BOOLEAN, TmpTypeDescriptor);
 
     TmpTypeDescriptor.str = NULL;
     ConfigAddOption(&ConfigInfo, "BlockIP", STRATEGY_APPEND, TYPE_STRING, TmpTypeDescriptor);
@@ -451,6 +459,8 @@ int main(int argc, char *argv[])
     BOOL DeamonInited = FALSE;
 #endif /* WIN32 */
 
+    int UdpStatus, TcpStatus;
+
 #if !defined(NODOWNLOAD) && defined(DOWNLOAD_LIBCURL)
     curl_global_init(CURL_GLOBAL_ALL);
     atexit(curl_global_cleanup);
@@ -542,7 +552,10 @@ int main(int argc, char *argv[])
 
     IHeader_Init(ConfigGetBoolean(&ConfigInfo, "AP"));
 
-    if( UdpFrontend_Init(&ConfigInfo, FALSE) != 0 )
+    UdpStatus = UdpFrontend_Init(&ConfigInfo, FALSE);
+    TcpStatus = TcpFrontend_Init(&ConfigInfo, FALSE);
+
+    if( UdpStatus != 0 && TcpStatus != 0 )
     {
         return -311;
     }
@@ -552,7 +565,14 @@ int main(int argc, char *argv[])
         return -305;
     }
 
-    UdpFrontend_StartWork();
+    if( UdpStatus == 0 )
+    {
+        UdpFrontend_StartWork();
+    }
+    if( TcpStatus == 0 )
+    {
+        TcpFrontend_StartWork();
+    }
 
     ExitThisThread();
 

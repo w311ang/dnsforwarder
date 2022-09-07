@@ -904,7 +904,6 @@ int DNSCache_FetchFromCache(IHeader *h /* Entity followed */, int BufferLength)
     g.Header->Flags.ResponseCode = 0;
     g.Header->Flags.Type = 0;
 
-    /* g will no longer be needed, and can be crapped */
     ResultLength = DNSCompress(HereToGenerate, g.Length(&g));
     if( ResultLength < 0 )
     {

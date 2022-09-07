@@ -313,7 +313,7 @@ int HostsUtils_Query(SOCKET Socket, /* Both for sending and receiving */
 }
 
 /* Error code returned */
-int HostsUtils_CombineRecursedResponse(void       *Buffer, /* Include IHeader */
+int HostsUtils_CombineRecursedResponse(void         *Buffer, /* Include IHeader */
                                        int          Bufferlength,
                                        char         *RecursedEntity,
                                        int          EntityLength,

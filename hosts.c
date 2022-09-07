@@ -1,11 +1,12 @@
 #include "hosts.h"
 #include "addresslist.h"
-#include "udpfrontend.h"
 #include "hcontext.h"
 #include "socketpuller.h"
 #include "goodiplist.h"
 #include "logs.h"
 #include "domainstatistic.h"
+
+extern BOOL Ipv6_Enabled;
 
 static BOOL BlockIpv6WhenIpv4Exists = FALSE;
 
@@ -134,7 +135,7 @@ static int Hosts_SocketLoop(void *Unused)
     IHeader         *Header = (IHeader *)RequestBuffer;
     char            *RequestEntity = RequestBuffer + sizeof(IHeader);
 
-    OutcomeSocket = TryBindLocal(Ipv6_Aviliable(), 10300, &OutcomeAddress);
+    OutcomeSocket = TryBindLocal(Ipv6_Enabled, 10300, &OutcomeAddress);
 
     if( OutcomeSocket == INVALID_SOCKET )
     {
@@ -283,7 +284,7 @@ int Hosts_Init(ConfigFileInfo *ConfigInfo)
                                                  "BlockIpv6WhenIpv4Exists"
                                                  );
 
-    IncomeSocket = TryBindLocal(Ipv6_Aviliable(), 10200, &IncomeAddress);
+    IncomeSocket = TryBindLocal(Ipv6_Enabled, 10200, &IncomeAddress);
     if( IncomeSocket == INVALID_SOCKET )
     {
         return -25;

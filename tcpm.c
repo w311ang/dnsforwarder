@@ -11,6 +11,8 @@
 #include "domainstatistic.h"
 #include "ptimer.h"
 
+extern BOOL Ipv6_Enabled;
+
 static void SweepWorks(IHeader *h, int Number, TcpM *Module)
 {
     ShowTimeOutMessage(h, 'T');
@@ -607,7 +609,7 @@ int TcpM_Init(TcpM *m, const char *Services, const char *SocksProxies)
         goto EXIT_1;
     }
 
-    m->Incoming = TryBindLocal(Ipv6_Aviliable(), 10400, &(m->IncomingAddr));
+    m->Incoming = TryBindLocal(Ipv6_Enabled, 10400, &(m->IncomingAddr));
     if( m->Incoming == INVALID_SOCKET )
     {
         ret = -357;

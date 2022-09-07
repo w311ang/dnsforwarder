@@ -1,16 +1,15 @@
-#include "udpfrontend.h"
+#include "tcpfrontend.h"
 #include "socketpuller.h"
 #include "addresslist.h"
 #include "utils.h"
 #include "mmgr.h"
 #include "logs.h"
 
-/* UDP is main; TCP is fallback. */
-BOOL Ipv6_Enabled = FALSE;
+extern BOOL Ipv6_Enabled;
 
 static SocketPuller Frontend;
 
-static void UdpFrontend_Work(void *Unused)
+static void TcpFrontend_Work(void *Unused)
 {
     /* Buffer */
     #define BUF_LENGTH  2048
@@ -37,10 +36,11 @@ static void UdpFrontend_Work(void *Unused)
         char AddressBuffer[sizeof(Address_Type)];
         struct sockaddr *IncomingAddress = (struct sockaddr *)AddressBuffer;
 
-        SOCKET sock;
+        SOCKET sock, sock_c;
         const sa_family_t *f;
 
         int RecvState;
+        uint16_t TCPLength;
 
         socklen_t AddrLen;
 
@@ -60,30 +60,41 @@ static void UdpFrontend_Work(void *Unused)
 
         AddrLen = sizeof(Address_Type);
 
-        RecvState = recvfrom(sock,
-                             Entity,
-                             LEFT_LENGTH,
-                             0,
-                             IncomingAddress,
-                             &AddrLen
-                             );
+        sock_c = accept(sock, IncomingAddress, &AddrLen);
+        if(sock_c == INVALID_SOCKET)
+        {
+            continue;
+        }
+
+        RecvState = recv(sock_c, (char *)&TCPLength, 2, 0);
+        if( RecvState < 2 )
+        {
+            INFO("No valid data received from TCP client %s.\n", Agent);
+            CLOSE_SOCKET(sock_c);
+            continue;
+        }
+
+        TCPLength = ntohs(TCPLength);
+        if( TCPLength > LEFT_LENGTH )
+        {
+            WARNING("TCP client %s segment is too large, discarded.\n", Agent);
+            CLOSE_SOCKET(sock_c);
+            continue;
+        }
+
+        RecvState = recv(sock_c, Entity, TCPLength, 0);
 
         if( *f == AF_INET )
         {
-            IPv4AddressToAsc(&(((struct sockaddr_in *)IncomingAddress)->sin_addr),
-                             Agent
-                             );
+            IPv4AddressToAsc(&(((struct sockaddr_in *)IncomingAddress)->sin_addr), Agent);
         } else {
-            IPv6AddressToAsc(&(((struct sockaddr_in6 *)IncomingAddress)->sin6_addr),
-                             Agent
-                             );
+            IPv6AddressToAsc(&(((struct sockaddr_in6 *)IncomingAddress)->sin6_addr), Agent);
         }
 
-        if( RecvState < 0 )
+        if( RecvState != TCPLength )
         {
-            INFO("An error occured while receiving from UDP client %s, not a big deal.\n",
-                 Agent
-                 );
+            INFO("No valid data received from TCP client %s.\n", Agent);
+            CLOSE_SOCKET(sock_c);
             continue;
         }
 
@@ -91,8 +102,8 @@ static void UdpFrontend_Work(void *Unused)
                      FALSE,
                      Entity,
                      RecvState,
-                     IncomingAddress,
-                     sock,
+                     NULL,
+                     sock_c,
                      *f,
                      Agent
                      );
@@ -102,36 +113,36 @@ static void UdpFrontend_Work(void *Unused)
     SafeFree(ReceiveBuffer);
 }
 
-void UdpFrontend_StartWork(void)
+void TcpFrontend_StartWork(void)
 {
     ThreadHandle t;
 
-    CREATE_THREAD(UdpFrontend_Work, NULL, t);
+    CREATE_THREAD(TcpFrontend_Work, NULL, t);
     DETACH_THREAD(t);
 }
 
-static void UdpFrontend_Cleanup(void)
+static void TcpFrontend_Cleanup(void)
 {
     Frontend.CloseAll(&Frontend, INVALID_SOCKET);
     Frontend.Free(&Frontend);
 }
 
-int UdpFrontend_Init(ConfigFileInfo *ConfigInfo, BOOL StartWork)
+int TcpFrontend_Init(ConfigFileInfo *ConfigInfo, BOOL StartWork)
 {
-    StringList *UDPLocal;
+    StringList *TCPLocal;
     StringListIterator i;
     const char *One;
 
     int Count = 0;
 
-    UDPLocal = ConfigGetStringList(ConfigInfo, "UDPLocal");
-    if( UDPLocal == NULL )
+    TCPLocal = ConfigGetStringList(ConfigInfo, "TCPLocal");
+    if( TCPLocal == NULL )
     {
-        ERRORMSG("No UDP interface specified.\n");
+        WARNING("No TCP interface specified.\n");
         return -11;
     }
 
-    if( StringListIterator_Init(&i, UDPLocal) != 0 )
+    if( StringListIterator_Init(&i, TCPLocal) != 0 )
     {
         return -20;
     }
@@ -151,11 +162,11 @@ int UdpFrontend_Init(ConfigFileInfo *ConfigInfo, BOOL StartWork)
         f = AddressList_ConvertFromString(&a, One, 53);
         if( f == AF_UNSPEC )
         {
-            ERRORMSG("Invalid UDPLocal option: %s .\n", One);
+            ERRORMSG("Invalid TCPLocal option: %s .\n", One);
             continue;
         }
 
-        sock = socket(f, SOCK_DGRAM, IPPROTO_UDP);
+        sock = socket(f, SOCK_STREAM, IPPROTO_TCP);
         if( sock == INVALID_SOCKET )
         {
             continue;
@@ -169,12 +180,18 @@ int UdpFrontend_Init(ConfigFileInfo *ConfigInfo, BOOL StartWork)
         {
             char p[128];
 
-            snprintf(p, sizeof(p), "Opening UDP interface %s failed", One);
+            snprintf(p, sizeof(p), "Opening TCP interface %s failed", One);
             p[sizeof(p) - 1] = '\0';
 
             ShowSocketError(p, GET_LAST_ERROR());
             CLOSE_SOCKET(sock);
             continue;
+        }
+
+        if( listen(sock, 16) == SOCKET_ERROR )
+        {
+            ERRORMSG("Can't listen on interface: %s .\n", One);
+            break;
         }
 
         if( f == AF_INET6 )
@@ -183,21 +200,21 @@ int UdpFrontend_Init(ConfigFileInfo *ConfigInfo, BOOL StartWork)
         }
 
         Frontend.Add(&Frontend, sock, &f, sizeof(sa_family_t));
-        INFO("UDP interface %s opened.\n", One);
+        INFO("TCP interface %s opened.\n", One);
         ++Count;
     }
 
-    atexit(UdpFrontend_Cleanup);
+    atexit(TcpFrontend_Cleanup);
 
     if( Count == 0 )
     {
-        ERRORMSG("No UDP interface opened.\n");
+        ERRORMSG("No TCP interface opened.\n");
         return -163;
     }
 
     if( StartWork )
     {
-        UdpFrontend_StartWork();
+        TcpFrontend_StartWork();
     }
 
     return 0;

@@ -740,9 +740,12 @@ static BOOL ModuleFitRequest(const void **Data, const void *Expected)
 
     if( IHeader_IsFromTCP(h) )
     {
-        if( strcmp(m->ModuleName, "UDP") == 0 )
+        if( ConfigGetBoolean(CurrConfigInfo, "EnableTCPtoUDP") == FALSE )
         {
-            return FALSE;
+            if( strcmp(m->ModuleName, "UDP") == 0 )
+            {
+                return FALSE;
+            }
         }
     } else if( ConfigGetBoolean(CurrConfigInfo, "EnableUDPtoTCP") == FALSE ) {
         if( strcmp(m->ModuleName, "TCP") == 0 )

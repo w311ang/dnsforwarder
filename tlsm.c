@@ -3,12 +3,13 @@
 #include "socketpuller.h"
 #include "utils.h"
 #include "logs.h"
-#include "udpfrontend.h"
 #include "timedtask.h"
 #include "dnscache.h"
 #include "ipmisc.h"
 #include "domainstatistic.h"
 #include "ptimer.h"
+
+extern BOOL Ipv6_Enabled;
 
 static void SwepWorks(IHeader *h, int Number, TlsM *Module)
 {
@@ -376,7 +377,7 @@ int TlsM_Init(TlsM *m, const char *Services)
         return -389;
     }
 
-    m->Incoming = TryBindLocal(Ipv6_Aviliable(), 10500, &(m->IncomingAddr));
+    m->Incoming = TryBindLocal(Ipv6_Enabled, 10500, &(m->IncomingAddr));
     if( m->Incoming == INVALID_SOCKET )
     {
         return -357;
