@@ -171,7 +171,7 @@ static void UdpM_Works(UdpM *m)
 
         if( RecvState <= 0 )
         {
-            ShowErrorMessage(Header, 'U');
+            ERRORMSG("recvfrom %s error: %d\n", m->ServiceName, RecvState);
             continue;
         }
 
@@ -395,6 +395,7 @@ int UdpM_Init(UdpM *m, const char *Services, BOOL Parallel)
 
     m->CountOfTimeout = 0;
 
+    m->ServiceName = Services;
     m->IsServer = 1;
 
     EFFECTIVE_LOCK_INIT(m->Lock);

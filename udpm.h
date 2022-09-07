@@ -20,6 +20,7 @@ struct _UdpM {
 
     int IsServer;
 
+    const char      *ServiceName;
     AddressList     AddrList;
     struct { /* parallel query informations */
         /* When these two are not NULL, parallel-query is enabled */
