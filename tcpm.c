@@ -374,9 +374,9 @@ static int TcpM_Cleanup(TcpM *m)
     AddressList_Free(&(m->ServiceList));
     SafeFree(m->Services);
     SafeFree(m->ServiceFamilies);
-    AddressList_Free(&(m->SocksProxyList));
     if( m->SocksProxies != NULL )
     {
+        AddressList_Free(&(m->SocksProxyList));
         SafeFree(*(m->SocksProxies));
     }
     SafeFree(m->SocksProxyFamilies);

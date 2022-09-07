@@ -700,16 +700,6 @@ int FindNextPrime(int Current)
     } while( TRUE );
 }
 
-BOOL ContainWildCard(const char *item)
-{
-    if( strchr(item, '?') != NULL || strchr(item, '*') != NULL )
-    {
-        return TRUE;
-    } else {
-        return FALSE;
-    }
-}
-
 unsigned int BKDRHash(const char* str, unsigned int Unused)
 {
     unsigned int seed = 131; /* 31 131 1313 13131 131313 etc.. */

@@ -112,7 +112,7 @@ int StringChunk_Add(StringChunk *dl,
         return -2;
     }
 
-    if( ContainWildCard(Str) )
+    if( HAS_WILDCARD(Str) )
     {
         if( Array_PushBack(wl, &NewEntry, NULL) < 0 )
         {
@@ -152,7 +152,7 @@ BOOL StringChunk_Match_NoWildCard(StringChunk   *dl,
 {
     SimpleHT        *nl;
 
-    EntryForString *FoundEntry;
+    EntryForString *FoundEntry = NULL;
 
     const char *FoundString;
 
@@ -163,8 +163,8 @@ BOOL StringChunk_Match_NoWildCard(StringChunk   *dl,
 
     nl = &(dl->List_Pos);
 
-    FoundEntry = (EntryForString *)SimpleHT_Find(nl, Str, 0, HashValue, NULL);
-    while( FoundEntry != NULL )
+    while( FoundEntry = (EntryForString *)SimpleHT_Find(nl, Str, 0, HashValue, (const char *)FoundEntry),
+            FoundEntry != NULL )
     {
         FoundString = FoundEntry->str;
         if( strcmp(FoundString, Str) == 0 )
@@ -177,11 +177,8 @@ BOOL StringChunk_Match_NoWildCard(StringChunk   *dl,
                 }
                 *Data = FoundEntry->Data;
             }
-
             return TRUE;
         }
-
-        FoundEntry = (EntryForString *)SimpleHT_Find(nl, Str, 0, HashValue, (const char *)FoundEntry);
     }
 
     return FALSE;

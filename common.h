@@ -99,6 +99,7 @@
     #define GET_THREAD_ID() ((int)GetCurrentThreadId())
 
     /* Wildcard match function */
+    #define HAS_WILDCARD(s)         strpbrk((s), "*?")
     #define WILDCARD_MATCH(p, s)    PathMatchSpec((s), (p))
     #define WILDCARD_MATCHED        TRUE    /* Used as return value */
 
@@ -247,6 +248,7 @@
     #define GET_THREAD_ID() (-1)
 #endif /* HAVE_SYS_SYSCALL_H */
 
+    #define HAS_WILDCARD(s)         strpbrk((s), "*?[")
     #define WILDCARD_MATCH(p, s)    fnmatch((p), (s), FNM_NOESCAPE)
     #define WILDCARD_MATCHED    0
 
@@ -358,7 +360,7 @@ typedef struct _Address_Type{
     union {
         struct sockaddr_in  Addr4;
         struct sockaddr_in6 Addr6;
-    }       Addr;
+    } Addr;
 
     /* Although there is a `family' field in both `struct sockaddr_in' and
      * `struct sockaddr_in6', we also add it out here.

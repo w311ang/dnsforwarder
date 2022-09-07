@@ -102,8 +102,6 @@ BOOL IsPrime(int n);
 
 int FindNextPrime(int Current);
 
-BOOL ContainWildCard(const char *item);
-
 unsigned int BKDRHash(const char *str, unsigned int Unused);
 
 void HexDump(const char *Data, int Length);

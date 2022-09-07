@@ -37,6 +37,9 @@ static ModuleMap    *CurModuleMap = NULL;
 static RWLock       ModulesLock = {NULL};
 static ConfigFileInfo *CurrConfigInfo = NULL;
 
+static BOOL EnableUDPtoTCP;
+static BOOL EnableTCPtoUDP;
+
 static void DomainList_Tidy(StringList *DomainList)
 {
     DomainList->TrimAll(DomainList, "\t .");
@@ -716,6 +719,9 @@ int MMgr_Init(ConfigFileInfo *ConfigInfo)
     /* Ordinary modeles */
     RWLock_Init(ModulesLock);
 
+    EnableUDPtoTCP = ConfigGetBoolean(ConfigInfo, "EnableUDPtoTCP");
+    EnableTCPtoUDP = ConfigGetBoolean(ConfigInfo, "EnableTCPtoUDP");
+
     ret = Modules_Load(ConfigInfo);
     atexit(Modules_Cleanup);
 
@@ -740,14 +746,14 @@ static BOOL ModuleFitRequest(const void **Data, const void *Expected)
 
     if( IHeader_IsFromTCP(h) )
     {
-        if( ConfigGetBoolean(CurrConfigInfo, "EnableTCPtoUDP") == FALSE )
+        if( EnableTCPtoUDP == FALSE )
         {
             if( strcmp(m->ModuleName, "UDP") == 0 )
             {
                 return FALSE;
             }
         }
-    } else if( ConfigGetBoolean(CurrConfigInfo, "EnableUDPtoTCP") == FALSE ) {
+    } else if( EnableUDPtoTCP == FALSE ) {
         if( strcmp(m->ModuleName, "TCP") == 0 )
         {
             return FALSE;
