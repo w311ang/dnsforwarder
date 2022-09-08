@@ -32,84 +32,102 @@ static void TcpFrontend_Work(void *Unused)
     /* Loop */
     while( TRUE )
     {
-        /* Address */
-        char AddressBuffer[sizeof(Address_Type)];
-        struct sockaddr *IncomingAddress = (struct sockaddr *)AddressBuffer;
-
         SOCKET sock, sock_c;
-        const sa_family_t *f;
+        Address_Type *ClientAddr, ClientAddr_c;
+        BOOL IsNewConnected;
 
         int RecvState;
         uint16_t TCPLength;
-
-        socklen_t AddrLen;
 
         char Agent[sizeof(Header->Agent)];
 
         sock = Frontend.Select(&Frontend,
                                NULL,
-                               (void **)&f,
+                               (void **)&ClientAddr,
                                TRUE,
                                FALSE
                                );
-        if( sock == INVALID_SOCKET )
+
+        if( ((struct sockaddr *)ClientAddr)->sa_family == AF_UNSPEC )
         {
-            ERRORMSG("Fatal error 57.\n");
-            break;
+            socklen_t AddrLen = sizeof(Address_Type);
+
+            if( sock == INVALID_SOCKET )
+            {
+                ERRORMSG("Fatal error 57.\n");
+                break;
+            }
+
+            sock_c = accept(sock, (struct sockaddr *)&(ClientAddr_c.Addr), &AddrLen);
+            if(sock_c == INVALID_SOCKET)
+            {
+                continue;
+            }
+
+            IsNewConnected = TRUE;
+            ClientAddr_c.family = ClientAddr->family;
+            ClientAddr = &ClientAddr_c;
+        } else {
+            IsNewConnected = FALSE;
+            sock_c = sock;
         }
 
-        AddrLen = sizeof(Address_Type);
-
-        sock_c = accept(sock, IncomingAddress, &AddrLen);
-        if(sock_c == INVALID_SOCKET)
+        if( ClientAddr->family == AF_INET )
         {
-            continue;
+            IPv4AddressToAsc(&(((struct sockaddr_in *)ClientAddr)->sin_addr), Agent);
+        } else {
+            IPv6AddressToAsc(&(((struct sockaddr_in6 *)ClientAddr)->sin6_addr), Agent);
         }
 
         RecvState = recv(sock_c, (char *)&TCPLength, 2, 0);
-        if( RecvState < 2 )
+        if( RecvState == 2 )
         {
-            INFO("No valid data received from TCP client %s.\n", Agent);
+            TCPLength = ntohs(TCPLength);
+            if( TCPLength <= LEFT_LENGTH )
+            {
+                RecvState = recv(sock_c, Entity, TCPLength, 0);
+                if( RecvState == TCPLength )
+                {
+                    IHeader_Fill(Header,
+                                 FALSE,
+                                 Entity,
+                                 RecvState,
+                                 NULL,
+                                 sock_c,
+                                 ClientAddr->family,
+                                 Agent
+                                 );
+
+                    MMgr_Send(Header, BUF_LENGTH);
+
+                    if( IsNewConnected )
+                    {
+                        Frontend.Add(&Frontend, sock_c, ClientAddr, sizeof(Address_Type));
+                    }
+
+                    continue;
+
+                } else {
+                    INFO("Invalid data received from TCP client %s.\n", Agent);
+                }
+            } else {
+                WARNING("TCP client %s segment is too large, discarded.\n", Agent);
+            }
+
             CLOSE_SOCKET(sock_c);
-            continue;
-        }
-
-        TCPLength = ntohs(TCPLength);
-        if( TCPLength > LEFT_LENGTH )
+        } else if( RecvState == 1 )
         {
-            WARNING("TCP client %s segment is too large, discarded.\n", Agent);
+            INFO("Invalid data received from TCP client %s.\n", Agent);
             CLOSE_SOCKET(sock_c);
-            continue;
         }
 
-        RecvState = recv(sock_c, Entity, TCPLength, 0);
-
-        if( *f == AF_INET )
+        /* recv failed */
+        if( IsNewConnected == FALSE )
         {
-            IPv4AddressToAsc(&(((struct sockaddr_in *)IncomingAddress)->sin_addr), Agent);
-        } else {
-            IPv6AddressToAsc(&(((struct sockaddr_in6 *)IncomingAddress)->sin6_addr), Agent);
+            Frontend.Del(&Frontend, sock_c);
         }
-
-        if( RecvState != TCPLength )
-        {
-            INFO("No valid data received from TCP client %s.\n", Agent);
-            CLOSE_SOCKET(sock_c);
-            continue;
-        }
-
-        IHeader_Fill(Header,
-                     FALSE,
-                     Entity,
-                     RecvState,
-                     NULL,
-                     sock_c,
-                     *f,
-                     Agent
-                     );
-
-        MMgr_Send(Header, BUF_LENGTH);
     }
+
     SafeFree(ReceiveBuffer);
 }
 
@@ -154,7 +172,7 @@ int TcpFrontend_Init(ConfigFileInfo *ConfigInfo, BOOL StartWork)
 
     while( (One = i.Next(&i)) != NULL )
     {
-        Address_Type a;
+        Address_Type a, ClientAddr;
         sa_family_t f;
 
         SOCKET sock;
@@ -199,7 +217,9 @@ int TcpFrontend_Init(ConfigFileInfo *ConfigInfo, BOOL StartWork)
             Ipv6_Enabled = TRUE;
         }
 
-        Frontend.Add(&Frontend, sock, &f, sizeof(sa_family_t));
+        memset(&ClientAddr, 0, sizeof(Address_Type));
+        ClientAddr.family = f;
+        Frontend.Add(&Frontend, sock, &ClientAddr, sizeof(Address_Type));
         INFO("TCP interface %s opened.\n", One);
         ++Count;
     }

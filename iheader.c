@@ -170,8 +170,6 @@ int IHeader_SendBack(IHeader *h /* Entity followed */)
             /** TODO: Show error */
             return -112;
         }
-
-        CLOSE_SOCKET(h->SendBackSocket);
     } else {
         /* UDP */
         if( h->ReturnHeader )

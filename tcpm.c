@@ -7,6 +7,7 @@
 #include "udpfrontend.h"
 #include "timedtask.h"
 #include "dnscache.h"
+#include "dnsgenerator.h"
 #include "ipmisc.h"
 #include "domainstatistic.h"
 #include "ptimer.h"
@@ -15,6 +16,7 @@ extern BOOL Ipv6_Enabled;
 
 static void SweepWorks(IHeader *h, int Number, TcpM *Module)
 {
+    CLOSE_SOCKET(h->SendBackSocket);
     ShowTimeOutMessage(h, 'T');
     DomainStatistic_Add(h, STATISTIC_TYPE_REFUSED);
 
@@ -266,8 +268,6 @@ static int TcpM_ProxyPreparation(SOCKET Sock,
 
 static int TcpM_Send_Actual(TcpM *m, IHeader *h /* Entity followed */)
 {
-    uint16_t TCPLength;
-
     if( m->Context.Add(&(m->Context), h) != 0 )
     {
         return -11;
@@ -320,8 +320,7 @@ static int TcpM_Send_Actual(TcpM *m, IHeader *h /* Entity followed */)
         m->Puller.Add(&(m->Puller), m->Departure, NULL, 0);
     }
 
-    TCPLength = htons(h->EntityLength);
-    memcpy((char *)(IHEADER_TAIL(h)) - 2, &TCPLength, 2);
+    DNSSetTcpLength((char *)(IHEADER_TAIL(h)) - 2, h->EntityLength);
 
     if( TcpM_SendWrapper(m->Departure,
                          (char *)(IHEADER_TAIL(h)) - 2,
@@ -390,6 +389,7 @@ static int TcpM_Works(TcpM *m)
 {
     SOCKET  s;
 
+    #define TIMEOUT     5
     #define BUF_LENGTH  2048
     char *ReceiveBuffer;
     IHeader *Header;
@@ -397,12 +397,11 @@ static int TcpM_Works(TcpM *m)
     #define LEFT_LENGTH  (BUF_LENGTH - sizeof(IHeader))
     char *Entity;
 
-    static const struct timeval TimeLimit = {5, 0};
+    static const struct timeval TimeLimit = {TIMEOUT, 0};
     struct timeval TimeOut;
 
-    time_t  LastRecvFromServer = 0;
-
-    BOOL Retried = FALSE;
+    int TaskCount = 0;
+    time_t  LastActivity = 0;
 
     int NumberOfCumulated = 0;
 
@@ -418,6 +417,11 @@ static int TcpM_Works(TcpM *m)
 
     while( m->IsServer )
     {
+        if( m->Departure == INVALID_SOCKET )
+        {
+            TaskCount = 0;
+        }
+
         TimeOut = TimeLimit;
         s = m->Puller.Select(&(m->Puller), &TimeOut, NULL, TRUE, FALSE);
 
@@ -425,7 +429,10 @@ static int TcpM_Works(TcpM *m)
         {
             m->Context.Swep(&(m->Context), (SwepCallback)SweepWorks, m);
             NumberOfCumulated = 0;
-        } else if( s == m->Departure )
+            continue;
+        }
+
+        if( s == m->Departure )
         {
             int State;
             uint16_t TCPLength;
@@ -440,22 +447,8 @@ static int TcpM_Works(TcpM *m)
                 DEBUG("TCP connection to %s is closed.\n",
                         m->SocksProxies != NULL ? "proxy" : "server");
 
-                /* Try again */
-                if( !Retried )
-                {
-                    INFO("TCP query retrying ...\n");
-
-                    TcpM_Send_Actual(m, Header);
-
-                    Retried = TRUE;
-                }
-
                 continue;
             }
-
-            LastRecvFromServer = time(NULL);
-
-            Retried = TRUE;
 
             TCPLength = ntohs(TCPLength);
 
@@ -476,6 +469,9 @@ static int TcpM_Works(TcpM *m)
                 m->Departure = INVALID_SOCKET;
                 continue;
             }
+
+            TaskCount--;
+            LastActivity = time(NULL);
 
             IHeader_Fill(Header,
                          FALSE,
@@ -538,6 +534,13 @@ static int TcpM_Works(TcpM *m)
                 NumberOfCumulated = 0;
             }
 
+            if( TaskCount > 0 )
+            {
+                m->Puller.Del(&(m->Puller), s);
+                m->Puller.Add(&(m->Puller), s, NULL, 0);
+                continue;
+            }
+
             State = recvfrom(s,
                              ReceiveBuffer, /* Receiving a header */
                              BUF_LENGTH,
@@ -548,37 +551,34 @@ static int TcpM_Works(TcpM *m)
 
             if( State <= 0 )
             {
-                Retried = TRUE;
                 continue;
             }
 
             ++NumberOfCumulated;
 
-            Retried = FALSE;
-
             if( m->Departure != INVALID_SOCKET &&
-                (time(NULL) - LastRecvFromServer > 5 /*||
-                 !SocketIsWritable(m->Departure, 3000)*/
-                 )
+                LastActivity > 0 && time(NULL) - LastActivity > TIMEOUT
                 )
             {
+                DEBUG("TCP connection expired.\n");
                 m->Puller.Del(&(m->Puller), m->Departure);
                 CLOSE_SOCKET(m->Departure);
                 m->Departure = INVALID_SOCKET;
             }
 
-            if( TcpM_Send_Actual(m, Header) != 0 )
+            for(int Tried = 0; Tried < 2; Tried++)
             {
+                if( TcpM_Send_Actual(m, Header) == 0 )
+                {
+                    TaskCount++;
+                    LastActivity = time(NULL); /* Send again before received. */
+                    break;
+                }
                 m->Puller.Del(&(m->Puller), m->Departure);
                 CLOSE_SOCKET(m->Departure);
                 m->Departure = INVALID_SOCKET;
 
-                /* Try again */
                 INFO("TCP query retrying...\n");
-
-                TcpM_Send_Actual(m, Header);
-
-                Retried = TRUE;
             }
         }
     }
