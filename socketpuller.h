@@ -34,6 +34,6 @@ struct _SocketPuller{
     PUBMEMB void (*FreeWithoutClose)(SocketPuller *p);
 };
 
-int SocketPuller_Init(SocketPuller *p);
+int SocketPuller_Init(SocketPuller *p, int DataLength);
 
 #endif // SOCKETPULLER_H_INCLUDED

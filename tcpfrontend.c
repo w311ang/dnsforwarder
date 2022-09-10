@@ -141,7 +141,6 @@ void TcpFrontend_StartWork(void)
 
 static void TcpFrontend_Cleanup(void)
 {
-    Frontend.CloseAll(&Frontend, INVALID_SOCKET);
     Frontend.Free(&Frontend);
 }
 
@@ -165,7 +164,7 @@ int TcpFrontend_Init(ConfigFileInfo *ConfigInfo, BOOL StartWork)
         return -20;
     }
 
-    if( SocketPuller_Init(&Frontend) != 0 )
+    if( SocketPuller_Init(&Frontend, sizeof(Address_Type)) != 0 )
     {
         return -19;
     }

@@ -114,7 +114,6 @@ int Hosts_Get(IHeader *Header, int BufferLength)
 
 static void Hosts_SocketCleanup(void)
 {
-    Puller.CloseAll(&Puller, INVALID_SOCKET);
     Puller.Free(&Puller);
 }
 
@@ -142,7 +141,7 @@ static int Hosts_SocketLoop(void *Unused)
         return -416;
     }
 
-    if( SocketPuller_Init(&Puller) != 0 )
+    if( SocketPuller_Init(&Puller, 0) != 0 )
     {
         return -423;
     }

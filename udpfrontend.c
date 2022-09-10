@@ -112,7 +112,6 @@ void UdpFrontend_StartWork(void)
 
 static void UdpFrontend_Cleanup(void)
 {
-    Frontend.CloseAll(&Frontend, INVALID_SOCKET);
     Frontend.Free(&Frontend);
 }
 
@@ -136,7 +135,7 @@ int UdpFrontend_Init(ConfigFileInfo *ConfigInfo, BOOL StartWork)
         return -20;
     }
 
-    if( SocketPuller_Init(&Frontend) != 0 )
+    if( SocketPuller_Init(&Frontend, sizeof(sa_family_t)) != 0 )
     {
         return -19;
     }

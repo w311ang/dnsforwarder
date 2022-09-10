@@ -6,17 +6,15 @@
 #include "stablebuffer.h"
 #include "common.h"
 
-typedef struct _SocketUnit {
-    SOCKET      Sock;
-    const char *Data;
-} SocketUnit;
+typedef struct _SocketUnit SocketUnit;
 
 typedef struct _SocketPool SocketPool;
 
 struct _SocketPool{
     /* private */
     Bst t;
-    StableBuffer d;
+    char *SocketUnit; /* cache: {SOCKET, Data} */
+    int DataLength;
 
     /* public */
     int (*Add)(SocketPool *sp,
@@ -37,6 +35,6 @@ struct _SocketPool{
     void (*Free)(SocketPool *sp, BOOL CloseAllSocket);
 };
 
-int SocketPool_Init(SocketPool *sp);
+int SocketPool_Init(SocketPool *sp, int DataLength);
 
 #endif // SOCKETPOOL_H_INCLUDED

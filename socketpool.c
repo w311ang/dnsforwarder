@@ -8,19 +8,23 @@ static int SocketPool_Add(SocketPool *sp,
                           int DataLength
                           )
 {
-    SocketUnit su;
+    SOCKET *s = (SOCKET *)sp->SocketUnit;
 
-    su.Sock = Sock;
+    if( DataLength > sp->DataLength )
+    {
+        return -120;
+    }
+
+    *s = Sock;
 
     if( Data != NULL )
     {
-        su.Data = sp->d.Add(&(sp->d), Data, DataLength, TRUE);
-
+        memcpy(s + 1, Data, DataLength);
     } else {
-        su.Data = NULL;
+        memset(s + 1, 0, DataLength);
     }
 
-    if( sp->t.Add(&(sp->t), &su) == NULL )
+    if( sp->t.Add(&(sp->t), sp->SocketUnit) == NULL )
     {
         return -27;
     }
@@ -30,10 +34,9 @@ static int SocketPool_Add(SocketPool *sp,
 
 static int SocketPool_Del(SocketPool *sp, SOCKET Sock)
 {
-    SocketUnit k = {Sock, NULL};
     const SocketUnit *r;
 
-    r = sp->t.Search(&(sp->t), &k, NULL);
+    r = sp->t.Search(&(sp->t), &Sock, NULL);
     if( r != NULL )
     {
         sp->t.Delete(&(sp->t), r);
@@ -53,13 +56,15 @@ static int SocketPool_Fetch_Inner(Bst *t,
                                   const SocketUnit *su,
                                   SocketPool_Fetch_Arg *Arg)
 {
-    if( FD_ISSET(su->Sock, Arg->fs) )
+    SOCKET *s = (SOCKET *)su;
+
+    if( FD_ISSET(*s, Arg->fs) )
     {
-        Arg->Sock = su->Sock;
+        Arg->Sock = *s;
 
         if( Arg->DataOut != NULL )
         {
-            *(Arg->DataOut) = (void *)su->Data;
+            *(Arg->DataOut) = (void *)(s + 1);
         }
 
         return 1;
@@ -88,9 +93,11 @@ static int SocketPool_CloseAll_Inner(Bst *t,
                                      SOCKET *ExceptFor
                                      )
 {
-    if( Data->Sock != INVALID_SOCKET && Data->Sock != *ExceptFor )
+    SOCKET *s = (SOCKET *)Data;
+
+    if( *s != INVALID_SOCKET && *s != *ExceptFor )
     {
-        CLOSE_SOCKET(Data->Sock);
+        CLOSE_SOCKET(*s);
     }
 
     return 0;
@@ -111,19 +118,21 @@ static void SocketPool_Free(SocketPool *sp, BOOL CloseAllSocket)
         SocketPool_CloseAll(sp, INVALID_SOCKET);
     }
 
+    SafeFree(sp->SocketUnit);
     sp->t.Free(&(sp->t));
-    sp->d.Free(&(sp->d));
 }
 
 static int Compare(const SocketUnit *_1, const SocketUnit *_2)
 {
-    return (int)(_1->Sock) - (int)(_2->Sock);
+    return (int)(*(SOCKET *)_1) - (int)(*(SOCKET *)_2);
 }
 
-int SocketPool_Init(SocketPool *sp)
+int SocketPool_Init(SocketPool *sp, int DataLength)
 {
+    sp->DataLength = sizeof(SOCKET) + DataLength;
+
     if( Bst_Init(&(sp->t),
-                    sizeof(SocketUnit),
+                    sp->DataLength,
                     (CompareFunc)Compare
                     )
        != 0 )
@@ -131,9 +140,9 @@ int SocketPool_Init(SocketPool *sp)
         return -113;
     }
 
-    if( StableBuffer_Init(&(sp->d)) != 0 )
+    sp->SocketUnit = SafeMalloc(sp->DataLength);
+    if( sp->SocketUnit == NULL )
     {
-        sp->t.Free(&(sp->t));
         return -119;
     }
 

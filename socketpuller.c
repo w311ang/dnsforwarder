@@ -26,14 +26,14 @@ PUBFUNC int SocketPuller_Add(SocketPuller *p,
     return 0;
 }
 
-PUBFUNC int SocketPuller_Del(SocketPuller *p, SOCKET Sock)
+PUBFUNC int SocketPuller_Del(SocketPuller *p, SOCKET s)
 {
-    if( p->p.Del(&(p->p), Sock) != 0 )
+    if( p->p.Del(&(p->p), s) != 0 )
     {
         return -33;
     }
 
-    FD_CLR(Sock, &(p->s));
+    FD_CLR(s, &(p->s));
 
     return 0;
 }
@@ -77,7 +77,7 @@ PUBFUNC SOCKET SocketPuller_Select(SocketPuller *p,
 
 PUBFUNC BOOL SocketPuller_IsEmpty(SocketPuller *p)
 {
-    return !(p->Max >= 0);
+    return (p->s.fd_count == 0);
 }
 
 PUBFUNC void SocketPuller_CloseAll(SocketPuller *p, SOCKET ExceptFor)
@@ -95,7 +95,7 @@ PUBFUNC void SocketPuller_FreeWithoutClose(SocketPuller *p)
     p->p.Free(&(p->p), FALSE);
 }
 
-int SocketPuller_Init(SocketPuller *p)
+int SocketPuller_Init(SocketPuller *p, int DataLength)
 {
     p->Max = -1;
 
@@ -108,5 +108,5 @@ int SocketPuller_Init(SocketPuller *p)
     p->FreeWithoutClose = SocketPuller_FreeWithoutClose;
 
     FD_ZERO(&(p->s));
-    return SocketPool_Init(&(p->p));
+    return SocketPool_Init(&(p->p), DataLength);
 }

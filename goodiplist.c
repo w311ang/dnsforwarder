@@ -25,7 +25,7 @@ static struct sockaddr_in *CheckAList(struct sockaddr_in *Ips, int Count)
 
     struct sockaddr_in *ret = NULL;
 
-    if( SocketPuller_Init(&p) != 0 )
+    if( SocketPuller_Init(&p, sizeof(struct sockaddr *)) != 0 )
     {
         return NULL;
     }
