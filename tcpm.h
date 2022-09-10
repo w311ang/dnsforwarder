@@ -9,8 +9,6 @@ typedef struct _TcpM TcpM;
 
 struct _TcpM {
     /* private */
-    volatile SOCKET Departure;
-
     SOCKET          Incoming;
     Address_Type    IncomingAddr;
     SocketPuller    Puller;
@@ -25,11 +23,18 @@ struct _TcpM {
     AddressList     ServiceList;
     struct sockaddr **Services;
     sa_family_t     *ServiceFamilies;
+    SocketPuller    QueryPuller;
+    SocketPuller    **Agents;
 
     const char      *ProxyName;
     AddressList     SocksProxyList;
     struct sockaddr **SocksProxies;
     sa_family_t     *SocksProxyFamilies;
+    SocketPuller    ProxyPuller;
+    SocketPuller    **Proxies;
+
+    /* TCP 3-way handshake is heavier. Connect all, and then choose. */
+    BOOL            Parallel;
 
     /* public */
     int (*Send)(TcpM *m,
@@ -38,6 +43,6 @@ struct _TcpM {
                 );
 };
 
-int TcpM_Init(TcpM *m, const char *Services, const char *SocksProxies);
+int TcpM_Init(TcpM *m, const char *Services, BOOL Parallel, const char *SocksProxies);
 
 #endif // TCPM_C_INCLUDED

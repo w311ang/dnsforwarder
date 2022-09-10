@@ -28,12 +28,20 @@ struct _SocketPuller{
                              BOOL Writing
                              );
 
-    PUBMEMB BOOL (*IsEmpty)(SocketPuller *p);
+    PUBMEMB int (*Count)(SocketPuller *p);
     PUBMEMB void (*CloseAll)(SocketPuller *p, SOCKET ExceptFor);
     PUBMEMB void (*Free)(SocketPuller *p);
     PUBMEMB void (*FreeWithoutClose)(SocketPuller *p);
 };
 
 int SocketPuller_Init(SocketPuller *p, int DataLength);
+
+SocketPuller **SocketPullers_Init(int Count, int DataLength);
+
+void SocketPullers_CloseAll(SocketPuller **Pullers);
+
+void SocketPullers_FreeWithoutClose(SocketPuller **Pullers);
+
+void SocketPullers_Free(SocketPuller **Pullers);
 
 #endif // SOCKETPULLER_H_INCLUDED

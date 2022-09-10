@@ -17,6 +17,10 @@ struct _ModuleContext{
     int (*Add)(ModuleContext *c,
                IHeader *h /* Entity followed */
                );
+    const IHeader *(*Find)(ModuleContext *c,
+                            uint32_t Id,
+                            uint32_t Hash
+                            );
     int (*FindAndRemove)(ModuleContext *c,
                          IHeader *Input, /* Entity followed */
                          IHeader *Output

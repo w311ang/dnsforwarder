@@ -87,23 +87,45 @@ static int ModuleContext_Add(ModuleContext *c,
     }
 }
 
+static const ModuleContextItem *ModuleContext_FindInner(ModuleContext *c,
+                                                       uint32_t Id,
+                                                       uint32_t Hash
+                                                       )
+{
+    ModuleContextItem k;
+
+    k.i = Id;
+    k.h.HashValue = Hash;
+
+    return c->d.Search(&(c->d), &k, NULL);
+}
+
+static const IHeader *ModuleContext_Find(ModuleContext *c,
+                                           uint32_t Id,
+                                           uint32_t Hash
+                                           )
+{
+    const ModuleContextItem *ri = ModuleContext_FindInner(c, Id, Hash);
+
+    if(ri == NULL)
+    {
+        return NULL;
+    }
+
+    return &(ri->h);
+}
+
 static int ModuleContext_FindAndRemove(ModuleContext *c,
                                        IHeader *Input, /* Entity followed */
                                        IHeader *Output
                                        )
 {
-    ModuleContextItem k;
-    const char *e = (const char *)(Input + 1);
-
     const ModuleContextItem *ri;
 
     int EntityLength;
     BOOL EDNSEnabled;
 
-    k.i = *(uint16_t *)e;
-    k.h.HashValue = Input->HashValue;
-
-    ri = c->d.Search(&(c->d), &k, NULL);
+    ri = ModuleContext_FindInner(c, *(uint16_t *)(Input + 1), Input->HashValue);
     if( ri == NULL )
     {
         return -60;
@@ -158,6 +180,7 @@ int ModuleContext_Init(ModuleContext *c)
     }
 
     c->Add = ModuleContext_Add;
+    c->Find = ModuleContext_Find;
     c->FindAndRemove = ModuleContext_FindAndRemove;
     c->Swep = ModuleContext_Swep;
 

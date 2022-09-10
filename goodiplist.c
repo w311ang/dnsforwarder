@@ -40,7 +40,11 @@ static struct sockaddr_in *CheckAList(struct sockaddr_in *Ips, int Count)
         {
             continue;
         }
-        SetSocketNonBlock(skt, TRUE);
+
+        if( SetSocketNonBlock(skt, TRUE) != 0 )
+        {
+            continue;
+        }
 
         a = (struct sockaddr *)&(Ips[i]);
 

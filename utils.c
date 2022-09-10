@@ -989,7 +989,7 @@ int CopyAFile(const char *Src, const char *Dst, BOOL Append)
 int FatalErrorDecideding(int LastError)
 {
 #ifdef WIN32
-    if( LastError == WSAEWOULDBLOCK || LastError == WSAEINVAL || LastError == WSAEINTR || LastError == WSAEINPROGRESS )
+    if( LastError == WSAEWOULDBLOCK || LastError == WSAEINTR || LastError == WSAEINPROGRESS )
     {
         return 0;
     }

@@ -47,10 +47,10 @@ PUBFUNC SOCKET SocketPuller_Select(SocketPuller *p,
 {
     fd_set ReadySet;
 
-    ReadySet = p->s;
-
     while( TRUE )
     {
+        ReadySet = p->s;
+
         switch( select(p->Max + 1,
                        Reading ? &ReadySet : NULL,
                        Writing ? &ReadySet : NULL,
@@ -59,12 +59,14 @@ PUBFUNC SOCKET SocketPuller_Select(SocketPuller *p,
                 )
         {
         case SOCKET_ERROR:
+            SLEEP(1); /* dead loop? */
             if( FatalErrorDecideding(GET_LAST_ERROR()) == 0 )
             {
                 continue;
             }
             /* No break; */
         case 0:
+            /* timeout */
             return INVALID_SOCKET;
             break;
 
@@ -75,9 +77,9 @@ PUBFUNC SOCKET SocketPuller_Select(SocketPuller *p,
     }
 }
 
-PUBFUNC BOOL SocketPuller_IsEmpty(SocketPuller *p)
+PUBFUNC int SocketPuller_Count(SocketPuller *p)
 {
-    return (p->s.fd_count == 0);
+    return p->s.fd_count;
 }
 
 PUBFUNC void SocketPuller_CloseAll(SocketPuller *p, SOCKET ExceptFor)
@@ -102,11 +104,74 @@ int SocketPuller_Init(SocketPuller *p, int DataLength)
     p->Add = SocketPuller_Add;
     p->Del = SocketPuller_Del;
     p->Select = SocketPuller_Select;
-    p->IsEmpty = SocketPuller_IsEmpty;
+    p->Count = SocketPuller_Count;
     p->CloseAll = SocketPuller_CloseAll;
     p->Free = SocketPuller_Free;
     p->FreeWithoutClose = SocketPuller_FreeWithoutClose;
 
     FD_ZERO(&(p->s));
     return SocketPool_Init(&(p->p), DataLength);
+}
+
+SocketPuller **SocketPullers_Init(int Count, int DataLength)
+{
+    SocketPuller *Buffer;
+    SocketPuller **Pullers;
+    int i;
+
+    Pullers = SafeMalloc(sizeof(SocketPuller *) * (Count + 1));
+    if( Pullers == NULL )
+    {
+        return NULL;
+    }
+
+    Buffer = SafeMalloc(sizeof(SocketPuller) * Count);
+    if( Buffer == NULL )
+    {
+        goto EXIT_1;
+    }
+
+    for( i = 0; i < Count; ++i )
+    {
+        Pullers[i] = Buffer + i;
+        if( SocketPuller_Init(Pullers[i], DataLength) != 0 )
+        {
+            Pullers[i] = NULL;
+            goto EXIT_2;
+        }
+    }
+    Pullers[i] = NULL;
+
+    return Pullers;
+
+EXIT_2:
+    SocketPullers_FreeWithoutClose(Pullers);
+    SafeFree(Buffer);
+EXIT_1:
+    SafeFree(Pullers);
+    return NULL;
+}
+
+void SocketPullers_CloseAll(SocketPuller **Pullers)
+{
+    for( ; *Pullers != NULL; ++Pullers )
+    {
+        (*Pullers)->CloseAll(*Pullers, INVALID_SOCKET);
+    }
+}
+
+void SocketPullers_FreeWithoutClose(SocketPuller **Pullers)
+{
+    for( ; *Pullers != NULL; ++Pullers )
+    {
+        (*Pullers)->FreeWithoutClose(*Pullers);
+    }
+}
+
+void SocketPullers_Free(SocketPuller **Pullers)
+{
+    for( ; *Pullers != NULL; ++Pullers )
+    {
+        (*Pullers)->Free(*Pullers);
+    }
 }

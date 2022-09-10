@@ -149,6 +149,7 @@ static int Udp_Init(ModuleMap *ModuleMap, StringListIterator *i)
     const char *Parallel;
 
     StringList DomainList;
+    int ret = 0;
 
     /* Initializing parameters */
     Services = i->Next(i);
@@ -169,25 +170,27 @@ static int Udp_Init(ModuleMap *ModuleMap, StringListIterator *i)
 
     if( Udp_Init_Core(ModuleMap, Services, &DomainList, Parallel) != 0 )
     {
-        return -153;
+        ret = -153;
     }
 
     DomainList.Free(&DomainList);
 
-    return 0;
+    return ret;
 }
 
 static int Tcp_Init_Core(ModuleMap *ModuleMap,
                          const char *Services,
                          StringList *DomainList,
+                         const char *Parallel,
                          const char *Proxies
                          )
 {
     ModuleInterface *NewM;
 
-    char ProxyString[8];
+    char OptionString[8];
+    BOOL ParallelQuery;
 
-    if( Services == NULL || DomainList == NULL || Proxies == NULL )
+    if( Services == NULL || DomainList == NULL || Parallel == NULL || Proxies == NULL )
     {
         return -157;
     }
@@ -200,17 +203,28 @@ static int Tcp_Init_Core(ModuleMap *ModuleMap,
 
     NewM->ModuleName = "TCP";
 
-    strncpy(ProxyString, Proxies, sizeof(ProxyString));
-    ProxyString[sizeof(ProxyString) - 1] = '\0';
-    StrToLower(ProxyString);
+    strncpy(OptionString, Parallel, sizeof(OptionString));
+    OptionString[sizeof(OptionString) - 1] = '\0';
+    StrToLower(OptionString);
 
-    if( strcmp(ProxyString, "no") == 0 )
+    if( strcmp(OptionString, "on") == 0 )
+    {
+        ParallelQuery = TRUE;
+    } else {
+        ParallelQuery = FALSE;
+    }
+
+    strncpy(OptionString, Proxies, sizeof(OptionString));
+    OptionString[sizeof(OptionString) - 1] = '\0';
+    StrToLower(OptionString);
+
+    if( strcmp(OptionString, "no") == 0 )
     {
         Proxies = NULL;
     }
 
     /* Initializing module */
-    if( TcpM_Init(&(NewM->ModuleUnion.Tcp), Services, Proxies) != 0 )
+    if( TcpM_Init(&(NewM->ModuleUnion.Tcp), Services, ParallelQuery, Proxies) != 0 )
     {
         return -180;
     }
@@ -229,13 +243,16 @@ static int Tcp_Init(ModuleMap *ModuleMap, StringListIterator *i)
 {
     const char *Services;
     const char *Domains;
+    const char *Parallel;
     const char *Proxies;
 
     StringList DomainList;
+    int ret = 0;
 
     /* Initializing parameters */
     Services = i->Next(i);
     Domains = i->Next(i);
+    Parallel = i->Next(i);
     Proxies = i->Next(i);
 
     if( Domains == NULL )
@@ -250,14 +267,14 @@ static int Tcp_Init(ModuleMap *ModuleMap, StringListIterator *i)
 
     DomainList_Tidy(&DomainList);
 
-    if( Tcp_Init_Core(ModuleMap, Services, &DomainList, Proxies) != 0 )
+    if( Tcp_Init_Core(ModuleMap, Services, &DomainList, Parallel, Proxies) != 0 )
     {
-        return -233;
+        ret = -233;
     }
 
     DomainList.Free(&DomainList);
 
-    return 0;
+    return ret;
 }
 
 /*
@@ -274,6 +291,7 @@ example.com
 # TCP
 PROTOCOL TCP
 SERVER 1.2.4.8,127.0.0.1
+PARALLEL ON
 PROXY NO
 
 LIST domainlist.txt
@@ -284,6 +302,7 @@ example.com
 # TCP
 PROTOCOL TCP
 SERVER 1.2.4.8,127.0.0.1
+PARALLEL OFF
 PROXY 192.168.1.1:8080,192.168.1.1:8081
 
 example.com
@@ -455,12 +474,14 @@ static int Modules_InitFromFile(ModuleMap *ModuleMap, StringListIterator *i)
     } else if( strcmp(Protocol, "tcp") == 0 )
     {
         const char *Services = NULL;
+        const char *Parallel = "on";
         const char *Proxies = "no";
 
         StringChunk_Match_NoWildCard(&Args, "server", NULL, (void **)&Services, NULL, NULL);
+        StringChunk_Match_NoWildCard(&Args, "parallel", NULL, (void **)&Parallel, NULL, NULL);
         StringChunk_Match_NoWildCard(&Args, "proxy", NULL, (void **)&Proxies, NULL, NULL);
 
-        if( Tcp_Init_Core(ModuleMap, Services, &Domains, Proxies) != 0 )
+        if( Tcp_Init_Core(ModuleMap, Services, &Domains, Parallel, Proxies) != 0 )
         {
             ERRORMSG("Loading group file \"%s\" failed.\n", File);
             ret = -233;
