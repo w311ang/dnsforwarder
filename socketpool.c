@@ -10,7 +10,7 @@ static int SocketPool_Add(SocketPool *sp,
 {
     SOCKET *s = (SOCKET *)sp->SocketUnit;
 
-    if( DataLength > sp->DataLength )
+    if( 1 + DataLength > sp->DataLength )
     {
         return -120;
     }
@@ -20,9 +20,8 @@ static int SocketPool_Add(SocketPool *sp,
     if( Data != NULL )
     {
         memcpy(s + 1, Data, DataLength);
-    } else {
-        memset(s + 1, 0, DataLength);
     }
+    memset(s + 1 + DataLength, 0, sp->DataLength - DataLength);
 
     if( sp->t.Add(&(sp->t), sp->SocketUnit) == NULL )
     {

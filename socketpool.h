@@ -13,7 +13,7 @@ typedef struct _SocketPool SocketPool;
 struct _SocketPool{
     /* private */
     Bst t;
-    char *SocketUnit; /* cache: {SOCKET, Data} */
+    SocketUnit *SocketUnit; /* cache: {SOCKET, Data} */
     int DataLength;
 
     /* public */
