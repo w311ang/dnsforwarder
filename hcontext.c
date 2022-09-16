@@ -25,7 +25,7 @@ PUBFUNC int HostsContext_Add(HostsContext   *c,
 
     memcpy(&(n.oh), Original, sizeof(IHeader));
     n.i = NewIdentifier;
-    n.oi = *(uint16_t *)(Original + 1);
+    n.oi = DNSGetQueryIdentifier(Original + 1);
     n.t = time(NULL);
 
     strncpy(n.RecursedDomain, RecursedDomain, sizeof(n.RecursedDomain));
@@ -53,7 +53,7 @@ PUBFUNC int HostsContext_FindAndRemove(HostsContext *c,
 
     int EntityLength;
 
-    k.i = *(uint16_t *)(Input + 1);
+    k.i = DNSGetQueryIdentifier(Input + 1);
     strncpy(k.RecursedDomain, Input->Domain, sizeof(k.RecursedDomain));
     k.RecursedDomain[sizeof(k.RecursedDomain) - 1] = '\0';
 
@@ -68,7 +68,7 @@ PUBFUNC int HostsContext_FindAndRemove(HostsContext *c,
     EntityLength = Input->EntityLength;
 
     memcpy(Output, &(ri->oh), sizeof(IHeader));
-    *(uint16_t *)(Output + 1) = ri->oi;
+    DNSSetQueryIdentifier(Output + 1, ri->oi);
 
     Output->EntityLength = EntityLength;
 

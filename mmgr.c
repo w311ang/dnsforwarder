@@ -823,7 +823,7 @@ int MMgr_Send(IHeader *h, int BufferLength)
     {
     } else if( Array_GetUsed(CurModuleMap->ModuleArray) > 0 ){
         i = Array_GetBySubscript(CurModuleMap->ModuleArray,
-                                 (int)(*(uint16_t *)IHEADER_TAIL(h)) %
+                                 (int)(DNSGetQueryIdentifier(IHEADER_TAIL(h))) %
                                  Array_GetUsed(CurModuleMap->ModuleArray)
                                  );
     } else {

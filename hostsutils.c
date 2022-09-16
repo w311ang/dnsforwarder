@@ -327,7 +327,7 @@ int HostsUtils_CombineRecursedResponse(void         *Buffer, /* Include IHeader 
     DnsSimpleParserIterator i;
     DnsGenerator g;
 
-    uint16_t OriginalIdentifier = *(uint16_t *)NewEntity;
+    uint16_t OriginalIdentifier = DNSGetQueryIdentifier(NewEntity);
 
     int CompressedLength;
 
