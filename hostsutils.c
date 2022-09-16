@@ -288,7 +288,7 @@ int HostsUtils_Query(SOCKET Socket, /* Both for sending and receiving */
         return -323;
     }
 
-    g.CopyIdentifier(&g, Identifier);
+    g.SetIdentifier(&g, Identifier);
 
     if( g.Question(&g, Name, Type, DNS_CLASS_IN) != 0 )
     {
@@ -359,7 +359,7 @@ int HostsUtils_CombineRecursedResponse(void         *Buffer, /* Include IHeader 
     }
 
     g.CopyHeader(&g, RecursedEntity, FALSE);
-    g.CopyIdentifier(&g, OriginalIdentifier);
+    g.SetIdentifier(&g, OriginalIdentifier);
 
     if( g.Question(&g,
                    NewHeader->Domain,

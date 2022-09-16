@@ -534,9 +534,9 @@ static void DnsGenerator_CopyHeader(DnsGenerator *g,
     memcpy(g->Buffer, Source, IncludeRecordCounts ? DNS_HEADER_LENGTH : 4);
 }
 
-static void DnsGenerator_CopyIdentifier(DnsGenerator *g, uint16_t Value)
+static void DnsGenerator_SetIdentifier(DnsGenerator *g, uint16_t Value)
 {
-    *(uint16_t *)(g->Buffer) = Value;
+    SET_16_BIT_U_INT(g->Buffer, Value);
 }
 
 static int DnsGenerator_CopyNamePart(DnsGenerator *g,
@@ -850,7 +850,7 @@ int DnsGenerator_Init(DnsGenerator *g,
     g->NextPurpose = DnsGenerator_NextPurpose;
 
     g->CopyHeader = DnsGenerator_CopyHeader;
-    g->CopyIdentifier = DnsGenerator_CopyIdentifier;
+    g->SetIdentifier = DnsGenerator_SetIdentifier;
     g->CopyCName = DnsGenerator_CopyCName;
     g->CopyA = DnsGenerator_CopyA;
     g->CopyAAAA = DnsGenerator_CopyAAAA;

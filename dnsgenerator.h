@@ -54,7 +54,7 @@ struct _DnsGenerator {
                        const char *Source,
                        BOOL IncludeRecordCounts
                        );
-    void (*CopyIdentifier)(DnsGenerator *g, uint16_t Value);
+    void (*SetIdentifier)(DnsGenerator *g, uint16_t Value);
     int (*CopyCName)(DnsGenerator *g, DnsSimpleParserIterator *i);
     int (*CopyA)(DnsGenerator *g, DnsSimpleParserIterator *i);
     int (*CopyAAAA)(DnsGenerator *g, DnsSimpleParserIterator *i);
