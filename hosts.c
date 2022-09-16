@@ -1,17 +1,20 @@
 #include "hosts.h"
 #include "addresslist.h"
-#include "hcontext.h"
+#include "mcontext.h"
 #include "socketpuller.h"
 #include "goodiplist.h"
 #include "logs.h"
 #include "domainstatistic.h"
+#include "mmgr.h"
+
+#define CONTEXT_DATA_LENGTH  2048
 
 extern BOOL Ipv6_Enabled;
 
 static BOOL BlockIpv6WhenIpv4Exists = FALSE;
 
-static SOCKET   IncomeSocket;
-static Address_Type IncomeAddress;
+static SOCKET   InnerSocket;
+static Address_Type InnerAddress;
 static SocketPuller Puller;
 
 BOOL Hosts_TypeExisting(const char *Domain, HostsRecordType Type)
@@ -20,17 +23,17 @@ BOOL Hosts_TypeExisting(const char *Domain, HostsRecordType Type)
            DynamicHosts_TypeExisting(Domain, Type);
 }
 
-static HostsUtilsTryResult Hosts_Try_Inner(IHeader *Header, int BufferLength)
+static HostsUtilsTryResult Hosts_Try_Inner(MsgContext *MsgCtx, int BufferLength)
 {
     HostsUtilsTryResult ret;
 
-    ret = StaticHosts_Try(Header, BufferLength);
+    ret = StaticHosts_Try(MsgCtx, BufferLength);
     if( ret != HOSTSUTILS_TRY_NONE )
     {
         return ret;
     }
 
-    return DynamicHosts_Try(Header, BufferLength);
+    return DynamicHosts_Try(MsgCtx, BufferLength);
 }
 
 static int Hosts_GetCName(const char *Domain, char *Buffer)
@@ -39,9 +42,10 @@ static int Hosts_GetCName(const char *Domain, char *Buffer)
            DynamicHosts_GetCName(Domain, Buffer) == 0);
 }
 
-HostsUtilsTryResult Hosts_Try(IHeader *Header, int BufferLength)
+HostsUtilsTryResult Hosts_Try(MsgContext *MsgCtx, int BufferLength)
 {
     HostsUtilsTryResult ret;
+    IHeader *Header = (IHeader *)MsgCtx;
 
     if( BlockIpv6WhenIpv4Exists )
     {
@@ -61,16 +65,16 @@ HostsUtilsTryResult Hosts_Try(IHeader *Header, int BufferLength)
         return HOSTSUTILS_TRY_NONE;
     }
 
-    ret = Hosts_Try_Inner(Header, BufferLength);
+    ret = Hosts_Try_Inner(MsgCtx, BufferLength);
 
     if( ret == HOSTSUTILS_TRY_RECURSED )
     {
-        if( sendto(IncomeSocket,
+        if( sendto(InnerSocket,
                    (const char *)Header, /* Only send header and identifier */
                    sizeof(IHeader) + sizeof(uint16_t), /* Only send header and identifier */
                    MSG_NOSIGNAL,
-                   (const struct sockaddr *)&(IncomeAddress.Addr),
-                   GetAddressLength(IncomeAddress.family)
+                   (const struct sockaddr *)&(InnerAddress.Addr),
+                   GetAddressLength(InnerAddress.family)
                    )
             < 0 )
         {
@@ -81,12 +85,14 @@ HostsUtilsTryResult Hosts_Try(IHeader *Header, int BufferLength)
     return ret;
 }
 
-int Hosts_Get(IHeader *Header, int BufferLength)
+int Hosts_Get(MsgContext *MsgCtx, int BufferLength)
 {
-    switch( Hosts_Try(Header, BufferLength) )
+    IHeader *Header = (IHeader *)MsgCtx;
+
+    switch( Hosts_Try(MsgCtx, BufferLength) )
     {
     case HOSTSUTILS_TRY_BLOCKED:
-        IHeader_SendBackRefusedMessage(Header);
+        MsgContext_SendBackRefusedMessage(MsgCtx);
         ShowRefusingMessage(Header, "Disabled because of existing IPv4 host");
         DomainStatistic_Add(Header, STATISTIC_TYPE_REFUSED);
         return 0;
@@ -119,39 +125,51 @@ static void Hosts_SocketCleanup(void)
 
 static int Hosts_SocketLoop(void *Unused)
 {
-    static HostsContext Context;
+    ModuleContext Context;
 
-    static SOCKET   OutcomeSocket;
-    static Address_Type OutcomeAddress;
+    SOCKET   OuterSocket;
+    Address_Type OuterAddress;
 
-    static const struct timeval LongTime = {3600, 0};
-    static const struct timeval ShortTime = {10, 0};
+    const struct timeval LongTime = {3600, 0};
+    const struct timeval ShortTime = {10, 0};
 
     struct timeval  TimeLimit = LongTime;
 
-    #define LEFT_LENGTH_SL (sizeof(RequestBuffer) - sizeof(IHeader))
-    static char     RequestBuffer[2048];
-    IHeader         *Header = (IHeader *)RequestBuffer;
-    char            *RequestEntity = RequestBuffer + sizeof(IHeader);
+    #define LEFT_LENGTH_SL (CONTEXT_DATA_LENGTH - sizeof(IHeader))
 
-    OutcomeSocket = TryBindLocal(Ipv6_Enabled, 10300, &OutcomeAddress);
+    char    InnerBuffer[CONTEXT_DATA_LENGTH];
+    MsgContext *InnerMsgCtx = (MsgContext *)InnerBuffer;
+    IHeader *InnerHeader = (IHeader *)InnerBuffer;
+    //char    *InnerEntity = InnerBuffer + sizeof(IHeader);
 
-    if( OutcomeSocket == INVALID_SOCKET )
+    char OuterBuffer[CONTEXT_DATA_LENGTH];
+    //MsgContext *OuterMsgCtx = (MsgContext *)OuterBuffer;
+    IHeader *OuterHeader = (IHeader *)OuterBuffer;
+    char    *OuterEntity = OuterBuffer + sizeof(IHeader);
+
+    int State;
+    int ret = 0;
+
+    OuterSocket = TryBindLocal(Ipv6_Enabled, 10300, &OuterAddress);
+
+    if( OuterSocket == INVALID_SOCKET )
     {
         return -416;
     }
 
     if( SocketPuller_Init(&Puller, 0) != 0 )
     {
-        return -423;
+        ret = -423;
+        goto EXIT_1;
     }
 
-    Puller.Add(&Puller, IncomeSocket, NULL, 0);
-    Puller.Add(&Puller, OutcomeSocket, NULL, 0);
+    Puller.Add(&Puller, InnerSocket, NULL, 0);
+    Puller.Add(&Puller, OuterSocket, NULL, 0);
 
-    if( HostsContext_Init(&Context) != 0 )
+    if( ModuleContext_Init(&Context, CONTEXT_DATA_LENGTH) != 0 )
     {
-        return -431;
+        ret = -431;
+        goto EXIT_1;
     }
 
     srand(time(NULL));
@@ -164,19 +182,19 @@ static int Hosts_SocketLoop(void *Unused)
         if( Pulled == INVALID_SOCKET )
         {
             TimeLimit = LongTime;
-            Context.Swep(&Context);
-        } else if( Pulled == IncomeSocket )
+            Context.Swep(&Context, NULL, NULL);
+        } else if( Pulled == InnerSocket )
         {
             /* Recursive query */
-            int State;
+            MsgContext *MsgCtxStored;
             char RecursedDomain[DOMAIN_NAME_LENGTH_MAX + 1];
             uint16_t NewIdentifier;
 
             TimeLimit = ShortTime;
 
-            State = recvfrom(IncomeSocket,
-                             RequestBuffer, /* Receiving a header */
-                             sizeof(RequestBuffer),
+            State = recvfrom(InnerSocket,
+                             InnerBuffer, /* Receiving a header */
+                             sizeof(InnerBuffer),
                              0,
                              NULL,
                              NULL
@@ -187,7 +205,7 @@ static int Hosts_SocketLoop(void *Unused)
                 continue;
             }
 
-            if( Hosts_GetCName(Header->Domain, RecursedDomain) != 0 )
+            if( Hosts_GetCName(InnerHeader->Domain, RecursedDomain) != 0 )
             {
                 ERRORMSG("Fatal error 221.\n");
                 continue;
@@ -195,38 +213,42 @@ static int Hosts_SocketLoop(void *Unused)
 
             NewIdentifier = rand();
 
-            if( Context.Add(&Context, Header, RecursedDomain, NewIdentifier)
-                != 0 )
-            {
-                ERRORMSG("Fatal error 230.\n");
-                continue;
-            }
-
-            if( HostsUtils_Query(OutcomeSocket,
-                                 &OutcomeAddress,
-                                 NewIdentifier,
-                                 RecursedDomain,
-                                 Header->Type
-                                 )
+            if( HostsUtils_GenerateQuery(OuterBuffer,
+                                         CONTEXT_DATA_LENGTH,
+                                         OuterSocket,
+                                         &OuterAddress,
+                                         MsgContext_IsFromTCP(InnerMsgCtx),
+                                         NewIdentifier,
+                                         RecursedDomain,
+                                         InnerHeader->Type
+                                         )
                 != 0 )
             {
                 /** TODO: Show an error */
                 continue;
             }
 
-        } else if( Pulled == OutcomeSocket )
-        {
-            int State;
+            MsgCtxStored = Context.Add(&Context, InnerMsgCtx);
+            if( MsgCtxStored == NULL )
+            {
+                ERRORMSG("Fatal error 230.\n");
+                continue;
+            }
 
-            #define LEFT_LENGTH_SL_N (sizeof(NewRequest) - sizeof(IHeader));
-            static char NewRequest[2048];
-            IHeader *NewHeader = (IHeader *)NewRequest;
+            OuterHeader->Parent = (IHeader *)MsgCtxStored;
+
+            MMgr_Send(OuterBuffer, CONTEXT_DATA_LENGTH);
+
+        } else if( Pulled == OuterSocket )
+        {
+            MsgContext *BackTraceMsgCtx;
+            IHeader *BackTraceHeader;
 
             TimeLimit = ShortTime;
 
-            State = recvfrom(OutcomeSocket,
-                             RequestBuffer, /* Receiving a header */
-                             sizeof(RequestBuffer),
+            State = recvfrom(OuterSocket,
+                             OuterBuffer, /* Receiving a header */
+                             sizeof(OuterBuffer),
                              0,
                              NULL,
                              NULL
@@ -237,17 +259,20 @@ static int Hosts_SocketLoop(void *Unused)
                 continue;
             }
 
-            if( Context.FindAndRemove(&Context, Header, NewHeader) != 0 )
+            BackTraceHeader = OuterHeader->Parent;
+            BackTraceMsgCtx = (MsgContext *)BackTraceHeader;
+            DNSCopyQueryIdentifier(InnerHeader + 1, BackTraceHeader + 1);
+            if( Context.GenAnswerHeaderAndRemove(&Context, BackTraceMsgCtx, InnerMsgCtx) != 0 )
             {
                 ERRORMSG("Fatal error 267.\n");
                 continue;
             }
 
-            if( HostsUtils_CombineRecursedResponse(NewRequest,
-                                                   sizeof(NewRequest),
-                                                   RequestEntity,
+            if( HostsUtils_CombineRecursedResponse((MsgContext *)InnerBuffer,
+                                                   CONTEXT_DATA_LENGTH,
+                                                   OuterEntity,
                                                    State,
-                                                   Header->Domain
+                                                   OuterHeader->Domain
                                                    )
                 != 0 )
             {
@@ -255,19 +280,22 @@ static int Hosts_SocketLoop(void *Unused)
                 continue;
             }
 
-            if( IHeader_SendBack(NewHeader) != 0 )
+            if( MsgContext_SendBack((MsgContext *)InnerBuffer) != 0 )
             {
                 ERRORMSG("Fatal error 285.\n");
                 continue;
             }
 
-            ShowNormalMessage(NewHeader, 'H');
-        } else {}
+            ShowNormalMessage(InnerHeader, 'H');
+        }
     }
 
-    HostsContext_Cleanup(&Context);
+    ModuleContext_Free(&Context);
 
-    return 0;
+EXIT_1:
+    Puller.Free(&Puller);
+
+    return ret;
 }
 
 int Hosts_Init(ConfigFileInfo *ConfigInfo)
@@ -283,8 +311,8 @@ int Hosts_Init(ConfigFileInfo *ConfigInfo)
                                                  "BlockIpv6WhenIpv4Exists"
                                                  );
 
-    IncomeSocket = TryBindLocal(Ipv6_Enabled, 10200, &IncomeAddress);
-    if( IncomeSocket == INVALID_SOCKET )
+    InnerSocket = TryBindLocal(Ipv6_Enabled, 10200, &InnerAddress);
+    if( InnerSocket == INVALID_SOCKET )
     {
         return -25;
     }

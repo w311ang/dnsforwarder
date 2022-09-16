@@ -337,7 +337,7 @@ static int TlsM_Works(TlsM *m)
                 break;
             }
 
-            State = m->Context.FindAndRemove(&(m->Context), Header, Header);
+            State = m->Context.GenAnswerHeaderAndRemove(&(m->Context), Header, Header);
 
             DNSCache_AddItemsToCache(Header, State == 0);
 

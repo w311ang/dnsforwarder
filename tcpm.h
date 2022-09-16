@@ -38,7 +38,7 @@ struct _TcpM {
 
     /* public */
     int (*Send)(TcpM *m,
-                IHeader *h, /* Entity followed */
+                const char *Buffer,
                 int BufferLength
                 );
 };

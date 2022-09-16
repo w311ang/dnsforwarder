@@ -2,14 +2,20 @@
 #define IHEADER_H_INCLUDED
 
 #include "dnsrelated.h"
+#include "dnsparser.h"
+#include "dnsgenerator.h"
 #include "utils.h"
 
 typedef struct _IHeader IHeader;
 
-struct _IHeader{
-    int32_t _Pad; /* Must be 0 */
+typedef struct _MsgContext MsgContext;
 
-    Address_Type    BackAddress; /* UDP requires it while TCP doesn't */
+struct _IHeader{
+    IHeader     *Parent;    /* Solve CNAME hosts records. */
+    BOOL        RequestTcp; /* Parent is from TCP. */
+    time_t      Timestamp;
+
+    Address_Type    BackAddress;    /* UDP requires it while TCP doesn't */
     SOCKET          SendBackSocket;
 
     char            Domain[256];
@@ -26,14 +32,20 @@ struct _IHeader{
                                    )
                           ];
 
-    void            *TcpLengthPadding;
+    uint16_t        TcpLengthRaw;   /* Place holder for sending TCP message. */
 };
 
+/* The **variable** context item structure:
+
+#define CONTEXT_DATA_LENGTH 2048
+
+struct _MsgContext{
+    IHeader h;
+    char    Entity[CONTEXT_DATA_LENGTH - sizeof(IHeader)];
+};
+*/
+
 #define IHEADER_TAIL(ptr)   (void *)((IHeader *)(ptr) + 1)
-
-#define IHEADER_CONTAINING_HEADER(ptr)  (((IHeader *)(ptr))->_Pad == 0)
-
-int IHeader_Init(BOOL _ap);
 
 void IHeader_Reset(IHeader *h);
 
@@ -47,14 +59,17 @@ int IHeader_Fill(IHeader *h,
                  const char *Agent
                  );
 
-int IHeader_AddFakeEdns(IHeader *h, int BufferLength);
 
-BOOL IHeader_Blocked(IHeader *h /* Entity followed */);
+int MsgContext_Init(BOOL _ap);
 
-BOOL IHeader_IsFromTCP(IHeader *h);
+int MsgContext_AddFakeEdns(MsgContext *MsgCtx, int BufferLength);
 
-int IHeader_SendBack(IHeader *h /* Entity followed */);
+BOOL MsgContext_IsBlocked(MsgContext *MsgCtx);
 
-int IHeader_SendBackRefusedMessage(IHeader *h);
+BOOL MsgContext_IsFromTCP(MsgContext *MsgCtx);
+
+int MsgContext_SendBack(MsgContext *MsgCtx);
+
+int MsgContext_SendBackRefusedMessage(MsgContext *MsgCtx);
 
 #endif // IHEADER_H_INCLUDED

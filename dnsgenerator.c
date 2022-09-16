@@ -772,7 +772,7 @@ static int StripedLength(const char *Origin, int OriginLength)
 }
 
 int DnsGenerator_Init(DnsGenerator *g,
-                      char *Buffer,
+                      char *Buffer, /* generate to here */
                       int BufferLength,
                       const char *CopyFrom,
                       int SourceLength,

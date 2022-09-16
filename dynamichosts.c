@@ -288,7 +288,7 @@ BOOL DynamicHosts_TypeExisting(const char *Domain, HostsRecordType Type)
     return ret;
 }
 
-HostsUtilsTryResult DynamicHosts_Try(IHeader *Header, int BufferLength)
+HostsUtilsTryResult DynamicHosts_Try(MsgContext *MsgCtx, int BufferLength)
 {
     HostsUtilsTryResult ret;
 
@@ -299,7 +299,7 @@ HostsUtilsTryResult DynamicHosts_Try(IHeader *Header, int BufferLength)
 
     RWLock_RdLock(HostsLock);
 
-    ret = HostsUtils_Try(Header,
+    ret = HostsUtils_Try(MsgCtx,
                          BufferLength,
                          (HostsContainer *)MainDynamicContainer
                          );

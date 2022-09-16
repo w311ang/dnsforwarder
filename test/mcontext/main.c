@@ -8,7 +8,7 @@ typedef struct {
     uint16_t    i;
 } HH;
 
-IHeader *MakeOne(void)
+HH *MakeOne(void)
 {
     static int s = 0;
 
@@ -18,7 +18,7 @@ IHeader *MakeOne(void)
 
     h.i = s++;
 
-    return (IHeader *)&h;
+    return &h;
 }
 
 int main(void)
@@ -27,7 +27,7 @@ int main(void)
 
     ModuleContext   c;
 
-    ModuleContext_Init(&c);
+    ModuleContext_Init(&c, sizeof(HH));
 
     a = *(HH *)MakeOne();
 
@@ -50,7 +50,7 @@ int main(void)
     c.Add(&c, MakeOne());
     c.Add(&c, MakeOne());
 
-    c.FindAndRemove(&c, (IHeader *)&a, (IHeader *)&b);
+    c.GenAnswerHeaderAndRemove(&c, (IHeader *)&a, (IHeader *)&b);
 
     return 0;
 }

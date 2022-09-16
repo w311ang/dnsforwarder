@@ -97,7 +97,7 @@ static void UdpFrontend_Work(void *Unused)
                      Agent
                      );
 
-        MMgr_Send(Header, BUF_LENGTH);
+        MMgr_Send(ReceiveBuffer, BUF_LENGTH);
     }
     SafeFree(ReceiveBuffer);
 }

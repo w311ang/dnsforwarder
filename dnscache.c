@@ -599,8 +599,9 @@ static int DNSCache_AddAItemToCache(DnsSimpleParserIterator *i,
     return 0;
 }
 
-int DNSCache_AddItemsToCache(IHeader *Header, BOOL IsFirst)
+int DNSCache_AddItemsToCache(MsgContext *MsgCtx, BOOL IsFirst)
 {
+    IHeader *Header = (IHeader *)MsgCtx;
     char *DnsEntity = IHEADER_TAIL(Header);
     const CtrlContent *TtlContent = NULL;
 
@@ -844,8 +845,9 @@ static int DNSCache_GetByQuestion(__inout DnsGenerator *g,
 }
 
 /* Content length returned */
-int DNSCache_FetchFromCache(IHeader *h /* Entity followed */, int BufferLength)
+int DNSCache_FetchFromCache(MsgContext *MsgCtx, int BufferLength)
 {
+    IHeader *h = (IHeader *)MsgCtx;
     char *RequestContent = (char *)(h + 1);
 
     DnsSimpleParser p;
@@ -913,7 +915,7 @@ int DNSCache_FetchFromCache(IHeader *h /* Entity followed */, int BufferLength)
     memmove(RequestContent, HereToGenerate, ResultLength);
 
     h->EntityLength = ResultLength;
-    if( IHeader_SendBack(h) < 0 )
+    if( MsgContext_SendBack(MsgCtx) < 0 )
     {
         /** TODO: Error handling */
         return -861;

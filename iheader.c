@@ -7,16 +7,10 @@
 
 static BOOL ap = FALSE;
 
-int IHeader_Init(BOOL _ap)
-{
-    ap = _ap;
-
-    return 0;
-}
-
 void IHeader_Reset(IHeader *h)
 {
-    h->_Pad = 0;
+    h->Parent = NULL;
+    h->RequestTcp = FALSE;
     h->Agent[0] = '\0';
     h->BackAddress.family = AF_UNSPEC;
     h->Domain[0] = '\0';
@@ -36,7 +30,8 @@ int IHeader_Fill(IHeader *h,
     DnsSimpleParser p;
     DnsSimpleParserIterator i;
 
-    h->_Pad = 0;
+    h->Parent = NULL;
+    h->RequestTcp = FALSE;
     h->EDNSEnabled = FALSE;
 
     if( DnsSimpleParser_Init(&p, DnsEntity, EntityLength, FALSE) != 0 )
@@ -106,9 +101,18 @@ int IHeader_Fill(IHeader *h,
     return 0;
 }
 
-int IHeader_AddFakeEdns(IHeader *h, int BufferLength)
+
+int MsgContext_Init(BOOL _ap)
+{
+    ap = _ap;
+
+    return 0;
+}
+
+int MsgContext_AddFakeEdns(MsgContext *MsgCtx, int BufferLength)
 {
     DnsGenerator g;
+    IHeader *h = (IHeader *)MsgCtx;
 
     if( ap == FALSE || h->EDNSEnabled )
     {
@@ -137,26 +141,31 @@ int IHeader_AddFakeEdns(IHeader *h, int BufferLength)
     return 0;
 }
 
-BOOL IHeader_Blocked(IHeader *h /* Entity followed */)
+BOOL MsgContext_IsBlocked(MsgContext *MsgCtx)
 {
+    IHeader *h = (IHeader *)MsgCtx;
+
     return (ap && !(h->EDNSEnabled));
 }
 
-BOOL IHeader_IsFromTCP(IHeader *h)
+BOOL MsgContext_IsFromTCP(MsgContext *MsgCtx)
 {
+    IHeader *h = (IHeader *)MsgCtx;
+
     return (h->BackAddress.family == AF_UNSPEC);
 }
 
-int IHeader_SendBack(IHeader *h /* Entity followed */)
+int MsgContext_SendBack(MsgContext *MsgCtx)
 {
-    char *Content;
-    int Length;
+    IHeader *h = (IHeader *)MsgCtx;
+    char *Content = (char *)(IHEADER_TAIL(h));
+    int Length = h->EntityLength;
 
-    if( IHeader_IsFromTCP(h) )
+    if( MsgContext_IsFromTCP(MsgCtx) )
     {
         /* TCP */
-        Content = (char *)(IHEADER_TAIL(h)) - 2;
-        Length = h->EntityLength + 2;
+        Content -= 2;
+        Length += 2;
 
         DNSSetTcpLength(Content, h->EntityLength);
 
@@ -174,11 +183,8 @@ int IHeader_SendBack(IHeader *h /* Entity followed */)
         /* UDP */
         if( h->ReturnHeader )
         {
-            Content = (char *)h;
-            Length = h->EntityLength + sizeof(IHeader);
-        } else {
-            Content = IHEADER_TAIL(h);
-            Length = h->EntityLength;
+            Content -= sizeof(IHeader);
+            Length += sizeof(IHeader);
         }
 
         if( sendto(h->SendBackSocket,
@@ -198,14 +204,15 @@ int IHeader_SendBack(IHeader *h /* Entity followed */)
     return 0;
 }
 
-int IHeader_SendBackRefusedMessage(IHeader *h)
+int MsgContext_SendBackRefusedMessage(MsgContext *MsgCtx)
 {
+    IHeader *h = (IHeader *)MsgCtx;
     DNSHeader *RequestContent = IHEADER_TAIL(h);
 
     RequestContent->Flags.Direction = 1;
     RequestContent->Flags.RecursionAvailable = 1;
     RequestContent->Flags.ResponseCode = 0;
 
-    return IHeader_SendBack(h);
+    return MsgContext_SendBack(MsgCtx);
 
 }

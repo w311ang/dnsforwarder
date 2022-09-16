@@ -21,20 +21,23 @@ BOOL HostsUtils_TypeExisting(HostsContainer *Container,
                              HostsRecordType Type
                              );
 
-HostsUtilsTryResult HostsUtils_Try(IHeader *Header,
+HostsUtilsTryResult HostsUtils_Try(MsgContext *MsgCtx,
                                    int BufferLength,
                                    HostsContainer *Container
                                    );
 
-int HostsUtils_Query(SOCKET Socket, /* Both for sending and receiving */
-                     Address_Type *BackAddress,
-                     int Identifier,
-                     const char *Name,
-                     DNSRecordType Type
-                     );
+int HostsUtils_GenerateQuery(char           *RequestBuffer,
+                             int            BufferLength,
+                             SOCKET         Socket, /* Both for sending and receiving */
+                             Address_Type   *BackAddress,
+                             BOOL           RequestTcp,
+                             uint16_t       Identifier,
+                             const char     *Name,
+                             DNSRecordType  Type
+                             );
 
 /* Error code returned */
-int HostsUtils_CombineRecursedResponse(void         *Buffer, /* Include IHeader */
+int HostsUtils_CombineRecursedResponse(MsgContext   *Buffer,
                                        int          Bufferlength,
                                        char         *RecursedEntity,
                                        int          EntityLength,

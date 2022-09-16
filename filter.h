@@ -10,6 +10,6 @@ int Filter_Init(ConfigFileInfo *ConfigInfo);
 
 int Filter_Update(void);
 
-BOOL Filter_Out(IHeader *h);
+BOOL Filter_Out(MsgContext *MsgCtx);
 
 #endif // EXCLUDEDLIST_H_INCLUDED

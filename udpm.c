@@ -8,8 +8,12 @@
 #include "domainstatistic.h"
 #include "timedtask.h"
 
-static void SweepWorks(IHeader *h, int Number, UdpM *Module)
+#define CONTEXT_DATA_LENGTH  2048
+
+static void SweepWorks(MsgContext *MsgCtx, int Number, UdpM *Module)
 {
+    IHeader *h = (IHeader *)MsgCtx;
+
     ShowTimeOutMessage(h, 'U');
     DomainStatistic_Add(h, STATISTIC_TYPE_REFUSED);
     ++(Module->CountOfTimeout);
@@ -67,22 +71,16 @@ static void UdpM_Works(UdpM *m)
 
     struct sockaddr *addr;
 
-    #define BUF_LENGTH  2048
-    char *ReceiveBuffer;
+    char ReceiveBuffer[CONTEXT_DATA_LENGTH];
+    MsgContext *MsgCtx;
     IHeader *Header;
 
-    #define LEFT_LENGTH  (BUF_LENGTH - sizeof(IHeader))
+    #define LEFT_LENGTH  (CONTEXT_DATA_LENGTH - sizeof(IHeader))
     char *Entity;
 
     fd_set  ReadSet, ReadySet;
 
-    ReceiveBuffer = SafeMalloc(BUF_LENGTH);
-    if( ReceiveBuffer == NULL )
-    {
-        ERRORMSG("Fatal error 30.\n");
-        return;
-    }
-
+    MsgCtx = (MsgContext *)ReceiveBuffer;
     Header = (IHeader *)ReceiveBuffer;
     Entity = ReceiveBuffer + sizeof(IHeader);
 
@@ -211,7 +209,7 @@ static void UdpM_Works(UdpM *m)
             break;
         }
 
-        if( IHeader_Blocked(Header) )
+        if( MsgContext_IsBlocked(MsgCtx) )
         {
             ShowBlockedMessage(Header, "False package, discarded");
             DomainStatistic_Add(Header, STATISTIC_TYPE_BLOCKEDMSG);
@@ -220,20 +218,17 @@ static void UdpM_Works(UdpM *m)
 
         /* Fetch context item */
         EFFECTIVE_LOCK_GET(m->Lock);
-        ContextState = m->Context.FindAndRemove(&(m->Context),
-                                                Header,
-                                                Header
-                                                );
+        ContextState = m->Context.GenAnswerHeaderAndRemove(&(m->Context), MsgCtx, MsgCtx);
         EFFECTIVE_LOCK_RELEASE(m->Lock);
 
-        DNSCache_AddItemsToCache(Header, ContextState == 0);
+        DNSCache_AddItemsToCache(MsgCtx, ContextState == 0);
 
         if( ContextState != 0 )
         {
             continue;
         }
 
-        if( IHeader_SendBack(Header) != 0 )
+        if( MsgContext_SendBack(MsgCtx) != 0 )
         {
             ShowErrorMessage(Header, 'U');
             continue;
@@ -243,21 +238,21 @@ static void UdpM_Works(UdpM *m)
         DomainStatistic_Add(Header, STATISTIC_TYPE_UDP);
     }
 
-    SafeFree(ReceiveBuffer);
     UdpM_Cleanup(m);
 }
 
 static int UdpM_Send(UdpM *m,
-                     IHeader *h, /* Entity followed */
+                     const char *Buffer,
                      int BufferLength
                      )
 {
     int ret = 0;
+    IHeader *h = (IHeader *)Buffer;
 
-    IHeader_AddFakeEdns(h, BufferLength);
+    MsgContext_AddFakeEdns((MsgContext *)Buffer, BufferLength);
 
     EFFECTIVE_LOCK_GET(m->Lock);
-    if( m->Context.Add(&(m->Context), h) != 0 )
+    if( m->Context.Add(&(m->Context), (MsgContext *)Buffer) == NULL )
     {
         EFFECTIVE_LOCK_RELEASE(m->Lock);
         return -242;
@@ -387,7 +382,7 @@ int UdpM_Init(UdpM *m, const char *Services, BOOL Parallel)
         m->Parallels.addrlen = 0;
     }
 
-    if( ModuleContext_Init(&(m->Context)) != 0 )
+    if( ModuleContext_Init(&(m->Context), CONTEXT_DATA_LENGTH) != 0 )
     {
         ret = -143;
         goto EXIT_3;

@@ -1,7 +1,8 @@
 #include "hostsutils.h"
 #include "dnsgenerator.h"
-#include "mmgr.h"
 #include "goodiplist.h"
+
+#define CONTEXT_DATA_LENGTH 2048
 
 static int HostsUtils_GetCName_Callback(int Number,
                                         HostsRecordType Type,
@@ -119,11 +120,12 @@ static int HostsUtils_Generate(int              Number,
     return 0;
 }
 
-HostsUtilsTryResult HostsUtils_Try(IHeader *Header,
+HostsUtilsTryResult HostsUtils_Try(MsgContext *MsgCtx,
                                    int BufferLength,
                                    HostsContainer *Container
                                    )
 {
+    IHeader *Header = (IHeader *)MsgCtx;
     char *RequestEntity = (char *)(Header + 1);
     const char  *MatchState;
     HostsRecordType Type;
@@ -246,7 +248,7 @@ HostsUtilsTryResult HostsUtils_Try(IHeader *Header,
         Header->EntityLength = ResultLength;
         memmove(RequestEntity, HereToGenerate, ResultLength);
 
-        IHeader_SendBack(Header);
+        MsgContext_SendBack(MsgCtx);
 
         return HOSTSUTILS_TRY_OK;
     } else {
@@ -254,12 +256,15 @@ HostsUtilsTryResult HostsUtils_Try(IHeader *Header,
     }
 }
 
-int HostsUtils_Query(SOCKET Socket, /* Both for sending and receiving */
-                     Address_Type *BackAddress,
-                     int Identifier,
-                     const char *Name,
-                     DNSRecordType Type
-                     )
+int HostsUtils_GenerateQuery(char           *RequestBuffer,
+                             int            BufferLength,
+                             SOCKET         Socket, /* Both for sending and receiving */
+                             Address_Type   *BackAddress,
+                             BOOL           RequestTcp,
+                             uint16_t       Identifier,
+                             const char     *Name,
+                             DNSRecordType  Type
+                             )
 {
     static const char DNSHeader[DNS_HEADER_LENGTH] = {
         00, 00, /* QueryIdentifier */
@@ -270,7 +275,6 @@ int HostsUtils_Query(SOCKET Socket, /* Both for sending and receiving */
         00, 00, /* AdditionalCount */
     };
 
-    char RequestBuffer[2048];
     IHeader *Header = (IHeader *)RequestBuffer;
     char *RequestEntity = RequestBuffer + sizeof(IHeader);
 
@@ -278,7 +282,7 @@ int HostsUtils_Query(SOCKET Socket, /* Both for sending and receiving */
 
     if( DnsGenerator_Init(&g,
                           RequestEntity,
-                          sizeof(RequestBuffer) - sizeof(IHeader),
+                          BufferLength - sizeof(IHeader),
                           DNSHeader,
                           DNS_HEADER_LENGTH,
                           FALSE
@@ -309,11 +313,13 @@ int HostsUtils_Query(SOCKET Socket, /* Both for sending and receiving */
         return -309;
     }
 
-    return MMgr_Send(Header, sizeof(RequestBuffer));
+    Header->RequestTcp = RequestTcp;
+
+    return 0;
 }
 
 /* Error code returned */
-int HostsUtils_CombineRecursedResponse(void         *Buffer, /* Include IHeader */
+int HostsUtils_CombineRecursedResponse(MsgContext   *Buffer,
                                        int          Bufferlength,
                                        char         *RecursedEntity,
                                        int          EntityLength,
@@ -321,7 +327,7 @@ int HostsUtils_CombineRecursedResponse(void         *Buffer, /* Include IHeader 
                                        )
 {
     IHeader *NewHeader = (IHeader *)Buffer;
-    char *NewEntity = Buffer + sizeof(IHeader);
+    char *NewEntity = (char *)(NewHeader + 1);
 
     DnsSimpleParser p;
     DnsSimpleParserIterator i;

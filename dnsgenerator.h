@@ -12,7 +12,10 @@
 
 /* Handle DNS header*/
 #define DNSSetTcpLength(dns_start, Len)         SET_16_BIT_U_INT((char *)(dns_start), Len)
+
 #define DNSSetQueryIdentifier(dns_start, QId)   SET_16_BIT_U_INT((char *)(dns_start), QId)
+
+#define DNSCopyQueryIdentifier(dst, src)        (*(uint16_t *)(dst) = *(uint16_t *)(src))
 
 #define DNSSetFlags(dns_start, Flags)           SET_16_BIT_U_INT((char *)(dns_start) + 2, Flags)
 

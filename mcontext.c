@@ -3,20 +3,12 @@
 #include "mcontext.h"
 #include "common.h"
 
-typedef struct _ModuleContextItem{
-    IHeader     h;
-    uint32_t    i; /* Query identifier */
-    time_t      t; /* Time of addition */
-} ModuleContextItem;
-
 static int ModuleContext_Swep_Collect(Bst *t,
-                                      const ModuleContextItem *Context,
+                                      const MsgContext *Context,
                                       Array *Pending
                                       )
 {
-    time_t  Now = time(NULL);
-
-    if( Now - Context->t > 2 )
+    if( time(NULL) - ((IHeader *)Context)->Timestamp > 2 )
     {
         Array_PushBack(Pending, &Context, NULL);
     }
@@ -30,7 +22,7 @@ static void ModuleContext_Swep(ModuleContext *c, SwepCallback cb, void *Arg)
     int i;
 
     if( Array_Init(&Pending,
-                   sizeof(const ModuleContextItem *),
+                   sizeof(const MsgContext *),
                    4,
                    FALSE,
                    NULL
@@ -48,13 +40,13 @@ static void ModuleContext_Swep(ModuleContext *c, SwepCallback cb, void *Arg)
 
     for( i = 0; i < Array_GetUsed(&Pending); ++i )
     {
-        const ModuleContextItem **Context;
+        const MsgContext **Context;
 
         Context = Array_GetBySubscript(&Pending, i);
 
         if( cb != NULL )
         {
-            cb(&((**Context).h), i + 1, Arg);
+            cb(*Context, i + 1, Arg);
         }
 
         c->d.Delete(&(c->d), *Context);
@@ -63,81 +55,58 @@ static void ModuleContext_Swep(ModuleContext *c, SwepCallback cb, void *Arg)
     Array_Free(&Pending);
 }
 
-static int ModuleContext_Add(ModuleContext *c,
-                             IHeader *h /* Entity followed */
-                             )
+static MsgContext *ModuleContext_Add(ModuleContext *c, MsgContext *MsgCtx)
 {
-    ModuleContextItem n;
-    const char *e = (const char *)(h + 1);
+    IHeader *h;
 
-    if( h == NULL )
-    {
-        return -21;
-    }
-
-    memcpy(&(n.h), h, sizeof(IHeader));
-    n.i = *(uint16_t *)e;
-    n.t = time(NULL);
-
-    if( c->d.Add(&(c->d), &n) != NULL )
-    {
-        return 0;
-    } else {
-        return -83;
-    }
-}
-
-static const ModuleContextItem *ModuleContext_FindInner(ModuleContext *c,
-                                                       uint32_t Id,
-                                                       uint32_t Hash
-                                                       )
-{
-    ModuleContextItem k;
-
-    k.i = Id;
-    k.h.HashValue = Hash;
-
-    return c->d.Search(&(c->d), &k, NULL);
-}
-
-static const IHeader *ModuleContext_Find(ModuleContext *c,
-                                           uint32_t Id,
-                                           uint32_t Hash
-                                           )
-{
-    const ModuleContextItem *ri = ModuleContext_FindInner(c, Id, Hash);
-
-    if(ri == NULL)
+    if( MsgCtx == NULL )
     {
         return NULL;
     }
 
-    return &(ri->h);
+    h = (IHeader *)MsgCtx;
+    h->Timestamp = time(NULL);
+
+    return (MsgContext *)(c->d.Add(&(c->d), MsgCtx));
 }
 
-static int ModuleContext_FindAndRemove(ModuleContext *c,
-                                       IHeader *Input, /* Entity followed */
-                                       IHeader *Output
-                                       )
+static const MsgContext *ModuleContext_Find(ModuleContext *c, MsgContext *Input)
 {
-    const ModuleContextItem *ri;
+    return c->d.Search(&(c->d), Input, NULL);
+}
+
+static void ModuleContext_Del(ModuleContext *c, MsgContext *Input)
+{
+    c->d.Delete(&(c->d), Input);
+}
+
+static int ModuleContext_GenAnswerHeaderAndRemove(ModuleContext *c,
+                                                   MsgContext *Input,
+                                                   MsgContext *Output
+                                                   )
+{
+    IHeader *h1, *h2;
+    const MsgContext *ri;
 
     int EntityLength;
     BOOL EDNSEnabled;
 
-    ri = ModuleContext_FindInner(c, *(uint16_t *)(Input + 1), Input->HashValue);
+    h1 = (IHeader *)Input;
+    h2 = (IHeader *)Output;
+
+    ri = ModuleContext_Find(c, Input);
     if( ri == NULL )
     {
         return -60;
     }
 
-    EntityLength = Input->EntityLength;
-    EDNSEnabled = Input->EDNSEnabled;
+    EntityLength = h1->EntityLength;
+    EDNSEnabled = h1->EDNSEnabled;
 
-    memcpy(Output, &(ri->h), sizeof(IHeader));
+    memcpy(Output, ri, sizeof(IHeader));
 
-    Output->EntityLength = EntityLength;
-    Output->EDNSEnabled = EDNSEnabled;
+    h2->EntityLength = EntityLength;
+    h2->EDNSEnabled = EDNSEnabled;
 
     c->d.Delete(&(c->d), ri);
 
@@ -146,14 +115,16 @@ static int ModuleContext_FindAndRemove(ModuleContext *c,
 
 static int ModuleContextCompare(const void *_1, const void *_2)
 {
-    const ModuleContextItem *One = (ModuleContextItem *)_1;
-    const ModuleContextItem *Two = (ModuleContextItem *)_2;
+    const IHeader *One = (IHeader *)_1;
+    const IHeader *Two = (IHeader *)_2;
+    int Id_1 = DNSGetQueryIdentifier(One + 1);
+    int Id_2 = DNSGetQueryIdentifier(Two + 1);
 
-    if( One->i != Two->i )
+    if( Id_1 != Id_2 )
     {
-        return (int)(One->i) - (int)(Two->i);
+        return Id_1 - Id_2;
     } else {
-        return One->h.HashValue - Two->h.HashValue;
+        return One->HashValue - Two->HashValue;
     }
 }
 
@@ -162,26 +133,22 @@ void ModuleContext_Free(ModuleContext *c)
     c->d.Free(&(c->d));
 }
 
-int ModuleContext_Init(ModuleContext *c)
+int ModuleContext_Init(ModuleContext *c, int ItemLength)
 {
     if( c == NULL )
     {
         return -86;
     }
 
-    if( Bst_Init(&(c->d),
-                 sizeof(ModuleContextItem),
-                 ModuleContextCompare
-                 )
-       != 0
-       )
+    if( Bst_Init(&(c->d), ItemLength, ModuleContextCompare) != 0 )
     {
         return -106;
     }
 
     c->Add = ModuleContext_Add;
+    c->Del = ModuleContext_Del;
     c->Find = ModuleContext_Find;
-    c->FindAndRemove = ModuleContext_FindAndRemove;
+    c->GenAnswerHeaderAndRemove = ModuleContext_GenAnswerHeaderAndRemove;
     c->Swep = ModuleContext_Swep;
 
     return 0;

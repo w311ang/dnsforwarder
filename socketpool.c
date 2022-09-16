@@ -10,7 +10,7 @@ static int SocketPool_Add(SocketPool *sp,
 {
     SOCKET *s = (SOCKET *)sp->SocketUnit;
 
-    if( 1 + DataLength > sp->DataLength )
+    if( DataLength > sp->DataLength - sizeof(SOCKET) )
     {
         return -120;
     }
@@ -21,7 +21,7 @@ static int SocketPool_Add(SocketPool *sp,
     {
         memcpy(s + 1, Data, DataLength);
     }
-    memset(s + 1 + DataLength, 0, sp->DataLength - DataLength);
+    memset(s + 1 + DataLength, 0, sp->DataLength - sizeof(SOCKET) - DataLength);
 
     if( sp->t.Add(&(sp->t), sp->SocketUnit) == NULL )
     {
@@ -128,10 +128,10 @@ static int Compare(const SocketUnit *_1, const SocketUnit *_2)
 
 int SocketPool_Init(SocketPool *sp, int DataLength)
 {
-    sp->DataLength = sizeof(SOCKET) + DataLength;
+    DataLength += sizeof(SOCKET);
 
     if( Bst_Init(&(sp->t),
-                    sp->DataLength,
+                    DataLength,
                     (CompareFunc)Compare
                     )
        != 0 )
@@ -139,11 +139,14 @@ int SocketPool_Init(SocketPool *sp, int DataLength)
         return -113;
     }
 
-    sp->SocketUnit = SafeMalloc(sp->DataLength);
+    sp->SocketUnit = SafeMalloc(DataLength);
     if( sp->SocketUnit == NULL )
     {
+        sp->t.Free(&(sp->t));
         return -119;
     }
+
+    sp->DataLength = DataLength;
 
     sp->Add = SocketPool_Add;
     sp->Del = SocketPool_Del;

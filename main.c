@@ -550,7 +550,7 @@ int main(int argc, char *argv[])
         return -496;
     }
 
-    IHeader_Init(ConfigGetBoolean(&ConfigInfo, "AP"));
+    MsgContext_Init(ConfigGetBoolean(&ConfigInfo, "AP"));
 
     UdpStatus = UdpFrontend_Init(&ConfigInfo, FALSE);
     TcpStatus = TcpFrontend_Init(&ConfigInfo, FALSE);

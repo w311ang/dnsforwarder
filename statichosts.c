@@ -68,12 +68,12 @@ BOOL StaticHosts_TypeExisting(const char *Domain, HostsRecordType Type)
     return HostsUtils_TypeExisting(&MainStaticContainer, Domain, Type);
 }
 
-HostsUtilsTryResult StaticHosts_Try(IHeader *Header, int BufferLength)
+HostsUtilsTryResult StaticHosts_Try(MsgContext *MsgCtx, int BufferLength)
 {
     if( !Inited )
     {
         return HOSTSUTILS_TRY_NONE;
     }
 
-    return HostsUtils_Try(Header, BufferLength, &MainStaticContainer);
+    return HostsUtils_Try(MsgCtx, BufferLength, &MainStaticContainer);
 }

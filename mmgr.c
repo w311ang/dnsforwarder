@@ -763,9 +763,9 @@ int Modules_Update(void)
 static BOOL ModuleFitRequest(const void **Data, const void *Expected)
 {
     ModuleInterface *m = *(ModuleInterface **)Data;
-    IHeader *h = (IHeader *)Expected;
+    MsgContext *MsgCtx = (MsgContext *)Expected;
 
-    if( IHeader_IsFromTCP(h) )
+    if( MsgContext_IsFromTCP(MsgCtx) || ((IHeader *)Expected)->RequestTcp )
     {
         if( EnableTCPtoUDP == FALSE )
         {
@@ -784,26 +784,28 @@ static BOOL ModuleFitRequest(const void **Data, const void *Expected)
     return TRUE;
 }
 
-int MMgr_Send(IHeader *h, int BufferLength)
+int MMgr_Send(const char *Buffer, int BufferLength)
 {
     ModuleInterface **i;
     ModuleInterface *TheModule;
+    MsgContext *MsgCtx = (MsgContext *)Buffer;
+    IHeader *h = (IHeader *)Buffer;
 
     int ret;
 
     /* Determine whether to discard the query */
-    if( Filter_Out(h) )
+    if( Filter_Out(MsgCtx) )
     {
         return 0;
     }
 
     /* Hosts & Cache */
-    if( Hosts_Get(h, BufferLength) == 0 )
+    if( Hosts_Get(MsgCtx, BufferLength) == 0 )
     {
         return 0;
     }
 
-    if( DNSCache_FetchFromCache(h, BufferLength) == 0 )
+    if( DNSCache_FetchFromCache(MsgCtx, BufferLength) == 0 )
     {
         return 0;
     }

@@ -20,7 +20,7 @@ extern BOOL Ipv6_Enabled;
 #define TIMEOUT_ms_ALIVE    100
 #define KEEP_ALIVE  120
 
-#define BUF_LENGTH  2048
+#define CONTEXT_DATA_LENGTH 2048
 
 static const struct timeval TimeOut_Const = {TIMEOUT, 0};
 
@@ -28,13 +28,15 @@ typedef struct _TcpContext
 {
     int     ServerIndex;
     time_t  LastActivity;
-    /* To retry for server force closed SOCKET. */
+    /* To retry for server that force closed SOCKET. */
     int         Queried;
-    char        Data[BUF_LENGTH];
+    MsgContext *MsgCtx;
 } TcpContext;
 
-static void SweepWorks(IHeader *h, int Number, TcpM *Module)
+static void SweepWorks(MsgContext *MsgCtx, int Number, TcpM *Module)
 {
+    IHeader *h = (IHeader *)MsgCtx;
+
     CLOSE_SOCKET(h->SendBackSocket);
     ShowTimeOutMessage(h, 'T');
     DomainStatistic_Add(h, STATISTIC_TYPE_REFUSED);
@@ -72,23 +74,21 @@ static void TcpM_Connect_Recycle(SocketPuller *Puller, SocketPuller **Backups)
 static SOCKET TcpM_Connect_GetAvailable(SocketPuller *p, TcpContext **TcpCtx)
 {
     SOCKET s = INVALID_SOCKET;
-    TcpContext *Ctx = NULL;
 
     struct timeval TimeOut = {0, TIMEOUT_ms_ALIVE * 1000};
 
-    s = p->Select(p, &TimeOut, (void **)&Ctx, FALSE, TRUE);
+    s = p->Select(p, &TimeOut, (void **)TcpCtx, FALSE, TRUE);
     if( s != INVALID_SOCKET )
     {
         p->Del(p, s); /* Single thread: delete before adding is safe. */
 
-        if( time(NULL) - Ctx->LastActivity > KEEP_ALIVE ) {
+        if( time(NULL) - (*TcpCtx)->LastActivity > KEEP_ALIVE ) {
             INFO("Existing TCP connection expired, discard.\n");
             CLOSE_SOCKET(s);
             s = INVALID_SOCKET;
         }
     }
 
-    *TcpCtx = Ctx;
     return s;
 }
 
@@ -382,7 +382,7 @@ static int TcpM_ProxyPreparation(SOCKET Sock,
 
 }
 
-static int TcpM_Send_Actual(TcpM *m, IHeader *h /* Entity followed */, int SingleServerIndex)
+static int TcpM_Send_Actual(TcpM *m, MsgContext *MsgCtx, int SingleServerIndex)
 {
     char *Type;
 
@@ -390,9 +390,12 @@ static int TcpM_Send_Actual(TcpM *m, IHeader *h /* Entity followed */, int Singl
     TcpContext *TcpCtx;
     int i, NumOfServers, Shift, idx, n = 0;
 
+    IHeader *h = (IHeader *)MsgCtx;
+    char *msg = (char *)(IHEADER_TAIL(h)) - 2;
+
     BOOL NewRound = FALSE;
 
-    DNSSetTcpLength((char *)(IHEADER_TAIL(h)) - 2, h->EntityLength);
+    DNSSetTcpLength(msg, h->EntityLength);
 
     if( SingleServerIndex == -1 && m->Parallel )
     {
@@ -478,7 +481,7 @@ static int TcpM_Send_Actual(TcpM *m, IHeader *h /* Entity followed */, int Singl
         TcpCtx->LastActivity = time(NULL);
 
         if( TcpM_SendWrapper(s,
-                             (char *)(IHEADER_TAIL(h)) - 2,
+                             msg,
                              h->EntityLength + 2
                              )
             < 0 )
@@ -493,7 +496,7 @@ static int TcpM_Send_Actual(TcpM *m, IHeader *h /* Entity followed */, int Singl
         DEBUG("Sent by Pullers[%d].\n", TcpCtx->ServerIndex);
 
         TcpCtx->Queried++;
-        memcpy(TcpCtx->Data, h, BUF_LENGTH);
+        TcpCtx->MsgCtx = MsgCtx;
         m->Puller.Add(&(m->Puller), s, TcpCtx, sizeof(TcpContext));
 
         n++;
@@ -503,14 +506,15 @@ static int TcpM_Send_Actual(TcpM *m, IHeader *h /* Entity followed */, int Singl
 }
 
 PUBFUNC int TcpM_Send(TcpM *m,
-                      IHeader *h, /* Entity followed */
+                      const char *Buffer,
                       int BufferLength
                       )
 {
     int State;
+    IHeader *h = (IHeader *)Buffer;
 
     State = sendto(m->Incoming,
-                   (const char *)h,
+                   Buffer,
                    sizeof(IHeader) + h->EntityLength,
                    MSG_NOSIGNAL,
                    (const struct sockaddr *)&(m->IncomingAddr.Addr),
@@ -555,10 +559,11 @@ static int TcpM_Works(TcpM *m)
 {
     SOCKET  s;
 
-    char *ReceiveBuffer;
+    char ReceiveBuffer[CONTEXT_DATA_LENGTH];
+    MsgContext *MsgCtx;
     IHeader *Header;
 
-    #define LEFT_LENGTH  (BUF_LENGTH - sizeof(IHeader))
+    #define LEFT_LENGTH  (CONTEXT_DATA_LENGTH - sizeof(IHeader))
     char *Entity;
 
     SocketPuller *p = &(m->Puller);
@@ -566,13 +571,7 @@ static int TcpM_Works(TcpM *m)
 
     int NumberOfCumulated = 0;
 
-    ReceiveBuffer = SafeMalloc(BUF_LENGTH);
-    if( ReceiveBuffer == NULL )
-    {
-        ERRORMSG("Fatal error 381.\n");
-        return -383;
-    }
-
+    MsgCtx = (MsgContext *)ReceiveBuffer;
     Header = (IHeader *)ReceiveBuffer;
     Entity = ReceiveBuffer + sizeof(IHeader);
 
@@ -600,7 +599,7 @@ static int TcpM_Works(TcpM *m)
 
             State = recvfrom(s,
                              ReceiveBuffer, /* Receiving a header */
-                             BUF_LENGTH,
+                             CONTEXT_DATA_LENGTH,
                              0,
                              NULL,
                              NULL
@@ -608,16 +607,19 @@ static int TcpM_Works(TcpM *m)
 
             if( State > 0 )
             {
+                MsgContext *MsgCtxStored;
+
                 ++NumberOfCumulated;
 
-                if( m->Context.Add(&(m->Context), Header) != 0 )
+                MsgCtxStored = m->Context.Add(&(m->Context), MsgCtx);
+                if( MsgCtxStored == NULL )
                 {
                     p->Del(p, s);
                     p->Add(p, s, TcpCtx, sizeof(TcpContext));
                     continue;
                 }
 
-                TcpM_Send_Actual(m, Header, -1);
+                TcpM_Send_Actual(m, MsgCtxStored, -1);
             }
 
             p->Del(p, s);
@@ -636,15 +638,11 @@ static int TcpM_Works(TcpM *m)
                 if( State < 1 )
                 {
                     /* If Server force closed the keep-alive SOCKET: */
-                    IHeader *Header2 = (IHeader *)TcpCtx->Data;
-                    if( TcpCtx->Queried > 1 && Header2->Domain != 0 )
+                    IHeader *Header2 = (IHeader *)TcpCtx->MsgCtx;
+                    if( TcpCtx->Queried > 1 && Header2 != NULL && Header2->Domain != 0 )
                     {
-                        //if( m->Context.Find(&(m->Context), *(uint16_t *)(Header2 + 1), Header2->HashValue) != NULL )
-                        //{
                         INFO("TCP retrying for %s ...\n", Header2->Domain);
-                        
-                        TcpM_Send_Actual(m, Header2, TcpCtx->ServerIndex);
-                        //}
+                        TcpM_Send_Actual(m, TcpCtx->MsgCtx, TcpCtx->ServerIndex);
                     }
                 } else if( State == 1 )
                 {
@@ -679,7 +677,7 @@ static int TcpM_Works(TcpM *m)
                 p2 = m->Proxies[TcpCtx->ServerIndex];
             }
             TcpCtx->LastActivity = time(NULL);
-            IHeader_Reset((IHeader *)TcpCtx->Data);
+            TcpCtx->MsgCtx = NULL;
             p2->Add(p2, s, TcpCtx, sizeof(TcpContext));
 
             IHeader_Fill(Header,
@@ -715,23 +713,23 @@ static int TcpM_Works(TcpM *m)
                 break;
             }
 
-            if( IHeader_Blocked(Header) )
+            if( MsgContext_IsBlocked(MsgCtx) )
             {
                 ShowBlockedMessage(Header, "False package, discarded");
                 DomainStatistic_Add(Header, STATISTIC_TYPE_BLOCKEDMSG);
                 continue;
             }
 
-            State = m->Context.FindAndRemove(&(m->Context), Header, Header);
+            State = m->Context.GenAnswerHeaderAndRemove(&(m->Context), MsgCtx, MsgCtx);
 
-            DNSCache_AddItemsToCache(Header, State == 0);
+            DNSCache_AddItemsToCache(MsgCtx, State == 0);
 
             if( State != 0 )
             {
                 continue;
             }
 
-            if( IHeader_SendBack(Header) != 0 )
+            if( MsgContext_SendBack(MsgCtx) != 0 )
             {
                 ShowErrorMessage(Header, 'T');
                 continue;
@@ -742,7 +740,6 @@ static int TcpM_Works(TcpM *m)
         }
     }
 
-    SafeFree(ReceiveBuffer);
     TcpM_Cleanup(m);
 
     return 0;
@@ -757,7 +754,7 @@ int TcpM_Init(TcpM *m, const char *Services, BOOL Parallel, const char *SocksPro
         return -7;
     }
 
-    if( ModuleContext_Init(&(m->Context)) != 0 )
+    if( ModuleContext_Init(&(m->Context), CONTEXT_DATA_LENGTH) != 0 )
     {
         return -12;
     }

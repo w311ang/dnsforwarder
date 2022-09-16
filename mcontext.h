@@ -5,7 +5,7 @@
 #include "iheader.h"
 #include "bst.h"
 
-typedef void (*SwepCallback)(const IHeader *h, int Number, void *Arg);
+typedef void (*SwepCallback)(const MsgContext *MsgCtx, int Number, void *Arg);
 
 typedef struct _ModuleContext ModuleContext;
 
@@ -14,23 +14,19 @@ struct _ModuleContext{
     Bst d;
 
     /* public */
-    int (*Add)(ModuleContext *c,
-               IHeader *h /* Entity followed */
-               );
-    const IHeader *(*Find)(ModuleContext *c,
-                            uint32_t Id,
-                            uint32_t Hash
-                            );
-    int (*FindAndRemove)(ModuleContext *c,
-                         IHeader *Input, /* Entity followed */
-                         IHeader *Output
-                         );
+    MsgContext *(*Add)(ModuleContext *c, MsgContext *MsgCtx);
+    void (*Del)(ModuleContext *c, MsgContext *MsgCtx);
+    const MsgContext *(*Find)(ModuleContext *c, MsgContext *Input);
+    int (*GenAnswerHeaderAndRemove)(ModuleContext *c,
+                                    MsgContext *Input,
+                                    MsgContext *Output
+                                    );
 
     void (*Swep)(ModuleContext *c, SwepCallback cb, void *Arg);
 };
 
 void ModuleContext_Free(ModuleContext *c);
 
-int ModuleContext_Init(ModuleContext *c);
+int ModuleContext_Init(ModuleContext *c, int ItemLength);
 
 #endif // MCONTEXT_H_INCLUDED

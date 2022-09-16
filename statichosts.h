@@ -10,6 +10,6 @@ int StaticHosts_GetCName(const char *Domain, char *Buffer);
 
 BOOL StaticHosts_TypeExisting(const char *Domain, HostsRecordType Type);
 
-HostsUtilsTryResult StaticHosts_Try(IHeader *Header, int BufferLength);
+HostsUtilsTryResult StaticHosts_Try(MsgContext *MsgCtx, int BufferLength);
 
 #endif // STATICHOSTS_H_INCLUDED

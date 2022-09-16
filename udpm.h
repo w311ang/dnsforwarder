@@ -33,7 +33,7 @@ struct _UdpM {
 
     /* public */
     int (*Send)(UdpM *m,
-                IHeader *h, /* Entity followed */
+                const char *Buffer,
                 int BufferLength
                 );
 };

@@ -296,11 +296,13 @@ static BOOL IsDisabledDomain(const char *Domain, uint32_t HashValue)
     return ret;
 }
 
-BOOL Filter_Out(IHeader *h)
+BOOL Filter_Out(MsgContext *MsgCtx)
 {
+    IHeader *h = (IHeader *)MsgCtx;
+
     if(IsDisabledType(h->Type) || IsDisabledDomain(h->Domain, h->HashValue) )
     {
-        IHeader_SendBackRefusedMessage(h);
+        MsgContext_SendBackRefusedMessage(MsgCtx);
         ShowRefusingMessage(h, "Disabled type or domain");
         DomainStatistic_Add(h, STATISTIC_TYPE_REFUSED);
 

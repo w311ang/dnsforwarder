@@ -10,6 +10,6 @@ int DynamicHosts_GetCName(const char *Domain, char *Buffer);
 
 BOOL DynamicHosts_TypeExisting(const char *Domain, HostsRecordType Type);
 
-HostsUtilsTryResult DynamicHosts_Try(IHeader *Header, int BufferLength);
+HostsUtilsTryResult DynamicHosts_Try(MsgContext *MsgCtx, int BufferLength);
 
 #endif // DYNAMICHOSTS_H_INCLUDED
