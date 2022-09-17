@@ -118,11 +118,6 @@ int Hosts_Get(MsgContext *MsgCtx, int BufferLength)
     }
 }
 
-static void Hosts_SocketCleanup(void)
-{
-    Puller.Free(&Puller);
-}
-
 static int Hosts_SocketLoop(void *Unused)
 {
     ModuleContext Context;
@@ -177,10 +172,16 @@ static int Hosts_SocketLoop(void *Unused)
     while( TRUE )
     {
         SOCKET  Pulled;
+        int Err;
 
-        Pulled = Puller.Select(&Puller, &TimeLimit, NULL, TRUE, FALSE);
+        Pulled = Puller.Select(&Puller, &TimeLimit, NULL, TRUE, FALSE, &Err);
         if( Pulled == INVALID_SOCKET )
         {
+            if( Err != 0 )
+            {
+                ERRORMSG("Fatal error 70.\n");
+                break;
+            }
             TimeLimit = LongTime;
             Context.Swep(&Context, NULL, NULL);
         } else if( Pulled == InnerSocket )
@@ -316,8 +317,6 @@ int Hosts_Init(ConfigFileInfo *ConfigInfo)
     {
         return -25;
     }
-
-    atexit(Hosts_SocketCleanup);
 
     CREATE_THREAD(Hosts_SocketLoop, NULL, t);
     DETACH_THREAD(t);

@@ -50,7 +50,8 @@ static void UdpFrontend_Work(void *Unused)
                                NULL,
                                (void **)&f,
                                TRUE,
-                               FALSE
+                               FALSE,
+                               NULL
                                );
         if( sock == INVALID_SOCKET )
         {

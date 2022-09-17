@@ -42,14 +42,17 @@ PUBFUNC SOCKET SocketPuller_Select(SocketPuller *p,
                                    struct timeval *tv,
                                    void **Data,
                                    BOOL Reading,
-                                   BOOL Writing
+                                   BOOL Writing,
+                                   int *err
                                    )
 {
     fd_set ReadySet;
+    int Err;
+
+    ReadySet = p->s;
 
     while( TRUE )
     {
-        ReadySet = p->s;
 
         switch( select(p->Max + 1,
                        Reading ? &ReadySet : NULL,
@@ -59,10 +62,15 @@ PUBFUNC SOCKET SocketPuller_Select(SocketPuller *p,
                 )
         {
         case SOCKET_ERROR:
+            Err = GET_LAST_ERROR();
             SLEEP(1); /* dead loop? */
-            if( FatalErrorDecideding(GET_LAST_ERROR()) == 0 )
+            if( FatalErrorDecideding(Err) == 0 )
             {
                 continue;
+            }
+            if( err != NULL )
+            {
+                *err = Err;
             }
             /* No break; */
         case 0:

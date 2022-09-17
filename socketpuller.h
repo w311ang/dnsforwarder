@@ -25,7 +25,8 @@ struct _SocketPuller{
                              struct timeval *tv,
                              void **Data,
                              BOOL Reading,
-                             BOOL Writing
+                             BOOL Writing,
+                             int *err
                              );
 
     PUBMEMB int (*Count)(SocketPuller *p);

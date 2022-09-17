@@ -59,7 +59,7 @@ static struct sockaddr_in *CheckAList(struct sockaddr_in *Ips, int Count)
         p.Add(&p, skt, &a, sizeof(struct sockaddr *));
     }
 
-    if( p.Select(&p, &Time, (void **)&Fastest, FALSE, TRUE) == INVALID_SOCKET )
+    if( p.Select(&p, &Time, (void **)&Fastest, FALSE, TRUE, NULL) == INVALID_SOCKET )
     {
         ret = NULL;
     }

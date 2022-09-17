@@ -37,7 +37,6 @@ static void SweepWorks(MsgContext *MsgCtx, int Number, TcpM *Module)
 {
     IHeader *h = (IHeader *)MsgCtx;
 
-    CLOSE_SOCKET(h->SendBackSocket);
     ShowTimeOutMessage(h, 'T');
     DomainStatistic_Add(h, STATISTIC_TYPE_REFUSED);
 
@@ -52,19 +51,24 @@ static void TcpM_Connect_Recycle(SocketPuller *Puller, SocketPuller **Backups)
     SocketPuller *p;
     TcpContext *TcpCtx;
     SOCKET s = INVALID_SOCKET;
+    int Err;
 
     while( Puller->Count(Puller) > 0 )
     {
         struct timeval TimeOut = TimeOut_Const;
 
-        s = Puller->Select(Puller, &TimeOut, (void **)&TcpCtx, FALSE, TRUE);
+        s = Puller->Select(Puller, &TimeOut, (void **)&TcpCtx, FALSE, TRUE, &Err);
 
         if( s == INVALID_SOCKET )
         {
-            break;
+            if( Err != 0 )
+            {
+                ERRORMSG("Fatal error 61.\n");
+                break;
+            }
         } else {
             Puller->Del(Puller, s);
-            INFO("ServerIndex: %d\n", TcpCtx->ServerIndex);
+            DEBUG("ServerIndex: %d\n", TcpCtx->ServerIndex);
             p = Backups[TcpCtx->ServerIndex];
             p->Add(p, s, TcpCtx, sizeof(TcpContext));
         }
@@ -74,10 +78,11 @@ static void TcpM_Connect_Recycle(SocketPuller *Puller, SocketPuller **Backups)
 static SOCKET TcpM_Connect_GetAvailable(SocketPuller *p, TcpContext **TcpCtx)
 {
     SOCKET s = INVALID_SOCKET;
+    int Err;
 
     struct timeval TimeOut = {0, TIMEOUT_ms_ALIVE * 1000};
 
-    s = p->Select(p, &TimeOut, (void **)TcpCtx, FALSE, TRUE);
+    s = p->Select(p, &TimeOut, (void **)TcpCtx, FALSE, TRUE, &Err);
     if( s != INVALID_SOCKET )
     {
         p->Del(p, s); /* Single thread: delete before adding is safe. */
@@ -87,6 +92,9 @@ static SOCKET TcpM_Connect_GetAvailable(SocketPuller *p, TcpContext **TcpCtx)
             CLOSE_SOCKET(s);
             s = INVALID_SOCKET;
         }
+    } else if( Err != 0 )
+    {
+        ERRORMSG("Fatal error 62.\n");
     }
 
     return s;
@@ -427,6 +435,7 @@ static int TcpM_Send_Actual(TcpM *m, MsgContext *MsgCtx, int SingleServerIndex)
     for( i = 0; i < NumOfServers; ++i )
     {
         SOCKET s;
+        int Err;
         struct timeval TimeOut = TimeOut_Const;
 
         if( m->SocksProxies != NULL && NewRound )
@@ -434,10 +443,15 @@ static int TcpM_Send_Actual(TcpM *m, MsgContext *MsgCtx, int SingleServerIndex)
             TcpM_Connect(m, SingleServerIndex);
         }
 
-        s = p->Select(p, &TimeOut, (void **)&TcpCtx, FALSE, TRUE);
+        s = p->Select(p, &TimeOut, (void **)&TcpCtx, FALSE, TRUE, &Err);
 
         if( s == INVALID_SOCKET )
         {
+            if( Err != 0 )
+            {
+                ERRORMSG("Fatal error 63.\n");
+                break;
+            }
             INFO("No %s TCP connection is established.\n", Type);
             continue;
         } else {
@@ -558,6 +572,7 @@ static int TcpM_Cleanup(TcpM *m)
 static int TcpM_Works(TcpM *m)
 {
     SOCKET  s;
+    int Err;
 
     char ReceiveBuffer[CONTEXT_DATA_LENGTH];
     MsgContext *MsgCtx;
@@ -579,10 +594,15 @@ static int TcpM_Works(TcpM *m)
     {
         struct timeval TimeOut = TimeOut_Const;
 
-        s = p->Select(p, &TimeOut, (void **)&TcpCtx, TRUE, FALSE);
+        s = p->Select(p, &TimeOut, (void **)&TcpCtx, TRUE, FALSE, &Err);
 
         if( s == INVALID_SOCKET )
         {
+            if( Err != 0 )
+            {
+                ERRORMSG("Fatal error 64.\n");
+                break;
+            }
             m->Context.Swep(&(m->Context), (SwepCallback)SweepWorks, m);
             NumberOfCumulated = 0;
             continue;

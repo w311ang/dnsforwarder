@@ -45,18 +45,19 @@ static void TcpFrontend_Work(void *Unused)
                                NULL,
                                (void **)&ClientAddr,
                                TRUE,
-                               FALSE
+                               FALSE,
+                               NULL
                                );
+
+        if( sock == INVALID_SOCKET )
+        {
+            ERRORMSG("Fatal error 58.\n");
+            break;
+        }
 
         if( ((struct sockaddr *)ClientAddr)->sa_family == AF_UNSPEC )
         {
             socklen_t AddrLen = sizeof(Address_Type);
-
-            if( sock == INVALID_SOCKET )
-            {
-                ERRORMSG("Fatal error 57.\n");
-                break;
-            }
 
             sock_c = accept(sock, (struct sockaddr *)&(ClientAddr_c.Addr), &AddrLen);
             if(sock_c == INVALID_SOCKET)
