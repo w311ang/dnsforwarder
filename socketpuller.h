@@ -29,7 +29,6 @@ struct _SocketPuller{
                              int *err
                              );
 
-    PUBMEMB int (*Count)(SocketPuller *p);
     PUBMEMB void (*CloseAll)(SocketPuller *p, SOCKET ExceptFor);
     PUBMEMB void (*Free)(SocketPuller *p);
     PUBMEMB void (*FreeWithoutClose)(SocketPuller *p);

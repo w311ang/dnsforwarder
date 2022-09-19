@@ -130,6 +130,8 @@ int CopyAFile(const char *Src, const char *Dst, BOOL Append);
 
 int FatalErrorDecideding(int LastError);
 
+BOOL ErrorOfVoidSelect(int LastError);
+
 int CountSubStr(const char *Src, const char *SubStr);
 
 char *ReplaceStr(char *Src, const char *OriSubstr, const char *DesSubstr);

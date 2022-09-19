@@ -53,7 +53,7 @@ static void TcpM_Connect_Recycle(SocketPuller *Puller, SocketPuller **Backups)
     SOCKET s = INVALID_SOCKET;
     int Err;
 
-    while( Puller->Count(Puller) > 0 )
+    while( TRUE )
     {
         struct timeval TimeOut = TimeOut_Const;
 
@@ -61,14 +61,14 @@ static void TcpM_Connect_Recycle(SocketPuller *Puller, SocketPuller **Backups)
 
         if( s == INVALID_SOCKET )
         {
-            if( Err != 0 )
+            if( Err != 0 && !ErrorOfVoidSelect(Err) )
             {
-                ERRORMSG("Fatal error 61.\n");
-                break;
+                ERRORMSG("TCP fatal error %d.\n", Err);
             }
+            break;
         } else {
             Puller->Del(Puller, s);
-            DEBUG("ServerIndex: %d\n", TcpCtx->ServerIndex);
+            DEBUG("Recycled socket for Pullers[%d]\n", TcpCtx->ServerIndex);
             p = Backups[TcpCtx->ServerIndex];
             p->Add(p, s, TcpCtx, sizeof(TcpContext));
         }
@@ -80,21 +80,30 @@ static SOCKET TcpM_Connect_GetAvailable(SocketPuller *p, TcpContext **TcpCtx)
     SOCKET s = INVALID_SOCKET;
     int Err;
 
-    struct timeval TimeOut = {0, TIMEOUT_ms_ALIVE * 1000};
 
-    s = p->Select(p, &TimeOut, (void **)TcpCtx, FALSE, TRUE, &Err);
-    if( s != INVALID_SOCKET )
+    while( TRUE )
     {
-        p->Del(p, s); /* Single thread: delete before adding is safe. */
+        struct timeval TimeOut = {0, TIMEOUT_ms_ALIVE * 1000};
 
-        if( time(NULL) - (*TcpCtx)->LastActivity > KEEP_ALIVE ) {
-            INFO("Existing TCP connection expired, discard.\n");
-            CLOSE_SOCKET(s);
-            s = INVALID_SOCKET;
+        s = p->Select(p, &TimeOut, (void **)TcpCtx, FALSE, TRUE, &Err);
+        if( s == INVALID_SOCKET )
+        {
+            if( Err != 0 && !ErrorOfVoidSelect(Err) )
+            {
+                ERRORMSG("TCP fatal error %d.\n", Err);
+            }
+            break;
+        } else {
+            p->Del(p, s); /* Single thread: delete before adding is safe. */
+
+            if( time(NULL) - (*TcpCtx)->LastActivity > KEEP_ALIVE ) {
+                INFO("Existing TCP connection expired, discard.\n");
+                CLOSE_SOCKET(s);
+                s = INVALID_SOCKET;
+            } else {
+                break;
+            }
         }
-    } else if( Err != 0 )
-    {
-        ERRORMSG("Fatal error 62.\n");
     }
 
     return s;
@@ -164,7 +173,6 @@ static int TcpM_Connect(TcpM *m, int ServerIndex)
         NumOfServers = AddressList_GetNumberOfAddresses(&(m->SocksProxyList));
     }
 
-    DEBUG("Recycle Puller's Count: %d\n", Puller->Count(Puller));
     TcpM_Connect_Recycle(Puller, Pullers);
 
     srand(time(NULL));
@@ -193,22 +201,11 @@ static int TcpM_Connect(TcpM *m, int ServerIndex)
         /* Existing */
         p = Pullers[idx];
 
-        DEBUG("Existing count: %d\n", p->Count(p));
-
-        while( p->Count(p) > 0 )
-        {
-            s = TcpM_Connect_GetAvailable(p, &TcpCtx);
-            if( s != INVALID_SOCKET )
-            {
-                DEBUG("Got existing connection from Pullers[%d].\n", idx);
-
-                Puller->Add(Puller, s, TcpCtx, sizeof(TcpContext));
-                break;
-            }
-        }
-
+        s = TcpM_Connect_GetAvailable(p, &TcpCtx);
         if( s != INVALID_SOCKET )
         {
+            DEBUG("Got existing connection from Pullers[%d].\n", idx);
+            Puller->Add(Puller, s, TcpCtx, sizeof(TcpContext));
             n++;
             continue;
         }
@@ -447,9 +444,9 @@ static int TcpM_Send_Actual(TcpM *m, MsgContext *MsgCtx, int SingleServerIndex)
 
         if( s == INVALID_SOCKET )
         {
-            if( Err != 0 )
+            if( Err != 0 && !ErrorOfVoidSelect(Err) )
             {
-                ERRORMSG("Fatal error 63.\n");
+                ERRORMSG("TCP fatal error %d.\n", Err);
                 break;
             }
             INFO("No %s TCP connection is established.\n", Type);
@@ -600,7 +597,7 @@ static int TcpM_Works(TcpM *m)
         {
             if( Err != 0 )
             {
-                ERRORMSG("Fatal error 64.\n");
+                ERRORMSG("TcpM fatal error %d.\n", Err);
                 break;
             }
             m->Context.Swep(&(m->Context), (SwepCallback)SweepWorks, m);

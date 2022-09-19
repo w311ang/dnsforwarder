@@ -1003,6 +1003,15 @@ int FatalErrorDecideding(int LastError)
     return -1;
 }
 
+BOOL ErrorOfVoidSelect(int LastError)
+{
+#ifdef WIN32
+    return LastError == WSAEINVAL;
+#else
+    return LastError == EINVAL;
+#endif
+}
+
 int CountSubStr(const char *Src, const char *SubStr)
 {
     int ret = 0;

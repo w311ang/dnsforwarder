@@ -85,11 +85,6 @@ PUBFUNC SOCKET SocketPuller_Select(SocketPuller *p,
     }
 }
 
-PUBFUNC int SocketPuller_Count(SocketPuller *p)
-{
-    return p->s.fd_count;
-}
-
 PUBFUNC void SocketPuller_CloseAll(SocketPuller *p, SOCKET ExceptFor)
 {
     p->p.CloseAll(&(p->p), ExceptFor);
@@ -112,7 +107,6 @@ int SocketPuller_Init(SocketPuller *p, int DataLength)
     p->Add = SocketPuller_Add;
     p->Del = SocketPuller_Del;
     p->Select = SocketPuller_Select;
-    p->Count = SocketPuller_Count;
     p->CloseAll = SocketPuller_CloseAll;
     p->Free = SocketPuller_Free;
     p->FreeWithoutClose = SocketPuller_FreeWithoutClose;
