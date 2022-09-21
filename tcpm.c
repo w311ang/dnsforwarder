@@ -707,7 +707,7 @@ static int TcpM_Works(TcpM *m)
                          NULL
                          );
 
-            switch( IPMiscSingleton_Process(Header) )
+            switch( IPMiscMapping_Process(MsgCtx) )
             {
             case IP_MISC_NOTHING:
                 break;

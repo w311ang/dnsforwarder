@@ -508,7 +508,8 @@ int IPv6AddressToNum(const char *asc, void *Buffer)
                 break;
         }
     }
-    return 0;
+
+    return 16;
 }
 
 int IPv4AddressToNum(const char *asc, void *Buffer)

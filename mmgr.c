@@ -716,15 +716,21 @@ int MMgr_Init(ConfigFileInfo *ConfigInfo)
 {
     int ret;
 
+    EnableUDPtoTCP = ConfigGetBoolean(ConfigInfo, "EnableUDPtoTCP");
+    EnableTCPtoUDP = ConfigGetBoolean(ConfigInfo, "EnableTCPtoUDP");
+
+    RWLock_Init(ModulesLock);
+
+    ret = Modules_Load(ConfigInfo);
+    if( ret != 0 )
+    {
+        return ret;
+    }
+    atexit(Modules_Cleanup);
+
     if( Filter_Init(ConfigInfo) != 0 )
     {
         return -159;
-    }
-
-    /* Hosts & Cache */
-    if( Hosts_Init(ConfigInfo) != 0 )
-    {
-        return -165;
     }
 
     if( DNSCache_Init(ConfigInfo) != 0 )
@@ -732,23 +738,20 @@ int MMgr_Init(ConfigFileInfo *ConfigInfo)
         return -164;
     }
 
-    if( IpMiscSingleton_Init(ConfigInfo) != 0 )
+    if( IpMiscMapping_Init(ConfigInfo) != 0 )
     {
         return -176;
     }
 
-    /* Ordinary modeles */
-    RWLock_Init(ModulesLock);
-
-    EnableUDPtoTCP = ConfigGetBoolean(ConfigInfo, "EnableUDPtoTCP");
-    EnableTCPtoUDP = ConfigGetBoolean(ConfigInfo, "EnableTCPtoUDP");
-
-    ret = Modules_Load(ConfigInfo);
-    atexit(Modules_Cleanup);
+    /* The last: reloading */
+    if( Hosts_Init(ConfigInfo) != 0 )
+    {
+        return -165;
+    }
 
     INFO("Loading Configuration completed.\n");
 
-    return ret;
+    return 0;
 }
 
 int Modules_Update(void)

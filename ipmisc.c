@@ -4,12 +4,12 @@
 
 static int IPMisc_AddBlockFromString(IPMisc *m, const char *Ip)
 {
-    return IpChunk_AddAnyFromString(&(m->c),
-                                    Ip,
-                                    (int)IP_MISC_TYPE_BLOCK,
-                                    NULL,
-                                    0
-                                    );
+    return IpChunk_Add(&(m->c),
+                        Ip,
+                        (int)IP_MISC_TYPE_BLOCK,
+                        NULL,
+                        0
+                        );
 }
 
 static int IPMisc_AddSubstituteFromString(IPMisc *m,
@@ -23,24 +23,24 @@ static int IPMisc_AddSubstituteFromString(IPMisc *m,
 
         IPv6AddressToNum(Substituter, IpSubstituter);
 
-        return IpChunk_Add6FromString(&(m->c),
-                                      Ip,
-                                      (int)IP_MISC_TYPE_SUBSTITUTE,
-                                      IpSubstituter,
-                                      16
-                                      );
+        return IpChunk_Add(&(m->c),
+                              Ip,
+                              (int)IP_MISC_TYPE_SUBSTITUTE,
+                              IpSubstituter,
+                              16
+                              );
     } else {
         /* IPv4 */
         char    IpSubstituter[4];
 
         IPv4AddressToNum(Substituter, IpSubstituter);
 
-        return IpChunk_AddFromString(&(m->c),
-                                     Ip,
-                                     (int)IP_MISC_TYPE_SUBSTITUTE,
-                                     IpSubstituter,
-                                     4
-                                     );
+        return IpChunk_Add(&(m->c),
+                             Ip,
+                             (int)IP_MISC_TYPE_SUBSTITUTE,
+                             IpSubstituter,
+                             4
+                             );
     }
 }
 
@@ -86,28 +86,23 @@ static int IPMisc_Process(IPMisc *m,
         switch( i.Type )
         {
         case DNS_TYPE_A:
-            if( IpChunk_Find(&(m->c),
-                             *(uint32_t *)RowDataPos,
-                             (int *)&ActionType,
-                             &Data)
-               == FALSE )
-            {
-                continue;
-            }
             DataLength = 4;
             break;
-
         case DNS_TYPE_AAAA:
-            if( IpChunk_Find6(&(m->c), RowDataPos, (int *)&ActionType, &Data) == FALSE )
-            {
-                continue;
-            }
             DataLength = 16;
             break;
-
         default:
             continue;
-            break;
+        }
+
+        if( IpChunk_Find(&(m->c),
+                         (unsigned char *)RowDataPos,
+                         DataLength,
+                         (int *)&ActionType,
+                         &Data)
+            == FALSE )
+        {
+            continue;
         }
 
         switch( ActionType )
@@ -156,21 +151,20 @@ int IPMisc_Init(IPMisc *m)
     return 0;
 }
 
-/** Singleton */
+/** Mapping */
 
-static IPMisc   IpMiscSingleton;
-static BOOL     SingletonInited = FALSE;
+static IPMisc   IpMiscMapping;
+static BOOL     MappingInited = FALSE;
 
-static void IpMiscSingleton_Cleanup(void)
+static void IpMiscMapping_Cleanup(void)
 {
-    IPMisc_Free(&IpMiscSingleton);
+    IPMisc_Free(&IpMiscMapping);
 }
 
-int IpMiscSingleton_Init(ConfigFileInfo *ConfigInfo)
+int IpMiscMapping_Init(ConfigFileInfo *ConfigInfo)
 {
     StringList *BlockIP = ConfigGetStringList(ConfigInfo, "BlockIP");
-    StringList *IPSubstituting =
-                              ConfigGetStringList(ConfigInfo, "IPSubstituting");
+    StringList *IPSubstituting = ConfigGetStringList(ConfigInfo, "IPSubstituting");
 
     BOOL BlockNegative = ConfigGetBoolean(ConfigInfo, "BlockNegativeResponse");
 
@@ -181,13 +175,13 @@ int IpMiscSingleton_Init(ConfigFileInfo *ConfigInfo)
         return 0;
     }
 
-    if( IPMisc_Init(&IpMiscSingleton) != 0 )
+    if( IPMisc_Init(&IpMiscMapping) != 0 )
     {
         return -147;
     }
-    atexit(IpMiscSingleton_Cleanup);
+    atexit(IpMiscMapping_Cleanup);
 
-    IpMiscSingleton.SetBlockNegative(&IpMiscSingleton, BlockNegative);
+    IpMiscMapping.SetBlockNegative(&IpMiscMapping, BlockNegative);
 
     if( BlockIP != NULL )
     {
@@ -200,7 +194,7 @@ int IpMiscSingleton_Init(ConfigFileInfo *ConfigInfo)
 
         while( (Itr = i.Next(&i)) != NULL )
         {
-            IpMiscSingleton.AddBlockFromString(&IpMiscSingleton, Itr);
+            IpMiscMapping.AddBlockFromString(&IpMiscMapping, Itr);
         }
     }
 
@@ -217,25 +211,27 @@ int IpMiscSingleton_Init(ConfigFileInfo *ConfigInfo)
         Itr2 = i.Next(&i);
         while( Itr != NULL && Itr2 != NULL )
         {
-            IpMiscSingleton.AddSubstituteFromString(&IpMiscSingleton, Itr, Itr2);
+            IpMiscMapping.AddSubstituteFromString(&IpMiscMapping, Itr, Itr2);
 
             Itr = i.Next(&i);
             Itr2 = i.Next(&i);
         }
     }
 
-    SingletonInited = TRUE;
+    MappingInited = TRUE;
     return 0;
 }
 
-int IPMiscSingleton_Process(IHeader *h /* Entity followed */)
+int IPMiscMapping_Process(MsgContext *MsgCtx)
 {
-    if( !SingletonInited )
+    IHeader *h = (IHeader *)MsgCtx;
+
+    if( !MappingInited )
     {
         return IP_MISC_NOTHING;
     }
 
-    return IpMiscSingleton.Process(&IpMiscSingleton,
+    return IpMiscMapping.Process(&IpMiscMapping,
                                    IHEADER_TAIL(h),
                                    h->EntityLength
                                    );

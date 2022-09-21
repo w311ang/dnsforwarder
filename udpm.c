@@ -186,7 +186,7 @@ static void UdpM_Works(UdpM *m)
                      NULL
                      );
 
-        switch( IPMiscSingleton_Process(Header) )
+        switch( IPMiscMapping_Process(MsgCtx) )
         {
         case IP_MISC_NOTHING:
             break;

@@ -38,10 +38,10 @@ struct _IPMisc{
 
 int IPMisc_Init(IPMisc *m);
 
-/** Singleton */
+/** Mapping */
 
-int IpMiscSingleton_Init(ConfigFileInfo *ConfigInfo);
+int IpMiscMapping_Init(ConfigFileInfo *ConfigInfo);
 
-int IPMiscSingleton_Process(IHeader *h /* Entity followed */);
+int IPMiscMapping_Process(MsgContext *MsgCtx);
 
 #endif // IPMISC_H_INCLUDED
