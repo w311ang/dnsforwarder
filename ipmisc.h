@@ -38,6 +38,8 @@ struct _IPMisc{
 
 int IPMisc_Init(IPMisc *m);
 
+void IpMiscMapping_Update(void);
+
 /** Mapping */
 
 int IpMiscMapping_Init(ConfigFileInfo *ConfigInfo);

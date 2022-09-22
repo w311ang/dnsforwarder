@@ -122,7 +122,6 @@ static int IpSet_Parse(const char *s, const char *p, IpSet *ipSet)
         {
             ipSet->Ip.Zone = Z6noz;
         }
-
     } else {
         n = L;
     }
@@ -150,7 +149,7 @@ static int Contain(IpElement *New, IpElement *Elm)
     BitsNew = IpAddr_BitLength(ipAddrNew);
     BitsElm = IpAddr_BitLength(ipAddrElm);
 
-    // 1st: type
+    /* 1st: type */
     if( BitsNew != BitsElm )
     {
         return  BitsNew - BitsElm;
@@ -161,13 +160,13 @@ static int Contain(IpElement *New, IpElement *Elm)
         int prefixBitsElm = ipSetElm->PrefixBits;
         int ret = 0;
 
-        // 2nd: prefix bits
+        /* 2nd: prefix bits */
         if( prefixBitsNew < prefixBitsElm )
         {
             return 1;
         }
 
-        // 3rd: prefix value
+        /* 3rd: prefix value */
         if( BitsElm == 32 )
         {
             bn += 12;
@@ -178,7 +177,7 @@ static int Contain(IpElement *New, IpElement *Elm)
         {
             ret = memcmp(bn, be, 4);
 
-            if(ret != 0)
+            if( ret != 0 )
             {
                 return ret;
             }
@@ -187,7 +186,7 @@ static int Contain(IpElement *New, IpElement *Elm)
             be += 4;
         }
 
-        if( IpSet_IsSingleIp(ipSetElm) == FALSE && prefixBitsElm > 0 ) {
+        if( prefixBitsElm > 0 ) {
             uint32_t u32New, u32Elm, mask;
 
             mask = htonl(~(~0U >> prefixBitsElm));
@@ -196,7 +195,7 @@ static int Contain(IpElement *New, IpElement *Elm)
             ret = memcmp(&u32New, &u32Elm, 4);
         }
 
-        // 4th: zone
+        /* 4th: zone */
         if( ret == 0 )
         {
             if( IpAddr_HasZone(ipAddrElm) )
@@ -232,20 +231,28 @@ int IpChunk_Init(IpChunk *ic)
 
     if( Bst_Init(&(ic->CidrChunk), sizeof(IpElement), (CompareFunc)Contain) != 0 )
     {
-        return -1;
+        goto EXIT_1;
     }
 
     if( StableBuffer_Init(&(ic->Datas)) != 0 )
     {
-        return -1;
+        goto EXIT_2;
     }
 
     if( StableBuffer_Init(&(ic->Extra)) != 0 )
     {
-        return -1;
+        goto EXIT_3;
     }
 
     return 0;
+
+EXIT_3:
+    ic->Datas.Free(&(ic->Datas));
+EXIT_2:
+    ic->CidrChunk.Free(&(ic->CidrChunk));
+EXIT_1:
+    ic->AddrChunk.Free(&(ic->AddrChunk));
+    return -1;
 }
 
 int IpChunk_Add(IpChunk *ic,
@@ -289,7 +296,6 @@ int IpChunk_Add(IpChunk *ic,
         New.Data = ic->Datas.Add(&(ic->Datas), Data, DataLength, TRUE);
     }
 
-
     if( IpSet_IsSingleIp(&(New.IpSet)) )
     {
         elm = ic->AddrChunk.Add(&(ic->AddrChunk), &New);
@@ -327,10 +333,7 @@ BOOL IpChunk_Find(IpChunk *ic, unsigned char *Ip, int IpBytes, int *Type, const 
     Key.Type = 0;
     Key.Data = NULL;
 
-    if( IpSet_IsSingleIp(&(Key.IpSet)) )
-    {
-        Result = ic->AddrChunk.Search(&(ic->AddrChunk), &Key, NULL);
-    }
+    Result = ic->AddrChunk.Search(&(ic->AddrChunk), &Key, NULL);
     if( Result == NULL )
     {
         Result = ic->CidrChunk.Search(&(ic->CidrChunk), &Key, NULL);

@@ -8,6 +8,7 @@
 #include "rwlock.h"
 #include "logs.h"
 #include "filter.h"
+#include "ipmisc.h"
 #include "mmgr.h"
 
 #define SIZE_OF_PATH_BUFFER 384
@@ -151,6 +152,7 @@ static void GetHostsFromInternet_Thread(void *Unused1, void *Unused2)
 
         DynamicHosts_Load();
         Filter_Update();
+        IpMiscMapping_Update();
         Modules_Update();
 
         INFO("Reloading Modules completed.\n");

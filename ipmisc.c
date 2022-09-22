@@ -1,6 +1,11 @@
 #include <string.h>
 #include "ipmisc.h"
 #include "utils.h"
+#include "readline.h"
+#include "logs.h"
+#include "rwlock.h"
+
+#define SIZE_OF_PATH_BUFFER 384
 
 static int IPMisc_AddBlockFromString(IPMisc *m, const char *Ip)
 {
@@ -75,8 +80,7 @@ static int IPMisc_Process(IPMisc *m,
         MiscType ActionType = IP_MISC_TYPE_UNKNOWN;
         const char *Data = NULL;
         int DataLength = 0;
-
-        char *RowDataPos = i.RowData(&i);
+        char *RowDataPos;
 
         if( i.Klass != DNS_CLASS_IN )
         {
@@ -95,6 +99,7 @@ static int IPMisc_Process(IPMisc *m,
             continue;
         }
 
+        RowDataPos = i.RowData(&i);
         if( IpChunk_Find(&(m->c),
                          (unsigned char *)RowDataPos,
                          DataLength,
@@ -153,35 +158,111 @@ int IPMisc_Init(IPMisc *m)
 
 /** Mapping */
 
-static IPMisc   IpMiscMapping;
-static BOOL     MappingInited = FALSE;
+static IPMisc   *CurrIpMiscMapping = NULL;
+static RWLock   IpMiscMappingLock = {NULL};
+static ConfigFileInfo   *CurrConfigInfo = NULL;
+
+static void IpMiscMapping_Free(IPMisc *ipMiscMapping)
+{
+    if( ipMiscMapping == NULL )
+    {
+        return;
+    }
+
+    IPMisc_Free(ipMiscMapping);
+    SafeFree(ipMiscMapping);
+    ipMiscMapping = NULL;
+}
 
 static void IpMiscMapping_Cleanup(void)
 {
-    IPMisc_Free(&IpMiscMapping);
+    IpMiscMapping_Free(CurrIpMiscMapping);
+    RWLock_Destroy(IpMiscMappingLock);
 }
 
-int IpMiscMapping_Init(ConfigFileInfo *ConfigInfo)
+static int LoadIPSubstitutingFromFile(IPMisc *ipMiscMapping, const char *FilePath)
 {
-    StringList *BlockIP = ConfigGetStringList(ConfigInfo, "BlockIP");
-    StringList *IPSubstituting = ConfigGetStringList(ConfigInfo, "IPSubstituting");
+    FILE *fp;
+    ReadLineStatus  Status;
+    char    Mapping[512];
 
-    BOOL BlockNegative = ConfigGetBoolean(ConfigInfo, "BlockNegativeResponse");
-
-    StringListIterator i;
-
-    if( BlockIP == NULL && IPSubstituting == NULL && !BlockNegative )
+    if( ipMiscMapping == NULL || FilePath == NULL )
     {
         return 0;
     }
 
-    if( IPMisc_Init(&IpMiscMapping) != 0 )
+    fp = fopen(FilePath, "r");
+    if( fp == NULL )
     {
-        return -147;
+        return -118;
     }
-    atexit(IpMiscMapping_Cleanup);
 
-    IpMiscMapping.SetBlockNegative(&IpMiscMapping, BlockNegative);
+    while( TRUE )
+    {
+        Status = ReadLine(fp, Mapping, sizeof(Mapping));
+        if( Status == READ_FAILED_OR_END )
+        {
+            break;
+        }
+
+        if( Status == READ_DONE )
+        {
+            char *p, *Itr = NULL, *Itr2 = NULL;
+
+            for( p = Mapping; *p; ++p)
+            {
+                if( strchr(" \t", *p) != NULL )
+                {
+                    *p = 0;
+                } else if ( Itr == NULL ) {
+                    Itr = p;
+                } else if ( Itr2 == NULL && *(p - 1) == 0 ) {
+                    Itr2 = p;
+                }
+            }
+
+            ipMiscMapping->AddSubstituteFromString(ipMiscMapping, Itr, Itr2);
+        } else {
+            ReadLine_GoToNextLine(fp);
+        }
+    }
+
+    fclose(fp);
+
+    return 0;
+}
+
+static int IpMiscMapping_Load(void)
+{
+    IPMisc *IpMiscMapping;
+    StringList *BlockIP = ConfigGetStringList(CurrConfigInfo, "BlockIP");
+    StringList *IPSubstituting = ConfigGetStringList(CurrConfigInfo, "IPSubstituting");
+    StringList *IPSubstitutingFile = ConfigGetStringList(CurrConfigInfo, "IPSubstitutingFile");
+
+    BOOL BlockNegative = ConfigGetBoolean(CurrConfigInfo, "BlockNegativeResponse");
+
+    StringListIterator i;
+
+    int ret = 0;
+
+    if( BlockIP == NULL && IPSubstituting == NULL && IPSubstitutingFile == NULL && !BlockNegative )
+    {
+        return 0;
+    }
+
+    IpMiscMapping = SafeMalloc(sizeof(IPMisc));
+    if( IpMiscMapping == NULL )
+    {
+        return -146;
+    }
+
+    if( IPMisc_Init(IpMiscMapping) != 0 )
+    {
+        ret = -147;
+        goto EXIT_1;
+    }
+
+    IpMiscMapping->SetBlockNegative(IpMiscMapping, BlockNegative);
 
     if( BlockIP != NULL )
     {
@@ -189,12 +270,13 @@ int IpMiscMapping_Init(ConfigFileInfo *ConfigInfo)
 
         if( StringListIterator_Init(&i, BlockIP) != 0 )
         {
-            return -165;
+            ret = -165;
+            goto EXIT_2;
         }
 
         while( (Itr = i.Next(&i)) != NULL )
         {
-            IpMiscMapping.AddBlockFromString(&IpMiscMapping, Itr);
+            IpMiscMapping->AddBlockFromString(IpMiscMapping, Itr);
         }
     }
 
@@ -204,35 +286,107 @@ int IpMiscMapping_Init(ConfigFileInfo *ConfigInfo)
 
         if( StringListIterator_Init(&i, IPSubstituting) != 0 )
         {
-            return -176;
+            ret = -176;
+            goto EXIT_2;
         }
 
         Itr = i.Next(&i);
         Itr2 = i.Next(&i);
         while( Itr != NULL && Itr2 != NULL )
         {
-            IpMiscMapping.AddSubstituteFromString(&IpMiscMapping, Itr, Itr2);
+            IpMiscMapping->AddSubstituteFromString(IpMiscMapping, Itr, Itr2);
 
             Itr = i.Next(&i);
             Itr2 = i.Next(&i);
         }
     }
 
-    MappingInited = TRUE;
+    if( IPSubstitutingFile != NULL )
+    {
+        const char *FilePath;
+
+        if( StringListIterator_Init(&i, IPSubstitutingFile) != 0 )
+        {
+            ret = -176;
+            goto EXIT_2;
+        }
+
+        while( (FilePath = i.Next(&i)) != NULL )
+        {
+            char NewPath[SIZE_OF_PATH_BUFFER];
+
+            if( ExpandPathTo(NewPath, SIZE_OF_PATH_BUFFER, FilePath) != 0 )
+            {
+                ERRORMSG("Failed to expand path: %s.\n", FilePath);
+                continue;
+            }
+            if( LoadIPSubstitutingFromFile(IpMiscMapping, NewPath) != 0 )
+            {
+                ERRORMSG("Failed loading: %s.\n", FilePath);
+            }
+        }
+    }
+
+    RWLock_WrLock(IpMiscMappingLock);
+
+    IpMiscMapping_Free(CurrIpMiscMapping);
+    CurrIpMiscMapping = IpMiscMapping;
+
+    RWLock_UnWLock(IpMiscMappingLock);
+
+    INFO("Loading IPSubstituting(File)s completed.\n");
+
     return 0;
+
+EXIT_2:
+    IPMisc_Free(CurrIpMiscMapping);
+EXIT_1:
+    SafeFree(IpMiscMapping);
+
+   return ret;
+}
+
+int IpMiscMapping_Init(ConfigFileInfo *ConfigInfo)
+{
+    int ret;
+    RWLock_Init(IpMiscMappingLock);
+    CurrConfigInfo = ConfigInfo;
+
+    ret = IpMiscMapping_Load();
+    if( ret == 0 )
+    {
+        atexit(IpMiscMapping_Cleanup);
+    }
+
+    return ret;
+}
+
+void IpMiscMapping_Update(void)
+{
+    if ( ConfigGetBoolean(CurrConfigInfo, "ReloadIPSubstituting") )
+    {
+        IpMiscMapping_Load();
+    }
 }
 
 int IPMiscMapping_Process(MsgContext *MsgCtx)
 {
     IHeader *h = (IHeader *)MsgCtx;
+    int ret;
 
-    if( !MappingInited )
+    if( CurrIpMiscMapping == NULL )
     {
         return IP_MISC_NOTHING;
     }
 
-    return IpMiscMapping.Process(&IpMiscMapping,
+    RWLock_RdLock(IpMiscMappingLock);
+
+    ret = CurrIpMiscMapping->Process(CurrIpMiscMapping,
                                    IHEADER_TAIL(h),
                                    h->EntityLength
                                    );
+
+    RWLock_UnRLock(IpMiscMappingLock);
+
+    return ret;
 }

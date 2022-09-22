@@ -114,6 +114,9 @@ static int EnvironmentInit(void)
     ConfigAddOption(&ConfigInfo, "IPSubstituting", STRATEGY_APPEND, TYPE_STRING, TmpTypeDescriptor);
     ConfigSetStringDelimiters(&ConfigInfo, "IPSubstituting", "\t ,");
 
+    TmpTypeDescriptor.str = NULL;
+    ConfigAddOption(&ConfigInfo, "IPSubstitutingFile", STRATEGY_APPEND, TYPE_PATH, TmpTypeDescriptor);
+
     TmpTypeDescriptor.boolean = FALSE;
     ConfigAddOption(&ConfigInfo, "BlockNegativeResponse", STRATEGY_DEFAULT, TYPE_BOOLEAN, TmpTypeDescriptor);
 
@@ -161,6 +164,9 @@ static int EnvironmentInit(void)
 
     TmpTypeDescriptor.boolean = TRUE;
     ConfigAddOption(&ConfigInfo, "ReloadGroupFile", STRATEGY_DEFAULT, TYPE_BOOLEAN, TmpTypeDescriptor);
+
+    TmpTypeDescriptor.boolean = TRUE;
+    ConfigAddOption(&ConfigInfo, "ReloadIPSubstituting", STRATEGY_DEFAULT, TYPE_BOOLEAN, TmpTypeDescriptor);
 
     TmpTypeDescriptor.boolean = TRUE;
     ConfigAddOption(&ConfigInfo, "UseCache", STRATEGY_DEFAULT, TYPE_BOOLEAN, TmpTypeDescriptor);
