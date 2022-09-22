@@ -906,6 +906,15 @@ int ExpandPath(char *String, int BufferLength)
 #endif
 }
 
+int ExpandPathTo(char *Buffer, int BufferLength, const char *String)
+{
+    strncpy(Buffer, String, BufferLength - 1);
+    Buffer[BufferLength - 1] = 0;
+    ReplaceStr(Buffer, "\"", "");
+
+    return ExpandPath(Buffer, BufferLength);
+}
+
 char *GetLocalPathFromURL(const char *URL, char *Buffer, int BufferLength)
 {
     const char *Itr;

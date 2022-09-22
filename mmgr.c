@@ -333,12 +333,11 @@ static int Modules_InitFromFile(ModuleMap *ModuleMap, StringListIterator *i)
         return -201;
     }
 
-    strncpy(File, FileOri, sizeof(File));
-    File[sizeof(File) - 1] = '\0';
-
-    ReplaceStr(File, "\"", "");
-
-    ExpandPath(File, sizeof(File));
+    if( ExpandPathTo(File, MAX_PATH_BUFFER, FileOri) != 0 )
+    {
+        ERRORMSG("Failed to expand path: %s.\n", FileOri);
+        return -202;
+    }
 
     fp = fopen(File, "r");
     if( fp == NULL )
@@ -411,12 +410,12 @@ static int Modules_InitFromFile(ModuleMap *ModuleMap, StringListIterator *i)
     {
         char ListFile[MAX_PATH_BUFFER];
 
-        strncpy(ListFile, List, sizeof(ListFile));
-        ListFile[sizeof(ListFile) - 1] = '\0';
-
-        ReplaceStr(ListFile, "\"", "");
-
-        ExpandPath(ListFile, sizeof(ListFile));
+        if( ExpandPathTo(ListFile, MAX_PATH_BUFFER, List) != 0 )
+        {
+            ERRORMSG("Failed to expand path: %s.\n", List);
+            ret = -202;
+            goto EXIT_2;
+        }
 
         fp = fopen(ListFile, "r");
         if( fp == NULL )

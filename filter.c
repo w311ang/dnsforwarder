@@ -101,17 +101,20 @@ static int LoadDomainsFromFile(StringChunk *List, const char *FilePath)
         return -118;
     }
 
-    Status = ReadLine(fp, Domain, sizeof(Domain));
-    while( Status != READ_FAILED_OR_END )
+    while( TRUE )
     {
+        Status = ReadLine(fp, Domain, sizeof(Domain));
+        if( Status == READ_FAILED_OR_END )
+        {
+            break;
+        }
+
         if( Status == READ_DONE )
         {
             StringChunk_Add_Domain(List, Domain, NULL, 0);
         } else {
             ReadLine_GoToNextLine(fp);
         }
-
-        Status = ReadLine(fp, Domain, sizeof(Domain));
     }
 
     fclose(fp);

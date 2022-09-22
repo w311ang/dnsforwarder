@@ -10,13 +10,15 @@
 #include "filter.h"
 #include "mmgr.h"
 
+#define SIZE_OF_PATH_BUFFER 384
+
 static const char   *File = NULL;
 static RWLock       HostsLock = {NULL};
 static volatile HostsContainer  *MainDynamicContainer = NULL;
 
 /* Arguments for updating  */
 static int          HostsRetryInterval;
-static char         *Script = NULL; /* malloced */
+static char         Script[SIZE_OF_PATH_BUFFER] = "";
 static const char   **HostsURLs = NULL; /* malloced */
 
 static void DynamicHosts_ContainerCleanup(HostsContainer *DynamicContainer)
@@ -32,7 +34,6 @@ static void DynamicHosts_Cleanup(void)
 {
     DynamicHosts_ContainerCleanup((HostsContainer *)MainDynamicContainer);
     FreeCharPtrArray((char **)HostsURLs);
-    SafeFree(Script);
     RWLock_Destroy(HostsLock);
 }
 
@@ -137,7 +138,7 @@ static void GetHostsFromInternet_Thread(void *Unused1, void *Unused2)
     {
         INFO("Hosts saved at %s.\n", File);
 
-        if( Script != NULL )
+        if( *Script != 0 )
         {
             INFO("Running hosts script \"%s\"...\n", Script);
 
@@ -183,24 +184,13 @@ int DynamicHosts_Init(ConfigFileInfo *ConfigInfo)
     RawScript = ConfigGetRawString(ConfigInfo, "HostsScript");
     if( RawScript != NULL )
     {
-        static const int SIZE_OF_PATH_BUFFER = 1024;
-
-        Script = SafeMalloc(SIZE_OF_PATH_BUFFER);
-        if( Script == NULL )
+        if( ExpandPathTo(Script, SIZE_OF_PATH_BUFFER, RawScript) != 0 )
         {
-            ERRORMSG("No enough memory.\n");
-            return -160;
-        }
-
-        strcpy(Script, RawScript);
-
-        if( ExpandPath(Script, SIZE_OF_PATH_BUFFER) != 0 )
-        {
-            ERRORMSG("Path is too long : .\n", Script);
+            ERRORMSG("Failed to expand path: %s.\n", RawScript);
             return -170;
         }
     } else {
-        Script = NULL;
+        *Script = 0;
     }
 
     RWLock_Init(HostsLock);
