@@ -1,8 +1,8 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ([2.69])
-AC_INIT(dnsforwarder, 0.0, https://github.com/holmium/dnsforwarder/issues)
+AC_PREREQ([2.71])
+AC_INIT(dnsforwarder, 6.5, https://github.com/lifenjoiner/dnsforwarder/issues)
 AM_INIT_AUTOMAKE
 
 AC_CONFIG_SRCDIR([dnscache.h])
@@ -12,26 +12,26 @@ CFLAGS=" ${CFLAGS} -Wunreachable-code -Wall "
 
 AC_ARG_ENABLE([win],
 	[AS_HELP_STRING([--enable-win],
-	    [compile for Windows, you can set "32"(for 32-bit exe) or "64"(for 64-bit exe) or "no" (default=no)]
+		[compile for Windows, you can set "32"(for 32-bit exe) or "64"(for 64-bit exe) or "no" (default=no)]
 	)],
 	[   case "${enableval}" in
-	    32)  [WIN=32];;
-	    64)  [WIN=64];;
-	    no)   [WIN=no];;
-	    *)   AC_MSG_ERROR(bad value ${enableval} for --enable-win) ;;
-	    esac
+		32)  [WIN=32];;
+		64)  [WIN=64];;
+		no)  [WIN=no];;
+		*)   AC_MSG_ERROR(bad value ${enableval} for --enable-win) ;;
+		esac
 	],
 	[WIN=no]
 	)
 
 if test "$WIN" == "32"
 then
-    CFLAGS=" ${CFLAGS} -DWIN32 "
+	CFLAGS=" ${CFLAGS} -DWIN32 "
 fi
 
 if test "$WIN" == "64"
 then
-    CFLAGS=" ${CFLAGS} -DWIN32 -DWIN64 "
+	CFLAGS=" ${CFLAGS} -DWIN32 -DWIN64 "
 fi
 
 # Checks for programs.
@@ -47,7 +47,7 @@ AC_CHECK_FUNCS([sqrt])
 
 if test "$WIN" != "no"
 then
-    LDFLAGS=" ${LDFLAGS} -static-libgcc -DWIN32_LEAN_AND_MEAN "
+	LDFLAGS=" ${LDFLAGS} -static-libgcc -DWIN32_LEAN_AND_MEAN "
 
 	AC_CHECK_LIB(ws2_32, [main], ,
 		)
@@ -61,8 +61,8 @@ fi
 
 if test "$WIN" == "no"
 then
-    LDFLAGS=" ${LDFLAGS} -pthread "
-    CFLAGS=" ${CFLAGS} -pthread "
+	LDFLAGS=" ${LDFLAGS} -pthread "
+	CFLAGS=" ${CFLAGS} -pthread "
 
 	AC_ARG_ENABLE([android],
 		[AS_HELP_STRING([--enable-android],
@@ -87,10 +87,10 @@ then
 			[downloader, libcurl, wget, or no (default=libcurl)]
 		)],
 		[   case "${enableval}" in
-			libcurl)    DOWNLOADER=libcurl;;
-			wget)       DOWNLOADER=wget;;
-			no)         DOWNLOADER=no;;
-			*)          AC_MSG_ERROR(bad value ${enableval} for --enable-downloader) ;;
+			libcurl)	DOWNLOADER=libcurl;;
+			wget)	   DOWNLOADER=wget;;
+			no)		 DOWNLOADER=no;;
+			*)		  AC_MSG_ERROR(bad value ${enableval} for --enable-downloader) ;;
 			esac
 		],
 		[DOWNLOADER=libcurl]
@@ -122,10 +122,10 @@ then
 #			[base64decoder, openssl or coreutils or uudecode (default=openssl)]
 #		)],
 #		[   case "${enableval}" in
-#			openssl)    BASE64DECODER=openssl;;
+#			openssl)	BASE64DECODER=openssl;;
 #			uudecode)   BASE64DECODER=uudecode;;
 #			coreutils)  BASE64DECODER=coreutils;;
-#			*)          AC_MSG_ERROR(bad value ${enableval} for --enable-base64decoder) ;;
+#			*)		  AC_MSG_ERROR(bad value ${enableval} for --enable-base64decoder) ;;
 #			esac
 #		],
 #		[BASE64DECODER=openssl]
@@ -177,18 +177,19 @@ then
 	AC_FUNC_REALLOC
 	AC_CHECK_FUNC(setenv, AC_DEFINE(HAVE_SETENV, [], [setenv]), AC_MSG_WARN(Relative path is not supported.))
 	AC_CHECK_FUNC(wordexp, AC_DEFINE(HAVE_WORDEXP, [], [wordexp]), AC_MSG_WARN(Relative path is not supported.))
-    AC_CHECK_FUNCS([clock_gettime])
-    AC_CHECK_FUNCS([inet_ntoa])
-    AC_CHECK_FUNCS([memmove])
-    AC_CHECK_FUNCS([memset])
-    AC_CHECK_FUNCS([mkdir])
-    AC_CHECK_FUNCS([select])
-    AC_CHECK_FUNCS([socket])
-    AC_CHECK_FUNCS([strchr])
-    AC_CHECK_FUNCS([strerror])
-    AC_CHECK_FUNCS([strpbrk])
-    AC_CHECK_FUNCS([strrchr])
-    AC_CHECK_FUNCS([strstr])
+	AC_CHECK_FUNCS([atexit])
+	AC_CHECK_FUNCS([clock_gettime])
+	AC_CHECK_FUNCS([inet_ntoa])
+	AC_CHECK_FUNCS([memmove])
+	AC_CHECK_FUNCS([memset])
+	AC_CHECK_FUNCS([mkdir])
+	AC_CHECK_FUNCS([select])
+	AC_CHECK_FUNCS([socket])
+	AC_CHECK_FUNCS([strchr])
+	AC_CHECK_FUNCS([strerror])
+	AC_CHECK_FUNCS([strpbrk])
+	AC_CHECK_FUNCS([strrchr])
+	AC_CHECK_FUNCS([strstr])
 
 	AC_ARG_ENABLE([spinlock],
 		[AS_HELP_STRING([--enable-spinlock],
@@ -197,7 +198,7 @@ then
 		[   case "${enableval}" in
 			yes)  AC_CHECK_FUNCS([pthread_spin_init]) ;;
 			no)   [];;
-			*)   AC_MSG_ERROR(bad value ${enableval} for --enable-spinlock) ;;
+			*)    AC_MSG_ERROR(bad value ${enableval} for --enable-spinlock) ;;
 			esac
 		],
 		[AC_CHECK_FUNCS([pthread_spin_init])]
@@ -210,7 +211,7 @@ then
 		[   case "${enableval}" in
 			yes)  AC_CHECK_FUNCS([pthread_rwlock_init]) ;;
 			no)   [];;
-			*)   AC_MSG_ERROR(bad value ${enableval} for --enable-rwlock) ;;
+			*)    AC_MSG_ERROR(bad value ${enableval} for --enable-rwlock) ;;
 			esac
 		],
 		[AC_CHECK_FUNCS([pthread_rwlock_init])]
@@ -218,14 +219,16 @@ then
 
 	AC_TYPE_PID_T
 
-    # Checks for headers
-    AC_CHECK_HEADERS([arpa/inet.h])
-    AC_CHECK_HEADERS([fcntl.h])
-    AC_CHECK_HEADERS([netinet/in.h])
-    AC_CHECK_HEADERS([sys/socket.h])
+	# Checks for headers
+	AC_CHECK_HEADERS([arpa/inet.h])
+	AC_CHECK_HEADERS([fcntl.h])
+	AC_CHECK_HEADERS([netinet/in.h])
+	AC_CHECK_HEADERS([sys/socket.h])
+	AC_CHECK_HEADERS([unistd.h])
 fi
 
 # Checks for headers
+AC_CHECK_HEADERS([stdint.h])
 AC_CHECK_HEADERS([limits.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
@@ -237,13 +240,13 @@ AC_TYPE_UINT32_T
 
 AC_ARG_ENABLE([static],
 	[AS_HELP_STRING([--enable-static],
-	    [static link (default=no)]
+		[static link (default=no)]
 	)],
 	[   case "${enableval}" in
-	    yes)  [CFLAGS="${CFLAGS} -static "];;
-	    no)   [];;
-	    *)   AC_MSG_ERROR(bad value ${enableval} for --enable-static) ;;
-	    esac
+		yes)  [CFLAGS="${CFLAGS} -static "];;
+		no)   [];;
+		*)    AC_MSG_ERROR(bad value ${enableval} for --enable-static) ;;
+		esac
 	],
 	[]
 	)

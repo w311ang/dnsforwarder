@@ -86,6 +86,8 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
+build_triplet = @build@
+host_triplet = @host@
 bin_PROGRAMS = dnsforwarder$(EXEEXT)
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -102,21 +104,22 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
-am_dnsforwarder_OBJECTS = addresslist.$(OBJEXT) dynamichosts.$(OBJEXT) \
-	main.$(OBJEXT) array.$(OBJEXT) mcontext.$(OBJEXT) \
-	filter.$(OBJEXT) stablebuffer.$(OBJEXT) bst.$(OBJEXT) \
-	mmgr.$(OBJEXT) goodiplist.$(OBJEXT) statichosts.$(OBJEXT) \
-	cacheht.$(OBJEXT) hcontext.$(OBJEXT) pipes.$(OBJEXT) \
-	stringchunk.$(OBJEXT) cachettlcrtl.$(OBJEXT) hosts.$(OBJEXT) \
-	ptimer.$(OBJEXT) stringlist.$(OBJEXT) hostscontainer.$(OBJEXT) \
-	tcpm.$(OBJEXT) dnscache.$(OBJEXT) hostsutils.$(OBJEXT) \
-	readconfig.$(OBJEXT) timedtask.$(OBJEXT) \
-	dnsgenerator.$(OBJEXT) iheader.$(OBJEXT) readline.$(OBJEXT) \
-	udpfrontend.$(OBJEXT) dnsparser.$(OBJEXT) ipchunk.$(OBJEXT) \
-	udpm.$(OBJEXT) dnsrelated.$(OBJEXT) ipmisc.$(OBJEXT) \
-	simpleht.$(OBJEXT) utils.$(OBJEXT) domainstatistic.$(OBJEXT) \
-	linkedqueue.$(OBJEXT) socketpool.$(OBJEXT) winmsgque.$(OBJEXT) \
-	downloader.$(OBJEXT) logs.$(OBJEXT) socketpuller.$(OBJEXT)
+am_dnsforwarder_OBJECTS = addresslist.$(OBJEXT) array.$(OBJEXT) \
+	bst.$(OBJEXT) cacheht.$(OBJEXT) cachettlcrtl.$(OBJEXT) \
+	dnscache.$(OBJEXT) dnsgenerator.$(OBJEXT) dnsparser.$(OBJEXT) \
+	dnsrelated.$(OBJEXT) domainstatistic.$(OBJEXT) \
+	downloader.$(OBJEXT) dynamichosts.$(OBJEXT) filter.$(OBJEXT) \
+	goodiplist.$(OBJEXT) hosts.$(OBJEXT) hostscontainer.$(OBJEXT) \
+	hostsutils.$(OBJEXT) iheader.$(OBJEXT) ipchunk.$(OBJEXT) \
+	ipmisc.$(OBJEXT) linkedqueue.$(OBJEXT) logs.$(OBJEXT) \
+	main.$(OBJEXT) mcontext.$(OBJEXT) mmgr.$(OBJEXT) \
+	pipes.$(OBJEXT) ptimer.$(OBJEXT) readconfig.$(OBJEXT) \
+	readline.$(OBJEXT) simpleht.$(OBJEXT) socketpool.$(OBJEXT) \
+	socketpuller.$(OBJEXT) stablebuffer.$(OBJEXT) \
+	statichosts.$(OBJEXT) stringchunk.$(OBJEXT) \
+	stringlist.$(OBJEXT) tcpfrontend.$(OBJEXT) tcpm.$(OBJEXT) \
+	timedtask.$(OBJEXT) udpfrontend.$(OBJEXT) udpm.$(OBJEXT) \
+	utils.$(OBJEXT) winmsgque.$(OBJEXT)
 dnsforwarder_OBJECTS = $(am_dnsforwarder_OBJECTS)
 dnsforwarder_LDADD = $(LDADD)
 AM_V_P = $(am__v_P_@AM_V@)
@@ -177,8 +180,8 @@ CTAGS = ctags
 CSCOPE = cscope
 AM_RECURSIVE_TARGETS = cscope
 am__DIST_COMMON = $(srcdir)/config.h.in $(srcdir)/makefile.in AUTHORS \
-	COPYING ChangeLog INSTALL NEWS README compile depcomp \
-	install-sh missing
+	COPYING ChangeLog INSTALL NEWS README compile config.guess \
+	config.sub depcomp install-sh missing
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 distdir = $(PACKAGE)-$(VERSION)
 top_distdir = $(distdir)
@@ -206,7 +209,6 @@ AWK = @AWK@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
-CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DEFS = @DEFS@
@@ -214,9 +216,7 @@ DEPDIR = @DEPDIR@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
-EGREP = @EGREP@
 EXEEXT = @EXEEXT@
-GREP = @GREP@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -252,14 +252,22 @@ am__quote = @am__quote@
 am__tar = @am__tar@
 am__untar = @am__untar@
 bindir = @bindir@
+build = @build@
 build_alias = @build_alias@
+build_cpu = @build_cpu@
+build_os = @build_os@
+build_vendor = @build_vendor@
 builddir = @builddir@
 datadir = @datadir@
 datarootdir = @datarootdir@
 docdir = @docdir@
 dvidir = @dvidir@
 exec_prefix = @exec_prefix@
+host = @host@
 host_alias = @host_alias@
+host_cpu = @host_cpu@
+host_os = @host_os@
+host_vendor = @host_vendor@
 htmldir = @htmldir@
 includedir = @includedir@
 infodir = @infodir@
@@ -275,6 +283,7 @@ pdfdir = @pdfdir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
 psdir = @psdir@
+runstatedir = @runstatedir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
@@ -283,7 +292,96 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-dnsforwarder_SOURCES = addresslist.c downloader.h logs.h socketpuller.h addresslist.h dynamichosts.c main.c array.c dynamichosts.h mcontext.c array.h filter.c mcontext.h stablebuffer.c bst.c filter.h mmgr.c stablebuffer.h bst.h goodiplist.c mmgr.h statichosts.c cacheht.c goodiplist.h oo.h statichosts.h cacheht.h hcontext.c pipes.c stringchunk.c cachettlcrtl.c hcontext.h pipes.h stringchunk.h cachettlcrtl.h hosts.c ptimer.c stringlist.c hosts.h ptimer.h stringlist.h hostscontainer.c tcpm.c common.h hostscontainer.h tcpm.h dnscache.c hostsutils.c readconfig.c timedtask.c dnscache.h hostsutils.h readconfig.h timedtask.h dnsgenerator.c iheader.c readline.c udpfrontend.c dnsgenerator.h iheader.h readline.h udpfrontend.h dnsparser.c ipchunk.c udpm.c dnsparser.h ipchunk.h rwlock.h udpm.h dnsrelated.c ipmisc.c simpleht.c utils.c dnsrelated.h ipmisc.h simpleht.h utils.h domainstatistic.c linkedqueue.c socketpool.c winmsgque.c domainstatistic.h linkedqueue.h socketpool.h winmsgque.h downloader.c logs.c socketpuller.c
+dnsforwarder_SOURCES = \
+	addresslist.c \
+	addresslist.h \
+	array.c \
+	array.h \
+	bst.c \
+	bst.h \
+	cacheht.c \
+	cacheht.h \
+	cachettlcrtl.c \
+	cachettlcrtl.h \
+	common.h \
+	dnscache.c \
+	dnscache.h \
+	dnsgenerator.c \
+	dnsgenerator.h \
+	dnsparser.c \
+	dnsparser.h \
+	dnsrelated.c \
+	dnsrelated.h \
+	domainstatistic.c \
+	domainstatistic.h \
+	downloader.c \
+	downloader.h \
+	dynamichosts.c \
+	dynamichosts.h \
+	filter.c \
+	filter.h \
+	goodiplist.c \
+	goodiplist.h \
+	hosts.c \
+	hosts.h \
+	hostscontainer.c \
+	hostscontainer.h \
+	hostsutils.c \
+	hostsutils.h \
+	iheader.c \
+	iheader.h \
+	ipchunk.c \
+	ipchunk.h \
+	ipmisc.c \
+	ipmisc.h \
+	linkedqueue.c \
+	linkedqueue.h \
+	logs.c \
+	logs.h \
+	main.c \
+	mcontext.c \
+	mcontext.h \
+	mmgr.c \
+	mmgr.h \
+	oo.h \
+	pipes.c \
+	pipes.h \
+	ptimer.c \
+	ptimer.h \
+	readconfig.c \
+	readconfig.h \
+	readline.c \
+	readline.h \
+	rwlock.h \
+	simpleht.c \
+	simpleht.h \
+	socketpool.c \
+	socketpool.h \
+	socketpuller.c \
+	socketpuller.h \
+	stablebuffer.c \
+	stablebuffer.h \
+	statichosts.c \
+	statichosts.h \
+	stringchunk.c \
+	stringchunk.h \
+	stringlist.c \
+	stringlist.h \
+	tcpfrontend.c \
+	tcpfrontend.h \
+	tcpm.c \
+	tcpm.h \
+	timedtask.c \
+	timedtask.h \
+	udpfrontend.c \
+	udpfrontend.h \
+	udpm.c \
+	udpm.h \
+	utils.c \
+	utils.h \
+	winmsgque.c \
+	winmsgque.h
+
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
@@ -404,7 +502,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dynamichosts.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/goodiplist.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hcontext.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hosts.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hostscontainer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hostsutils.Po@am__quote@
@@ -427,6 +524,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/statichosts.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stringchunk.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stringlist.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tcpfrontend.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tcpm.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/timedtask.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/udpfrontend.Po@am__quote@
