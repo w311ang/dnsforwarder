@@ -155,10 +155,6 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="../goodiplist.h" />
-		<Unit filename="../hcontext.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="../hcontext.h" />
 		<Unit filename="../hosts.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -211,12 +207,6 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="../ptimer.h" />
-		<Unit filename="../querydnslistentcp.c">
-			<Option compilerVar="CC" />
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
-		<Unit filename="../querydnslistentcp.h" />
 		<Unit filename="../readconfig.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -257,6 +247,10 @@
 		<Unit filename="../tcpm.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="../tcpfrontend.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../tcpfrontend.h" />
 		<Unit filename="../tcpm.h" />
 		<Unit filename="../timedtask.c">
 			<Option compilerVar="CC" />
