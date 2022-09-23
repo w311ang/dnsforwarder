@@ -23,3 +23,5 @@ config.log
 config.status
 makefile
 stamp-h1
+
+!codeblocks_win/makefile
