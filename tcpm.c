@@ -656,7 +656,7 @@ static int TcpM_Works(TcpM *m)
                 {
                     /* If Server force closed the keep-alive SOCKET: */
                     IHeader *Header2 = (IHeader *)TcpCtx->MsgCtx;
-                    if( TcpCtx->Queried > 1 && Header2 != NULL && Header2->Domain != 0 )
+                    if( TcpCtx->Queried > 1 && Header2 != NULL && *(Header2->Domain) != 0 )
                     {
                         INFO("TCP retrying for %s ...\n", Header2->Domain);
                         TcpM_Send_Actual(m, TcpCtx->MsgCtx, TcpCtx->ServerIndex);
