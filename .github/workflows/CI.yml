@@ -1,0 +1,84 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: dnsforwarder-${{matrix.env}}-${{matrix.os}}
+    runs-on: ${{matrix.os}} # run native test
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            env: x86_64
+            sys: mingw64
+            bin: codeblocks_win/bin/Release/dnsforwarder.exe
+            shell: msys2 {0}
+
+          - os: windows-latest
+            env: i686
+            sys: mingw32
+            bin: codeblocks_win/bin/Release/dnsforwarder.exe
+            shell: msys2 {0}
+
+          - os: ubuntu-latest
+            env: amd64
+            bin: dnsforwarder
+            shell: bash
+
+          - os: ubuntu-latest
+            env: i386
+            bin: dnsforwarder
+            shell: bash
+
+      fail-fast: false
+
+    defaults:
+      run:
+        shell: ${{matrix.shell}}
+
+    steps:
+    - uses: actions/checkout@v3
+
+      # https://github.com/msys2/setup-msys2
+    - name: "${{matrix.os}}: Set up MSYS2"
+      if: runner.os == 'Windows'
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: ${{matrix.sys}}
+        release: false
+        # pacman group: https://packages.msys2.org/group/
+        install: >-
+          mingw-w64-${{matrix.env}}-gcc
+          mingw-w64-${{matrix.env}}-make
+
+    - name: "${{matrix.os}}: Setup and Config"
+      if: runner.os == 'Linux'
+      run: |
+        echo Setting up gcc ${{matrix.env}} ...
+        sudo dpkg --add-architecture ${{matrix.env}}
+        sudo apt-get update
+        if [ "${{matrix.env}}" = "i386" ]; then
+          sudo apt-get install gcc-multilib
+          export CFLAGS="-m32"
+        fi
+        sudo apt-get install libcurl4-gnutls-dev:${{matrix.env}}
+        echo Configuring ...
+        autoreconf
+        ./configure
+
+    - name: Build
+      run: |
+        if [ "${{runner.os}}" = "Windows" ]; then
+          cd codeblocks_win
+          mingw32-make
+        elif [ "${{runner.os}}" = "Linux" ]; then
+          make
+        fi
+
+    - name: Upload
+      uses: actions/upload-artifact@v3
+      with:
+        name: dnsforwarder-${{github.ref_name}}-${{matrix.env}}-${{runner.os}}
+        path: |
+          ${{matrix.bin}}
