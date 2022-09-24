@@ -159,7 +159,7 @@ int IPMisc_Init(IPMisc *m)
 /** Mapping */
 
 static IPMisc   *CurrIpMiscMapping = NULL;
-static RWLock   IpMiscMappingLock = {NULL};
+static RWLock   IpMiscMappingLock = NULL_RWLOCK;
 static ConfigFileInfo   *CurrConfigInfo = NULL;
 
 static void IpMiscMapping_Free(IPMisc *ipMiscMapping)

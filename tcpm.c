@@ -561,7 +561,7 @@ static int TcpM_Cleanup(TcpM *m)
     SafeFree(m->ServiceFamilies);
     SafeFree(m->SocksProxyFamilies);
 
-    m->WorkThread = NULL;
+    m->WorkThread = NULL_THREAD;
 
     return 0;
 }

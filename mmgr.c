@@ -34,7 +34,7 @@ typedef struct _ModuleMap {
 } ModuleMap;
 
 static ModuleMap    *CurModuleMap = NULL;
-static RWLock       ModulesLock = {NULL};
+static RWLock       ModulesLock = NULL_RWLOCK;
 static ConfigFileInfo *CurrConfigInfo = NULL;
 
 static BOOL EnableUDPtoTCP;
@@ -599,13 +599,13 @@ static int Modules_SafeCleanup(ModuleMap *ModuleMap)
                 if( strcmp(M->ModuleName, "UDP") == 0 )
                 {
                     M->ModuleUnion.Udp.IsServer = 0;
-                    InUse |= M->ModuleUnion.Udp.WorkThread != NULL;
-                    InUse |= M->ModuleUnion.Udp.SwepThread != NULL;
+                    InUse |= M->ModuleUnion.Udp.WorkThread != NULL_THREAD;
+                    InUse |= M->ModuleUnion.Udp.SwepThread != NULL_THREAD;
                 }
                 else if( strcmp(M->ModuleName, "TCP") == 0 )
                 {
                     M->ModuleUnion.Tcp.IsServer = 0;
-                    InUse |= M->ModuleUnion.Tcp.WorkThread != NULL;
+                    InUse |= M->ModuleUnion.Tcp.WorkThread != NULL_THREAD;
                 }
             }
         }

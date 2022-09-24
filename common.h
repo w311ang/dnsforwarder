@@ -35,6 +35,7 @@
 
     /* In Windows, the indetifer of a thread is just a 'HANDLE'. */
     typedef HANDLE  ThreadHandle;
+    #define NULL_THREAD ((ThreadHandle)NULL)
     /* And Mutex */
     typedef HANDLE  MutexHandle;
 
@@ -142,6 +143,7 @@
     /* We use pthread to implement multi threads */
     /* The indetifer of pthread is 'pthread_t'. */
     typedef pthread_t           ThreadHandle;
+    #define NULL_THREAD         ((ThreadHandle)0)
     /* And mutex */
     typedef pthread_mutex_t     MutexHandle;
     /* spin lock */
@@ -281,8 +283,6 @@
 #else /* WIN32 */
     #define GetFileDirectory(out)   (GetConfigDirectory(out))
 #endif /* WIN32 */
-
-#define INVALID_THREAD  ((ThreadHandle)NULL)
 
 #ifndef MSG_NOSIGNAL
 #define MSG_NOSIGNAL    0

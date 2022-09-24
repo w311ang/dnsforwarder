@@ -18,6 +18,7 @@
     #else /* WIN64 */
         typedef CRITICAL_SECTION RWLock;
     #endif /* WIN64 */
+    #define NULL_RWLOCK {NULL}
 #else /* WIN32 */
 
 #ifdef HAVE_PTHREAD_RWLOCK_INIT
@@ -25,6 +26,7 @@
 #else /* HAVE_PTHREAD_RWLOCK_INIT */
     typedef pthread_mutex_t  RWLock;
 #endif /* HAVE_PTHREAD_RWLOCK_INIT */
+    #define NULL_RWLOCK {0}
 
 #endif /* WIN32 */
 

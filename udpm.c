@@ -35,7 +35,7 @@ static int SwepTask(UdpM *m, SwepCallback cb)
 
 static int UdpM_Swep_Thread(UdpM *m)
 {
-    while( m->IsServer || m->WorkThread != NULL)
+    while( m->IsServer || m->WorkThread != NULL_THREAD)
     {
         SwepTask(m, (SwepCallback)SweepWorks);
         SLEEP(10000);
@@ -44,7 +44,7 @@ static int UdpM_Swep_Thread(UdpM *m)
     ModuleContext_Free(&(m->Context));
     EFFECTIVE_LOCK_DESTROY(m->Lock);
 
-    m->SwepThread = NULL;
+    m->SwepThread = NULL_THREAD;
 
     return 0;
 }
@@ -59,7 +59,7 @@ static int UdpM_Cleanup(UdpM *m)
     SafeFree(m->Parallels.addrs);
     AddressList_Free(&(m->AddrList));
 
-    m->WorkThread = NULL;
+    m->WorkThread = NULL_THREAD;
 
     return 0;
 }

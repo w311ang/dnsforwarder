@@ -12,7 +12,7 @@
 static Bst          *DisabledTypes = NULL;
 
 static StringChunk  *DisabledDomain = NULL;
-static RWLock       DisabledDomainLock = {NULL};
+static RWLock       DisabledDomainLock = NULL_RWLOCK;
 
 static ConfigFileInfo *CurrConfigInfo = NULL;
 

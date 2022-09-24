@@ -126,7 +126,7 @@ int GetModulePath(char *Buffer, int BufferLength)
 
     return strlen(Buffer);
 #else
-#warning Implement this
+    return -1;
 #endif
 }
 

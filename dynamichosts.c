@@ -14,7 +14,7 @@
 #define SIZE_OF_PATH_BUFFER 384
 
 static const char   *File = NULL;
-static RWLock       HostsLock = {NULL};
+static RWLock       HostsLock = NULL_RWLOCK;
 static volatile HostsContainer  *MainDynamicContainer = NULL;
 
 /* Arguments for updating  */

@@ -19,7 +19,7 @@
 static BOOL             Inited = FALSE;
 static BOOL             CacheParallel = FALSE;
 
-static RWLock           CacheLock = {NULL};
+static RWLock           CacheLock = NULL_RWLOCK;
 
 static FileHandle       CacheFileHandle = INVALID_FILE;
 static MappingHandle    CacheMappingHandle = INVALID_MAP;
