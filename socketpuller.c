@@ -47,7 +47,8 @@ PUBFUNC SOCKET SocketPuller_Select(SocketPuller *p,
                                    )
 {
     fd_set ReadySet;
-    int Err;
+    SOCKET s;
+    int Err = 0;
 
     ReadySet = p->s;
 
@@ -68,21 +69,25 @@ PUBFUNC SOCKET SocketPuller_Select(SocketPuller *p,
             {
                 continue;
             }
-            if( err != NULL )
-            {
-                *err = Err;
-            }
             /* No break; */
         case 0:
             /* timeout */
-            return INVALID_SOCKET;
+            s = INVALID_SOCKET;
             break;
 
         default:
-            return p->p.FetchOnSet(&(p->p), &ReadySet, Data);
+            s = p->p.FetchOnSet(&(p->p), &ReadySet, Data);
             break;
         }
+
+        break;
     }
+
+    if( err != NULL )
+    {
+        *err = Err;
+    }
+    return s;
 }
 
 PUBFUNC void SocketPuller_CloseAll(SocketPuller *p, SOCKET ExceptFor)
