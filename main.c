@@ -104,6 +104,9 @@ static int EnvironmentInit(void)
     TmpTypeDescriptor.boolean = FALSE;
     ConfigAddOption(&ConfigInfo, "EnableTCPtoUDP", STRATEGY_DEFAULT, TYPE_BOOLEAN, TmpTypeDescriptor);
 
+    TmpTypeDescriptor.INT32 = 5;
+    ConfigAddOption(&ConfigInfo, "TCPKeepAlive", STRATEGY_DEFAULT, TYPE_INT32, TmpTypeDescriptor);
+
     TmpTypeDescriptor.str = NULL;
     ConfigAddOption(&ConfigInfo, "BlockIP", STRATEGY_APPEND, TYPE_STRING, TmpTypeDescriptor);
 

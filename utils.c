@@ -1117,6 +1117,17 @@ int SetSocketNonBlock(SOCKET sock, BOOL NonBlocked)
 #endif
 }
 
+int SetSocketTimeout(SOCKET Sock, int OptName, int Timeout)
+{
+#ifdef WIN32
+    DWORD t = Timeout;
+#else
+    struct timeval t = {Timeout / 1000, (Timeout % 1000) * 1000};
+#endif
+
+    return setsockopt(Sock, SOL_SOCKET, OptName, (void *)&t, sizeof(t));
+}
+
 BOOL SocketIsWritable(SOCKET sock, int Timeout)
 {
     struct timeval TimeLimit = {Timeout / 1000, (Timeout % 1000) * 1000};

@@ -108,6 +108,7 @@ static int ModuleContext_GenAnswerHeaderAndRemove(ModuleContext *c,
     h2->EntityLength = EntityLength;
     h2->EDNSEnabled = EDNSEnabled;
 
+    IHeader_Reset((IHeader *)ri);
     c->d.Delete(&(c->d), ri);
 
     return 0;

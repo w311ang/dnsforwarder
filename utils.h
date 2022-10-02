@@ -149,6 +149,8 @@ char *ReplaceStr_WithLengthChecking(char *Src,
 
 int SetSocketNonBlock(SOCKET sock, BOOL NonBlocked);
 
+int SetSocketTimeout(SOCKET Sock, int OptName, int Timeout);
+
 BOOL SocketIsWritable(SOCKET sock, int Timeout);
 
 BOOL SocketIsStillReadable(SOCKET Sock, int timeout);

@@ -40,6 +40,8 @@ static ConfigFileInfo *CurrConfigInfo = NULL;
 static BOOL EnableUDPtoTCP;
 static BOOL EnableTCPtoUDP;
 
+int TCPM_Keep_Alive = 2;
+
 static void DomainList_Tidy(StringList *DomainList)
 {
     DomainList->TrimAll(DomainList, "\t .");
@@ -717,6 +719,7 @@ int MMgr_Init(ConfigFileInfo *ConfigInfo)
 
     EnableUDPtoTCP = ConfigGetBoolean(ConfigInfo, "EnableUDPtoTCP");
     EnableTCPtoUDP = ConfigGetBoolean(ConfigInfo, "EnableTCPtoUDP");
+    TCPM_Keep_Alive = ConfigGetInt32(ConfigInfo, "TCPKeepAlive");
 
     RWLock_Init(ModulesLock);
 

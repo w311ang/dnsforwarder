@@ -18,10 +18,10 @@ extern BOOL Ipv6_Enabled;
 #define TIMEOUT_ms_SEND 2000
 #define TIMEOUT_ms_RECV 2000
 #define TIMEOUT_ms_ALIVE    100
-#define KEEP_ALIVE  120
 
 #define CONTEXT_DATA_LENGTH 2048
 
+extern int TCPM_Keep_Alive;
 static const struct timeval TimeOut_Const = {TIMEOUT, 0};
 
 typedef struct _TcpContext
@@ -30,7 +30,9 @@ typedef struct _TcpContext
     time_t  LastActivity;
     /* To retry for server that force closed SOCKET. */
     int         Queried;
-    MsgContext *MsgCtx;
+    int         MsgCtxQid;
+    uint32_t    MsgCtxHash;
+    MsgContext  *MsgCtx;
 } TcpContext;
 
 static void SweepWorks(MsgContext *MsgCtx, int Number, TcpM *Module)
@@ -53,9 +55,9 @@ static void TcpM_Connect_Recycle(SocketPuller *Puller, SocketPuller **Backups)
     SOCKET s = INVALID_SOCKET;
     int Err;
 
-    while( TRUE )
+    while( Puller != NULL )
     {
-        struct timeval TimeOut = TimeOut_Const;
+        struct timeval TimeOut = {0, TIMEOUT_ms_ALIVE * 1000};
 
         s = Puller->Select(Puller, &TimeOut, (void **)&TcpCtx, FALSE, TRUE, &Err);
 
@@ -75,6 +77,10 @@ static void TcpM_Connect_Recycle(SocketPuller *Puller, SocketPuller **Backups)
     }
 }
 
+/* Connection Handling: https://www.rfc-editor.org/rfc/rfc7766#section-6
+    To get a clear state of the TCP, we don't use pipeline.
+    We use a short keep-alive to avoid the server is non-readable but writable.
+*/
 static SOCKET TcpM_Connect_GetAvailable(SocketPuller *p, TcpContext **TcpCtx)
 {
     SOCKET s = INVALID_SOCKET;
@@ -96,7 +102,7 @@ static SOCKET TcpM_Connect_GetAvailable(SocketPuller *p, TcpContext **TcpCtx)
         } else {
             p->Del(p, s); /* Single thread: delete before adding is safe. */
 
-            if( time(NULL) - (*TcpCtx)->LastActivity > KEEP_ALIVE ) {
+            if( time(NULL) - (*TcpCtx)->LastActivity > TCPM_Keep_Alive ) {
                 INFO("Existing TCP connection expired, discard.\n");
                 CLOSE_SOCKET(s);
                 s = INVALID_SOCKET;
@@ -111,17 +117,10 @@ static SOCKET TcpM_Connect_GetAvailable(SocketPuller *p, TcpContext **TcpCtx)
 
 static SOCKET TcpM_Connect_Addr(sa_family_t af, struct sockaddr *addr)
 {
-    int optval = 1;
     SOCKET s = socket(af, SOCK_STREAM, IPPROTO_TCP);
 
     if( s == INVALID_SOCKET )
     {
-        return INVALID_SOCKET;
-    }
-
-    if( setsockopt(s, SOL_SOCKET, SO_KEEPALIVE, (const void *)&optval, sizeof(int)) != 0 )
-    {
-        CLOSE_SOCKET(s);
         return INVALID_SOCKET;
     }
 
@@ -143,7 +142,7 @@ static SOCKET TcpM_Connect_Addr(sa_family_t af, struct sockaddr *addr)
     return s;
 }
 
-static int TcpM_Connect(TcpM *m, int ServerIndex)
+static int TcpM_Connect(TcpM *m, int ServerIndex, BOOL IsProxy)
 {
     SOCKET s = INVALID_SOCKET;
     struct sockaddr **ServerAddresses;
@@ -154,7 +153,7 @@ static int TcpM_Connect(TcpM *m, int ServerIndex)
     int i, NumOfServers, Shift, idx, n = 0;
     TcpContext *TcpCtx, TcpCtxNew;
 
-    if( m->SocksProxies == NULL )
+    if( m->SocksProxies == NULL || IsProxy == FALSE )
     {
         ServerAddresses = m->Services;
         Families = m->ServiceFamilies;
@@ -211,18 +210,33 @@ static int TcpM_Connect(TcpM *m, int ServerIndex)
         }
 
         /* New */
-        s = TcpM_Connect_Addr(Families[idx], ServerAddresses[idx]);
-        if( s == INVALID_SOCKET )
+        if( m->SocksProxies == NULL || IsProxy == TRUE )
         {
-            continue;
+            s = TcpM_Connect_Addr(Families[idx], ServerAddresses[idx]);
+            if( s == INVALID_SOCKET )
+            {
+                continue;
+            }
+            DEBUG("Created new connection for Pullers[%d].\n", idx);
+            TcpCtxNew.ServerIndex = idx;
+            TcpCtxNew.LastActivity = time(NULL);
+            TcpCtxNew.Queried = 0;
+            TcpCtx = &TcpCtxNew;
+        } else {
+            if( TcpM_Connect(m, -1, TRUE) > 0 ) {
+                s = TcpM_Connect_GetAvailable(&(m->ProxyPuller), &TcpCtx);
+                if( s == INVALID_SOCKET )
+                {
+                    continue;
+                }
+                DEBUG("Got proxy connection for Pullers[%d].\n", idx);
+                TcpCtx->ServerIndex = idx;
+            } else {
+                continue;
+            }
         }
 
-        DEBUG("Created new connection for Pullers[%d].\n", idx);
-        TcpCtxNew.ServerIndex = idx;
-        TcpCtxNew.LastActivity = time(NULL);
-        TcpCtxNew.Queried = 0;
-        Puller->Add(Puller, s, &TcpCtxNew, sizeof(TcpContext));
-
+        Puller->Add(Puller, s, TcpCtx, sizeof(TcpContext));
         n++;
     }
 
@@ -231,11 +245,14 @@ static int TcpM_Connect(TcpM *m, int ServerIndex)
 
 static int TcpM_SendWrapper(SOCKET Sock, const char *Start, int Length)
 {
+    time_t t = time(NULL);
+
     while( send(Sock, Start, Length, MSG_NOSIGNAL) != Length )
     {
         int LastError = GET_LAST_ERROR();
         if( FatalErrorDecideding(LastError) != 0 ||
-                !SocketIsWritable(Sock, TIMEOUT_ms_SEND)
+                !SocketIsWritable(Sock, TIMEOUT_ms_SEND) ||
+                time(NULL) - t > TIMEOUT_ms_SEND / 1000
                 )
         {
             ShowSocketError("Sending to TCP server or proxy failed.", LastError);
@@ -249,12 +266,14 @@ static int TcpM_SendWrapper(SOCKET Sock, const char *Start, int Length)
 static int TcpM_RecvWrapper(SOCKET Sock, char *Buffer, int BufferSize)
 {
     int Recvlength;
+    time_t t = time(NULL);
 
     while( (Recvlength = recv(Sock, Buffer, BufferSize, 0)) < 0 )
     {
         int LastError = GET_LAST_ERROR();
         if( FatalErrorDecideding(LastError) != 0 ||
-                !SocketIsStillReadable(Sock, TIMEOUT_ms_SEND)
+                !SocketIsStillReadable(Sock, TIMEOUT_ms_RECV) ||
+                time(NULL) - t > TIMEOUT_ms_RECV / 1000
                 )
         {
             ShowSocketError("Receiving from TCP server or proxy failed", LastError);
@@ -275,6 +294,8 @@ static int TcpM_ProxyPreparation(SOCKET Sock,
     unsigned short Port;
     char RecvBuffer[16];
 
+    DEBUG("Negotiating with TCP proxy ...\n");
+
     if( TcpM_SendWrapper(Sock, "\x05\x01\x00", 3) != 3 )
     {
         ERRORMSG("Cannot negotiate with TCP proxy.\n");
@@ -289,7 +310,6 @@ static int TcpM_ProxyPreparation(SOCKET Sock,
 
     if( RecvBuffer[0] != '\x05' || RecvBuffer[1] != '\x00' )
     {
-        /*printf("---------3 : %x %x\n", RecvBuffer[0], RecvBuffer[1]);*/
         ERRORMSG("Cannot negotiate with TCP proxy.\n");
         return -3;
     }
@@ -312,7 +332,7 @@ static int TcpM_ProxyPreparation(SOCKET Sock,
            sizeof(Port)
            );
 
-    INFO("Proxy is Connecting to TCP server.\n");
+    DEBUG("Proxy is Connecting to TCP server ...\n");
 
     if( TcpM_SendWrapper(Sock,
                          AddressInfos,
@@ -324,29 +344,6 @@ static int TcpM_ProxyPreparation(SOCKET Sock,
         return -4;
     }
 
-/*
-    if( TcpM_SendWrapper(Sock, "\x05\x01\x00\x03", 4) != 4 )
-    {
-        ERRORMSG("Cannot communicate with TCP proxy, connection to TCP server error.\n");
-        return -4;
-    }
-
-    if( TcpM_SendWrapper(Sock, &NumberOfCharacter, 1) != 1 )
-    {
-        ERRORMSG("Cannot communicate with TCP proxy, connection to TCP server error.\n");
-        return -5;
-    }
-    if( TcpM_SendWrapper(Sock, AddressString, NumberOfCharacter) != NumberOfCharacter )
-    {
-        ERRORMSG("Cannot communicate with TCP proxy, connection to TCP server error.\n");
-        return -6;
-    }
-    if( TcpM_SendWrapper(Sock, (const char *)&Port, sizeof(Port)) != sizeof(Port) )
-    {
-        ERRORMSG("Cannot communicate with TCP proxy, connection to TCP server error.\n");
-        return -7;
-    }
-*/
     if( TcpM_RecvWrapper(Sock, RecvBuffer, 4) != 4 )
     {
         ERRORMSG("Proxy Cannot communicate with TCP proxy.\n");
@@ -375,13 +372,12 @@ static int TcpM_ProxyPreparation(SOCKET Sock,
             break;
 
         default:
-            /*printf("------Here : %d %d %d %d\n", RecvBuffer[0], RecvBuffer[1], RecvBuffer[2], RecvBuffer[3]);*/
             ERRORMSG("Proxy Cannot communicate with TCP proxy.\n");
             return -11;
     }
     ClearTCPSocketBuffer(Sock, NumberOfCharacter);
 
-    DEBUG("Proxy has Connected to TCP server.\n");
+    INFO("Proxy has Connected to TCP server.\n");
 
     return 0;
 
@@ -393,12 +389,10 @@ static int TcpM_Send_Actual(TcpM *m, MsgContext *MsgCtx, int SingleServerIndex)
 
     SocketPuller *p;
     TcpContext *TcpCtx;
-    int i, NumOfServers, Shift, idx, n = 0;
+    int i, NumOfServers, n = 0;
 
     IHeader *h = (IHeader *)MsgCtx;
     char *msg = (char *)(IHEADER_TAIL(h)) - 2;
-
-    BOOL NewRound = FALSE;
 
     DNSSetTcpLength(msg, h->EntityLength);
 
@@ -409,36 +403,27 @@ static int TcpM_Send_Actual(TcpM *m, MsgContext *MsgCtx, int SingleServerIndex)
         NumOfServers = 1;
     }
 
+    p = &(m->QueryPuller);
+
     if( m->SocksProxies == NULL )
     {
-        p = &(m->QueryPuller);
         Type = "server";
     } else {
-        p = &(m->ProxyPuller);
         Type = "proxy";
     }
 
     DEBUG("Send to Pullers[%d].\n", SingleServerIndex);
 
-    if( TcpM_Connect(m, SingleServerIndex) < 1 )
+    if( TcpM_Connect(m, SingleServerIndex, FALSE) < 1 )
     {
         return 0;
     }
-
-    Shift = rand();
-
-    idx = SingleServerIndex;
 
     for( i = 0; i < NumOfServers; ++i )
     {
         SOCKET s;
         int Err;
         struct timeval TimeOut = TimeOut_Const;
-
-        if( m->SocksProxies != NULL && NewRound )
-        {
-            TcpM_Connect(m, SingleServerIndex);
-        }
 
         s = p->Select(p, &TimeOut, (void **)&TcpCtx, FALSE, TRUE, &Err);
 
@@ -455,41 +440,19 @@ static int TcpM_Send_Actual(TcpM *m, MsgContext *MsgCtx, int SingleServerIndex)
             p->Del(p, s);
         }
 
-        if( m->SocksProxies != NULL )
+        if( m->SocksProxies != NULL && TcpCtx->Queried == 0 )
         {
             struct sockaddr *addr;
             sa_family_t family;
 
-            if( SingleServerIndex < 0 )
-            {
-                idx = (Shift + i) % NumOfServers;
-            }
-
-            if( m->Parallel || SingleServerIndex >= 0)
-            {
-                addr = AddressList_GetOneBySubscript(&(m->ServiceList), &family, idx);
-            } else {
-                addr = AddressList_GetOne(&(m->ServiceList), &family);
-            }
-
-            if( addr == NULL )
-            {
-                AddressList_Advance(&(m->ServiceList));
-                p->Add(p, s, TcpCtx, sizeof(TcpContext));
-                continue;
-            }
+            addr = AddressList_GetOneBySubscript(&(m->ServiceList), &family, TcpCtx->ServerIndex);
             if( TcpM_ProxyPreparation(s, addr, family) != 0 )
             {
                 AddressList_Advance(&(m->ServiceList));
                 CLOSE_SOCKET(s);
-                NewRound = TRUE;
                 continue;
             }
         }
-
-        NewRound = TRUE;
-
-        TcpCtx->LastActivity = time(NULL);
 
         if( TcpM_SendWrapper(s,
                              msg,
@@ -501,12 +464,16 @@ static int TcpM_Send_Actual(TcpM *m, MsgContext *MsgCtx, int SingleServerIndex)
             {
                 AddressList_Advance(&(m->ServiceList));
             }
+            CLOSE_SOCKET(s);
             continue;
         }
 
         DEBUG("Sent by Pullers[%d].\n", TcpCtx->ServerIndex);
 
+        TcpCtx->LastActivity = time(NULL);
         TcpCtx->Queried++;
+        TcpCtx->MsgCtxQid = DNSGetQueryIdentifier(h + 1);
+        TcpCtx->MsgCtxHash = h->HashValue;
         TcpCtx->MsgCtx = MsgCtx;
         m->Puller.Add(&(m->Puller), s, TcpCtx, sizeof(TcpContext));
 
@@ -545,21 +512,20 @@ static int TcpM_Cleanup(TcpM *m)
 
     ModuleContext_Free(&(m->Context));
 
-    if( m->SocksProxies == NULL )
+    if( m->SocksProxies != NULL )
     {
-        m->QueryPuller.Free(&(m->QueryPuller));
-        SocketPullers_Free(m->Agents);
-        SafeFree(m->Services);
-    } else {
         m->ProxyPuller.Free(&(m->ProxyPuller));
         SocketPullers_Free(m->Proxies);
         SafeFree(*(m->SocksProxies));
         AddressList_Free(&(m->SocksProxyList));
+        SafeFree(m->SocksProxyFamilies);
     }
 
+    m->QueryPuller.Free(&(m->QueryPuller));
+    SocketPullers_Free(m->Agents);
+    SafeFree(m->Services);
     AddressList_Free(&(m->ServiceList));
     SafeFree(m->ServiceFamilies);
-    SafeFree(m->SocksProxyFamilies);
 
     m->WorkThread = NULL_THREAD;
 
@@ -646,6 +612,7 @@ static int TcpM_Works(TcpM *m)
             int State;
             uint16_t TCPLength;
             SocketPuller *p2;
+            char *PartialData;
 
             p->Del(p, s);
 
@@ -656,7 +623,10 @@ static int TcpM_Works(TcpM *m)
                 {
                     /* If Server force closed the keep-alive SOCKET: */
                     IHeader *Header2 = (IHeader *)TcpCtx->MsgCtx;
-                    if( TcpCtx->Queried > 1 && Header2 != NULL && *(Header2->Domain) != 0 )
+                    if( TcpCtx->Queried > 1 && Header2 != NULL && *(Header2->Domain) != 0 &&
+                        TcpCtx->MsgCtxQid == DNSGetQueryIdentifier(Header2 + 1) &&
+                        TcpCtx->MsgCtxHash == Header2->HashValue
+                        )
                     {
                         INFO("TCP retrying for %s ...\n", Header2->Domain);
                         TcpM_Send_Actual(m, TcpCtx->MsgCtx, TcpCtx->ServerIndex);
@@ -678,21 +648,23 @@ static int TcpM_Works(TcpM *m)
                 continue;
             }
 
-            State = TcpM_RecvWrapper(s, Entity, TCPLength);
-            if( State != TCPLength )
+            PartialData = Entity;
+            do
             {
-                WARNING("TCP %s received bad data.\n",
-                        m->SocksProxies != NULL ? "proxy" : "server");
+                State = TcpM_RecvWrapper(s, PartialData, TCPLength);
+                PartialData += State;
+                TCPLength -= State;
+            } while ( State > 0 && TCPLength > 0 );
+
+            if( TCPLength != 0 )
+            {
+                WARNING("TCP %s received bad data, len: %d.\n",
+                        m->SocksProxies != NULL ? "proxy" : "server", PartialData - Entity);
                 CLOSE_SOCKET(s);
                 continue;
             }
 
-            if( m->SocksProxies == NULL )
-            {
-                p2 = m->Agents[TcpCtx->ServerIndex];
-            } else {
-                p2 = m->Proxies[TcpCtx->ServerIndex];
-            }
+            p2 = m->Agents[TcpCtx->ServerIndex];
             TcpCtx->LastActivity = time(NULL);
             TcpCtx->MsgCtx = NULL;
             p2->Add(p2, s, TcpCtx, sizeof(TcpContext));
@@ -822,30 +794,30 @@ int TcpM_Init(TcpM *m, const char *Services, BOOL Parallel, const char *SocksPro
         l.Free(&l);
     }
 
+    m->Services = AddressList_GetPtrList(&(m->ServiceList),
+                                         &(m->ServiceFamilies)
+                                         );
+    if( m->Services == NULL )
+    {
+        ret = -45;
+        goto EXIT_3;
+    }
+
+    if( SocketPuller_Init(&(m->QueryPuller), sizeof(TcpContext) ) != 0 )
+    {
+        ret = -46;
+        goto EXIT_4;
+    }
+
+    m->Agents = SocketPullers_Init( AddressList_GetNumberOfAddresses(&(m->ServiceList)), sizeof(TcpContext) );
+    if( m->Agents == NULL )
+    {
+        ret = -47;
+        goto EXIT_5;
+    }
+
     if( SocksProxies == NULL )
     {
-        m->Services = AddressList_GetPtrList(&(m->ServiceList),
-                                             &(m->ServiceFamilies)
-                                             );
-        if( m->Services == NULL )
-        {
-            ret = -45;
-            goto EXIT_3;
-        }
-
-        if( SocketPuller_Init(&(m->QueryPuller), sizeof(TcpContext) ) != 0 )
-        {
-            ret = -46;
-            goto EXIT_4;
-        }
-
-        m->Agents = SocketPullers_Init( AddressList_GetNumberOfAddresses(&(m->ServiceList)), sizeof(TcpContext) );
-        if( m->Agents == NULL )
-        {
-            ret = -47;
-            goto EXIT_5;
-        }
-
         m->SocksProxies = NULL;
         m->SocksProxyFamilies = NULL;
     } else {
@@ -853,7 +825,7 @@ int TcpM_Init(TcpM *m, const char *Services, BOOL Parallel, const char *SocksPro
         if( AddressList_Init(&(m->SocksProxyList)) != 0 )
         {
             ret = -53;
-            goto EXIT_3;
+            goto EXIT_6;
         } else {
             StringList l;
             StringListIterator i;
@@ -862,7 +834,7 @@ int TcpM_Init(TcpM *m, const char *Services, BOOL Parallel, const char *SocksPro
             if( StringList_Init(&l, SocksProxies, ", ") != 0 )
             {
                 ret = -61;
-                goto EXIT_6;
+                goto EXIT_7;
             }
 
             l.TrimAll(&l, "\t .");
@@ -871,7 +843,7 @@ int TcpM_Init(TcpM *m, const char *Services, BOOL Parallel, const char *SocksPro
             {
                 l.Free(&l);
                 ret = -58;
-                goto EXIT_6;
+                goto EXIT_7;
             }
 
             while( (Itr = i.Next(&i)) != NULL )
@@ -888,20 +860,20 @@ int TcpM_Init(TcpM *m, const char *Services, BOOL Parallel, const char *SocksPro
             if( m->SocksProxies == NULL )
             {
                 ret = -84;
-                goto EXIT_6;
+                goto EXIT_7;
             }
 
             if( SocketPuller_Init(&(m->ProxyPuller), sizeof(TcpContext)) != 0 )
             {
                 ret = -85;
-                goto EXIT_7;
+                goto EXIT_8;
             }
 
             m->Proxies = SocketPullers_Init( AddressList_GetNumberOfAddresses(&(m->SocksProxyList)), sizeof(TcpContext) );
             if( m->Proxies == NULL )
             {
                 ret = -86;
-                goto EXIT_8;
+                goto EXIT_9;
             }
 
         }
@@ -919,14 +891,15 @@ int TcpM_Init(TcpM *m, const char *Services, BOOL Parallel, const char *SocksPro
 
     return 0;
 
-EXIT_8:
+EXIT_9:
     m->ProxyPuller.FreeWithoutClose(&(m->ProxyPuller));
-EXIT_7:
+EXIT_8:
     SafeFree(*(m->SocksProxies));
-EXIT_6:
+EXIT_7:
     AddressList_Free(&(m->SocksProxyList));
-    goto EXIT_3;
 
+EXIT_6:
+    SocketPullers_Free(m->Agents);
 EXIT_5:
     m->QueryPuller.FreeWithoutClose(&(m->QueryPuller));
 EXIT_4:

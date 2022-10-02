@@ -14,6 +14,7 @@ void IHeader_Reset(IHeader *h)
     h->Agent[0] = '\0';
     h->BackAddress.family = AF_UNSPEC;
     h->Domain[0] = '\0';
+    h->HashValue = 0;
     h->EDNSEnabled = FALSE;
 }
 
