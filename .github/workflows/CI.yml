@@ -79,6 +79,6 @@ jobs:
     - name: Upload
       uses: actions/upload-artifact@v3
       with:
-        name: dnsforwarder-${{github.ref_name}}-${{matrix.env}}-${{runner.os}}
+        name: dnsforwarder-${{github.head_ref || github.ref_name}}-${{matrix.env}}-${{runner.os}}
         path: |
           ${{matrix.bin}}
