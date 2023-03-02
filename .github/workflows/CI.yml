@@ -81,11 +81,11 @@ jobs:
 
     - name: "Alpine: Setup and Config"
       if: runner.os == 'Linux' && matrix.cc == 'musl'
-      shell: alpine.sh {0}
+      shell: alpine.sh --root {0}
       run: |
         echo Setting up gcc ${{matrix.env}} ...
-        sudo apk update; sudo apk upgrade
-        sudo apk install libcurl-dev
+        apk update; apk upgrade
+        apk install libcurl-dev
         echo Configuring ...
         autoreconf
         ./configure
