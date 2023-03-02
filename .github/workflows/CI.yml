@@ -79,7 +79,7 @@ jobs:
         sudo apt-get install libcurl4-gnutls-dev:${{matrix.env}}
         if [[ '${{ matrix.cc }}' == 'musl' ]]; then
           sudo apt-get install musl-dev
-          export CC=musl-gcc
+          export CC=/usr/bin/musl-gcc
         fi
         echo Configuring ...
         autoreconf
