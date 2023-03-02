@@ -85,7 +85,7 @@ jobs:
       run: |
         echo Setting up gcc ${{matrix.env}} ...
         apk update; apk upgrade
-        apk install libcurl-dev
+        apk add libcurl-dev
         echo Configuring ...
         autoreconf
         ./configure
