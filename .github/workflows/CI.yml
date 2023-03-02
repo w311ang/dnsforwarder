@@ -85,7 +85,7 @@ jobs:
       run: |
         echo Setting up gcc ${{matrix.env}} ...
         apk update; apk upgrade
-        apk add libcurl curl-dev make musl-dev build-base automake 
+        apk add libcurl curl-dev make musl-dev build-base automake autoconf
         echo Configuring ...
         autoreconf
         ./configure
