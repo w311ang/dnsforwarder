@@ -14,12 +14,14 @@ jobs:
             sys: mingw64
             bin: codeblocks_win/bin/Release/dnsforwarder.exe
             shell: msys2 {0}
+            cc: none
 
           - os: windows-latest
             env: i686
             sys: mingw32
             bin: codeblocks_win/bin/Release/dnsforwarder.exe
             shell: msys2 {0}
+            cc: none
 
           - os: ubuntu-latest
             env: amd64
