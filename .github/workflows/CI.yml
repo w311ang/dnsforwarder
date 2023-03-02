@@ -25,13 +25,25 @@ jobs:
             env: amd64
             bin: dnsforwarder
             shell: bash
-            cc: [none, musl]
+            cc: none
 
           - os: ubuntu-latest
             env: i386
             bin: dnsforwarder
             shell: bash
-            cc: [none, musl]
+            cc: none
+
+          - os: ubuntu-latest
+            env: amd64
+            bin: dnsforwarder
+            shell: bash
+            cc: musl
+
+          - os: ubuntu-latest
+            env: i386
+            bin: dnsforwarder
+            shell: bash
+            cc: musl
 
       fail-fast: false
 
