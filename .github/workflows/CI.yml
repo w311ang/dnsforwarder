@@ -4,7 +4,7 @@ on: [push, pull_request, workflow_dispatch]
 
 jobs:
   build:
-    name: dnsforwarder-${{matrix.env}}-${{matrix.os}}
+    name: dnsforwarder-${{matrix.env}}-${{matrix.os}}-${{matrix.cc}}
     runs-on: ${{matrix.os}} # run native test
     strategy:
       matrix:
@@ -97,6 +97,6 @@ jobs:
     - name: Upload
       uses: actions/upload-artifact@v3
       with:
-        name: dnsforwarder-${{github.head_ref || github.ref_name}}-${{matrix.env}}-${{runner.os}}
+        name: dnsforwarder-${{github.head_ref || github.ref_name}}-${{matrix.env}}-${{runner.os}}-${{matrix.cc}}
         path: |
           ${{matrix.bin}}
