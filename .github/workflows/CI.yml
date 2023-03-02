@@ -102,7 +102,7 @@ jobs:
 
     - name: "Alpine: Build"
       if: runner.os == 'Linux' && matrix.cc == 'musl'
-      shell: alpine.sh {0}
+      shell: alpine.sh --root {0}
       run: make
 
     - name: SSH connection to Actions to debug
