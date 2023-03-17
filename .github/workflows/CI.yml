@@ -62,7 +62,7 @@ jobs:
           sudo apt-get install gcc-multilib
           export CFLAGS="-m32"
         fi
-        sudo apt-get install libcurl4-gnutls-dev:${{matrix.env}}
+        sudo apt-get install libcurl4-openssl-dev:${{matrix.env}}
         echo Configuring ...
         aclocal
         autoheader
