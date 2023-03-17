@@ -141,3 +141,7 @@ GPL v3
 
     WIN32
     WIN64
+
+### Build
+
+  [CI.yml](https://github.com/lifenjoiner/dnsforwarder/.github/workflows/CI.yml)

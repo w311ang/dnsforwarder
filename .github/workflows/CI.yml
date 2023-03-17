@@ -64,8 +64,11 @@ jobs:
         fi
         sudo apt-get install libcurl4-gnutls-dev:${{matrix.env}}
         echo Configuring ...
-        autoreconf
-        ./configure
+        aclocal
+        autoheader
+        autoconf
+        automake -a
+        CFLAGS=-O2 ./configure
 
     - name: Build
       run: |
