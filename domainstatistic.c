@@ -30,8 +30,8 @@ static FILE             *MainFile = NULL;
 
 static unsigned long int    InitTime_Num;
 
-static const char       *PreOutput = NULL; /* malloced */
-static const char       *PostOutput = NULL;
+static char *PreOutput = NULL;
+static char *PostOutput = NULL;
 
 volatile static BOOL    SkipStatistic = FALSE;
 
@@ -195,7 +195,7 @@ static void DomainStatistic_Cleanup(void)
 {
     if( PreOutput != NULL )
     {
-        SafeFree((void *)PreOutput);
+        SafeFree(PreOutput);
         if( MainFile != NULL )
         {
             fclose(MainFile);

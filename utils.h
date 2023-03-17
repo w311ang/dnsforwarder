@@ -37,7 +37,7 @@ typedef int (*CompareFunc)(const void *, const void *);
  * Parameters:
  *  Memory:The first address of the memory to be freed.
  */
-#define SafeFree    free
+#define SafeFree(ptr)   do {free((ptr)); (ptr) = NULL;} while (0)
 
 /* int SafeRealloc(void **Memory_ptr, size_t NewBytes);
  * Description:

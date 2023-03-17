@@ -562,17 +562,17 @@ static void Modules_Free(ModuleMap *ModuleMap)
     if( ModuleMap->Modules != NULL )
     {
         ModuleMap->Modules->Free(ModuleMap->Modules);
-        SafeFree((void *)ModuleMap->Modules);
+        SafeFree(ModuleMap->Modules);
     }
     if( ModuleMap->ModuleArray != NULL )
     {
         Array_Free(ModuleMap->ModuleArray);
-        SafeFree((void *)ModuleMap->ModuleArray);
+        SafeFree(ModuleMap->ModuleArray);
     }
     if( ModuleMap->Distributor != NULL )
     {
         StringChunk_Free(ModuleMap->Distributor, TRUE);
-        SafeFree((void *)ModuleMap->Distributor);
+        SafeFree(ModuleMap->Distributor);
     }
     SafeFree(ModuleMap);
 }

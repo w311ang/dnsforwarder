@@ -208,7 +208,7 @@ static void DisabledDomain_Cleanup(void)
     if( DisabledDomain != NULL )
     {
         StringChunk_Free(DisabledDomain, TRUE);
-        SafeFree((void *)DisabledDomain);
+        SafeFree(DisabledDomain);
     }
 }
 
