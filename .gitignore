@@ -16,8 +16,23 @@ test/*/*.layout
 
 */gmon.out
 
-.deps/
 autom4te.cache/
+# aclocal
+aclocal.m4
+# autoheader
+config.h.in
+# autoconf
+configure
+# automake -a
+compile
+config.guess
+config.sub
+depcomp
+install-sh
+makefile.in
+missing
+# configure
+.deps/
 config.h
 config.log
 config.status
