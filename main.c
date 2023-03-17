@@ -426,9 +426,6 @@ static int ArgParse(int argc, char *argv_ori[])
         {
             PrepareEnvironment();
             exit(0);
-
-            ++argv;
-            continue;
         }
 #endif /* WIN32 */
 

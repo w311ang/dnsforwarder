@@ -33,7 +33,7 @@ int CacheTtlCrtl_Add_From_String(CacheTtlCtrl *c, const char *Rule)
     uint32_t Increment = 0;
     int     Infection = TTL_CTRL_INFECTION_AGGRESSIVLY;
 
-    sscanf(Rule, "%127s%15s%64s", Domain, Cmd, Arg);
+    sscanf(Rule, "%127s%15s%63s", Domain, Cmd, Arg);
 
     if( Cmd[0] == '$' )
     {
