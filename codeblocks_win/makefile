@@ -143,8 +143,8 @@ OBJ_RELEASE = $(patsubst %.o,$(OBJDIR_RELEASE)\\%.o,$(OBJECTS))
 release: before_release $(OUT_RELEASE)
 
 before_release: 
-	cmd /c if not exist $(BINDIR_RELEASE) md $(BINDIR_RELEASE)
-	cmd /c if not exist $(OBJDIR_RELEASE) md $(OBJDIR_RELEASE)
+	cmd /c "if not exist $(BINDIR_RELEASE) md $(BINDIR_RELEASE)"
+	cmd /c "if not exist $(OBJDIR_RELEASE) md $(OBJDIR_RELEASE)"
 
 $(OUT_RELEASE): $(OBJ_RELEASE)
 	$(LD) $(LIBDIR_RELEASE) -o $(OUT_RELEASE) $(OBJ_RELEASE) $(LDFLAGS_RELEASE) $(LIB_RELEASE)
@@ -153,16 +153,15 @@ $(OBJDIR_RELEASE)\\%.o: ..\\%.c
 	$(CC) $(CFLAGS_RELEASE) $(INC_RELEASE) -c $< -o $@
 
 clean_release: 
-	cmd /c del /f $(OBJ_RELEASE) $(OUT_RELEASE)
-	cmd /c rd $(BINDIR_RELEASE)
-	cmd /c rd $(OBJDIR_RELEASE)
+	cmd /c "if exist $(OUT_RELEASE) del /f $(OUT_RELEASE)"
+	cmd /c "if exist $(OBJDIR_RELEASE) rd /s /q $(OBJDIR_RELEASE)"
 
 ###
 debug: before_debug $(OUT_DEBUG)
 
 before_debug: 
-	cmd /c if not exist $(BINDIR_DEBUG) md $(BINDIR_DEBUG)
-	cmd /c if not exist $(OBJDIR_DEBUG) md $(OBJDIR_DEBUG)
+	cmd /c "if not exist $(BINDIR_DEBUG) md $(BINDIR_DEBUG)"
+	cmd /c "if not exist $(OBJDIR_DEBUG) md $(OBJDIR_DEBUG)"
 
 $(OUT_DEBUG): $(OBJ_DEBUG)
 	$(LD) $(LIBDIR_DEBUG) -o $(OUT_DEBUG) $(OBJ_DEBUG) $(LDFLAGS_DEBUG) $(LIB_DEBUG)
@@ -171,9 +170,8 @@ $(OBJDIR_DEBUG)\\%.o: ..\\%.c
 	$(CC) $(CFLAGS_DEBUG) $(INC_DEBUG) -c $< -o $@
 
 clean_debug: 
-	cmd /c del /f $(OBJ_DEBUG) $(OUT_DEBUG)
-	cmd /c rd $(BINDIR_DEBUG)
-	cmd /c rd $(OBJDIR_DEBUG)
+	cmd /c "if exist $(OUT_DEBUG) del /f $(OUT_DEBUG)"
+	cmd /c "if exist $(OBJDIR_DEBUG) rd /s /q $(OBJDIR_DEBUG)"
 
 ###
 all: debug release
