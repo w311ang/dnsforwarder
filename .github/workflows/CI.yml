@@ -68,7 +68,7 @@ jobs:
         autoheader
         autoconf
         automake -a
-        CFLAGS=-O2 ./configure
+        CFLAGS+=" -O2" ./configure
 
     - name: Build
       run: |
