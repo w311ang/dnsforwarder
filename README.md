@@ -144,4 +144,4 @@ GPL v3
 
 ### Build
 
-  [CI.yml](https://github.com/lifenjoiner/dnsforwarder/.github/workflows/CI.yml)
+  [CI.yml](https://github.com/lifenjoiner/dnsforwarder/blob/mydev/.github/workflows/CI.yml)
