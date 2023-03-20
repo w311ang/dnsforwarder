@@ -204,7 +204,6 @@ int GetFromInternet_Base(const char *URL, const char *File)
                 webopenurl  =   NULL;
     BOOL        ReadFlag;
     DWORD       ReadedLength;
-    DWORD       TotalLength = 0;
     char        Buffer[4096];
     int         ret = -1;
     int         TimeOut = 30000;
@@ -252,8 +251,6 @@ int GetFromInternet_Base(const char *URL, const char *File)
             break;
 
         fwrite(Buffer, 1, ReadedLength, fp);
-
-        TotalLength += ReadedLength;
     }
 
     InternetCloseHandle(webopenurl);
