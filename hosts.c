@@ -118,7 +118,11 @@ int Hosts_Get(MsgContext *MsgCtx, int BufferLength)
     }
 }
 
-static int Hosts_SocketLoop(void *Unused)
+static int
+#ifdef WIN32
+WINAPI
+#endif
+Hosts_SocketLoop(void *Unused)
 {
     ModuleContext Context;
 

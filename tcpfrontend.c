@@ -9,7 +9,11 @@ extern BOOL Ipv6_Enabled;
 
 static SocketPuller Frontend;
 
-static void TcpFrontend_Work(void *Unused)
+static void
+#ifdef WIN32
+WINAPI
+#endif
+TcpFrontend_Work(void *Unused)
 {
     /* Buffer */
     #define BUF_LENGTH  2048

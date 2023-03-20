@@ -33,7 +33,11 @@ static int SwepTask(UdpM *m, SwepCallback cb)
     return 0;
 }
 
-static int UdpM_Swep_Thread(UdpM *m)
+static int
+#ifdef WIN32
+WINAPI
+#endif
+UdpM_Swep_Thread(UdpM *m)
 {
     while( m->IsServer || m->WorkThread != NULL_THREAD)
     {
@@ -64,7 +68,11 @@ static int UdpM_Cleanup(UdpM *m)
     return 0;
 }
 
-static void UdpM_Works(UdpM *m)
+static void
+#ifdef WIN32
+WINAPI
+#endif
+UdpM_Works(UdpM *m)
 {
     static const struct timeval ShortTime = {10, 0};
     struct timeval Timeout;

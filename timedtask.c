@@ -119,7 +119,11 @@ static int TimeTask_ReallyAdd(TaskInfo *i)
     return TimeQueue.Add(&TimeQueue, i);
 }
 
-static void TimeTask_RunTack(void *i)
+static void
+#ifdef WIN32
+WINAPI
+#endif
+TimeTask_RunTack(void *i)
 {
     TaskInfo *Info = (TaskInfo *)i;
 
@@ -153,7 +157,11 @@ static void TimeTask_RunTack(void *i)
 }
 
 /* Only the particular one thread execute the function */
-static void TimeTask_Work(void *Unused)
+static void
+#ifdef WIN32
+WINAPI
+#endif
+TimeTask_Work(void *Unused)
 {
 #ifdef WIN32
     static TaskInfo *i = NULL;

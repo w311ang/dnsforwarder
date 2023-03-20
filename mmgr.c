@@ -577,7 +577,11 @@ static void Modules_Free(ModuleMap *ModuleMap)
     SafeFree(ModuleMap);
 }
 
-static int Modules_SafeCleanup(ModuleMap *ModuleMap)
+static int
+#ifdef WIN32
+WINAPI
+#endif
+Modules_SafeCleanup(ModuleMap *ModuleMap)
 {
     StableBufferIterator BI;
     ModuleInterface *M = NULL;

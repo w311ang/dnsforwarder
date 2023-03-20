@@ -10,7 +10,11 @@ BOOL Ipv6_Enabled = FALSE;
 
 static SocketPuller Frontend;
 
-static void UdpFrontend_Work(void *Unused)
+static void
+#ifdef WIN32
+WINAPI
+#endif
+UdpFrontend_Work(void *Unused)
 {
     /* Buffer */
     #define BUF_LENGTH  2048

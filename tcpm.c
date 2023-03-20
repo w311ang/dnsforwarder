@@ -532,7 +532,11 @@ static int TcpM_Cleanup(TcpM *m)
     return 0;
 }
 
-static int TcpM_Works(TcpM *m)
+static int
+#ifdef WIN32
+WINAPI
+#endif
+TcpM_Works(TcpM *m)
 {
     SOCKET  s;
     int Err;
