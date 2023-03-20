@@ -1,4 +1,4 @@
-name: GCC
+name: Clang
 
 on: [push, pull_request]
 
@@ -11,13 +11,13 @@ jobs:
         include:
           - os: windows-latest
             env: x86_64
-            sys: mingw64
+            sys: clang64
             bin: codeblocks_win/bin/Release/dnsforwarder.exe
             shell: msys2 {0}
 
           - os: windows-latest
             env: i686
-            sys: mingw32
+            sys: clang32
             bin: codeblocks_win/bin/Release/dnsforwarder.exe
             shell: msys2 {0}
 
@@ -49,25 +49,30 @@ jobs:
         release: false
         # pacman group: https://packages.msys2.org/group/
         install: >-
-          mingw-w64-${{matrix.env}}-gcc
-          mingw-w64-${{matrix.env}}-make
+          mingw-w64-clang-${{matrix.env}}-gcc-compat
+          mingw-w64-clang-${{matrix.env}}-make
 
     - name: "${{matrix.os}}: Setup and Config"
       if: runner.os == 'Linux'
       run: |
-        echo Setting up gcc ${{matrix.env}} ...
+        echo Setting up clang ${{matrix.env}} ...
         sudo dpkg --add-architecture ${{matrix.env}}
         sudo apt-get update
-        if [ "${{matrix.env}}" = "i386" ]; then
-          sudo apt-get install -y gcc-multilib
-          export CFLAGS="-m32"
-        fi
-        sudo apt-get install -y libcurl4-openssl-dev:${{matrix.env}}
+        sudo apt-get install -y "libc6-dev:${{matrix.env}}" "lib$(readlink /usr/bin/gcc)-dev:${{matrix.env}}" "libcurl4-openssl-dev:${{matrix.env}}"
+        CLANG="$(readlink -f /usr/bin/clang)"
+        LLD=${CLANG/clang/lld}
+        sudo update-alternatives --install /usr/bin/lld lld ${LLD} 100
+        export CC=clang
+        export LD=lld
+        echo LD="lld" >> $GITHUB_ENV
         echo Configuring ...
         aclocal
         autoheader
         autoconf
         automake -a
+        if [ "${{matrix.env}}" = "i386" ]; then
+          export CFLAGS="-m32"
+        fi
         CFLAGS+=" -O2" ./configure
 
     - name: Build
@@ -82,6 +87,6 @@ jobs:
     - name: Upload
       uses: actions/upload-artifact@v3
       with:
-        name: dnsforwarder-${{github.head_ref || github.ref_name}}-${{matrix.env}}-${{matrix.os}}
+        name: dnsforwarder-${{github.head_ref || github.ref_name}}-${{matrix.env}}-${{matrix.os}}-clang
         path: |
           ${{matrix.bin}}
