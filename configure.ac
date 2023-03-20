@@ -8,7 +8,7 @@ AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([dnscache.h])
 AC_CONFIG_HEADERS(config.h)
 
-CFLAGS=" ${CFLAGS} -Wunreachable-code -Wall "
+CFLAGS=" ${CFLAGS} -Wall "
 
 AC_ARG_ENABLE([win],
 	[AS_HELP_STRING([--enable-win],
