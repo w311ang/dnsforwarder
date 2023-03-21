@@ -1,6 +1,6 @@
 #include "pipes.h"
 
-#ifdef WIN32
+#ifdef _WIN32
 
 #else
 
@@ -19,4 +19,4 @@ int CREATE_PIPE(PIPE_HANDLE *rh, PIPE_HANDLE *wh)
     return 0;
 }
 
-#endif /* WIN32 */
+#endif /* _WIN32 */

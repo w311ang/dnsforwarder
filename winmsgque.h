@@ -1,7 +1,7 @@
 #ifndef WINMSGQUE_H_INCLUDED
 #define WINMSGQUE_H_INCLUDED
 /** First-in last-out message queue, used only on Windows */
-#ifdef WIN32
+#ifdef _WIN32
 #include "linkedqueue.h"
 #include "common.h"
 
@@ -24,5 +24,5 @@ int WinMsgQue_Init(WinMsgQue *q, int MsgSize);
 
 #define WinMsgQue_FreeMsg(m_ptr)    LinkedQueue_FreeNode(m_ptr)
 
-#endif /* WIN32 */
+#endif /* _WIN32 */
 #endif // WINMSGQUE_H_INCLUDED

@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <math.h>
 
-#ifdef WIN32
+#ifdef _WIN32
 int Execute(const char *Cmd)
 {
     int ret;
@@ -29,7 +29,7 @@ int Execute(const char *Cmd)
 
     return -1;
 }
-#endif /* WIN32 */
+#endif /* _WIN32 */
 
 #include <ctype.h>
 #include <stdio.h>
@@ -41,7 +41,7 @@ int Execute(const char *Cmd)
 #include "dnsgenerator.h"
 #include "addresslist.h"
 
-#ifdef WIN32
+#ifdef _WIN32
     #ifdef MASKED
     #include <wincrypt.h>
     #ifndef CryptStringToBinary
@@ -49,7 +49,7 @@ int Execute(const char *Cmd)
         #define CryptStringToBinary CryptStringToBinaryA
     #endif /* CryptStringToBinary */
     #endif /* MASKED */
-#else /* WIN32 */
+#else /* _WIN32 */
 
     #ifdef MASKED
     #ifdef BASE64_DECODER_OPENSSL
@@ -66,7 +66,7 @@ int Execute(const char *Cmd)
         #include <wordexp.h>
     #endif
 
-#endif /* WIN32 */
+#endif /* _WIN32 */
 
 
 int SafeRealloc(void **Memory_ptr, size_t NewBytes)
@@ -101,7 +101,7 @@ char *BoolToYesNo(BOOL value)
 
 int GetModulePath(char *Buffer, int BufferLength)
 {
-#ifdef WIN32
+#ifdef _WIN32
     int     ModuleNameLength = 0;
     char    ModuleName[320];
     char    *SlashPosition;
@@ -138,7 +138,7 @@ int GetErrorMsg(int Code, char *Buffer, int BufferLength)
         return 0;
     }
 
-#ifdef WIN32
+#ifdef _WIN32
     return FormatMessage(   FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_FROM_SYSTEM,
                             NULL,
                             Code,
@@ -173,7 +173,7 @@ char *GetCurDateAndTime(char *Buffer, int BufferLength)
 #ifdef MASKED
 int Base64Decode(const char *File)
 {
-#ifdef WIN32
+#ifdef _WIN32
     FILE *fp = fopen(File, "rb");
     long FileSize;
     DWORD OutFileSize = 0;
@@ -258,7 +258,7 @@ EXIT_1:
     fclose(fp);
     return ret;
 
-#else /* WIN32 */
+#else /* _WIN32 */
 #ifdef BASE64_DECODER_OPENSSL
     BIO *ub64, *bmem *bmem_2;
 
@@ -436,7 +436,7 @@ EXIT_1:
 
     return 0;
 #endif /* BASE64_DECODER_COREUTILS */
-#endif /* WIN32 */
+#endif /* _WIN32 */
 }
 #endif /* MASKED */
 int IPv6AddressToNum(const char *asc, void *Buffer)
@@ -578,9 +578,9 @@ int IPv4AddressToAsc(const void *Address, void *Buffer)
 
 int GetConfigDirectory(char *out)
 {
-#ifdef WIN32
+#ifdef _WIN32
     return -1;
-#else /* WIN32 */
+#else /* _WIN32 */
 #ifndef ANDROID
     struct passwd *pw = getpwuid(getuid());
     char *home = pw->pw_dir;
@@ -595,7 +595,7 @@ int GetConfigDirectory(char *out)
 #else /* ANDROID */
     strcpy(out, "/system/root/.dnsforwarder");
 #endif /* ANDROID */
-#endif /* WIN32 */
+#endif /* _WIN32 */
 }
 
 BOOL FileIsReadable(const char *File)
@@ -849,7 +849,7 @@ int GetAddressLength(sa_family_t Family)
 
 int SetProgramEnvironment(const char *Name, const char *Value)
 {
-#ifdef WIN32
+#ifdef _WIN32
     return !SetEnvironmentVariable(Name, Value);
 #else
 #ifdef HAVE_SETENV
@@ -862,7 +862,7 @@ int SetProgramEnvironment(const char *Name, const char *Value)
 
 int ExpandPath(char *String, int BufferLength)
 {
-#ifdef WIN32
+#ifdef _WIN32
     char    TempStr[2048];
     int     State;
 
@@ -918,7 +918,7 @@ int ExpandPathTo(char *Buffer, int BufferLength, const char *String)
 char *GetLocalPathFromURL(const char *URL, char *Buffer, int BufferLength)
 {
     const char *Itr;
-#ifdef WIN32
+#ifdef _WIN32
     char *Itr_Buffer;
 #endif
 
@@ -931,7 +931,7 @@ char *GetLocalPathFromURL(const char *URL, char *Buffer, int BufferLength)
     ++Itr;
     for( ; *Itr == '/'; ++Itr );
 
-#ifndef WIN32
+#ifndef _WIN32
     --Itr;
 #endif
 
@@ -942,7 +942,7 @@ char *GetLocalPathFromURL(const char *URL, char *Buffer, int BufferLength)
 
     strcpy(Buffer, Itr);
 
-#ifdef WIN32
+#ifdef _WIN32
     for( Itr_Buffer = Buffer; *Itr_Buffer != '\0'; ++Itr_Buffer )
     {
         if( *Itr_Buffer == '/' )
@@ -998,7 +998,7 @@ int CopyAFile(const char *Src, const char *Dst, BOOL Append)
 
 int FatalErrorDecideding(int LastError)
 {
-#ifdef WIN32
+#ifdef _WIN32
     if( LastError == WSAEWOULDBLOCK || LastError == WSAEINTR || LastError == WSAEINPROGRESS )
     {
         return 0;
@@ -1015,7 +1015,7 @@ int FatalErrorDecideding(int LastError)
 
 BOOL ErrorOfVoidSelect(int LastError)
 {
-#ifdef WIN32
+#ifdef _WIN32
     return LastError == WSAEINVAL;
 #else
     return LastError == EINVAL;
@@ -1082,7 +1082,7 @@ char *ReplaceStr_WithLengthChecking(char *Src,
 
 int SetSocketNonBlock(SOCKET sock, BOOL NonBlocked)
 {
-#ifdef WIN32
+#ifdef _WIN32
     unsigned long NonBlock = 1;
 
     if( ioctlsocket(sock, FIONBIO, &NonBlock) != 0 )
@@ -1119,7 +1119,7 @@ int SetSocketNonBlock(SOCKET sock, BOOL NonBlocked)
 
 int SetSocketTimeout(SOCKET Sock, int OptName, int Timeout)
 {
-#ifdef WIN32
+#ifdef _WIN32
     DWORD t = Timeout;
 #else
     struct timeval t = {Timeout / 1000, (Timeout % 1000) * 1000};

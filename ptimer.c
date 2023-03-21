@@ -3,27 +3,27 @@
 
 int PTimer_Start(PTimer *t)
 {
-#ifdef WIN32
-    #ifdef WIN64
+#ifdef _WIN32
+    #ifdef _WIN64
     t->c = GetTickCount64();
     return 0;
     #else
     t->c = GetTickCount();
     return 0;
-    #endif /* WIN64 */
+    #endif /* _WIN64 */
 #else
     return clock_gettime(CLOCK_REALTIME, &(t->c));
-#endif /* WIN32 */
+#endif /* _WIN32 */
 }
 
 unsigned long PTimer_End(PTimer *t)
 {
-#ifdef WIN32
-    #ifdef WIN64
+#ifdef _WIN32
+    #ifdef _WIN64
     return (unsigned long)(GetTickCount64() - t->c);
     #else
     return (unsigned long)(GetTickCount() - t->c);
-    #endif /* WIN64 */
+    #endif /* _WIN64 */
 #else
     struct timespec e;
     unsigned long ms;
@@ -50,5 +50,5 @@ unsigned long PTimer_End(PTimer *t)
     ms += (e.tv_sec - t->c.tv_sec) * 1000;
 
     return ms;
-#endif /* WIN32 */
+#endif /* _WIN32 */
 }

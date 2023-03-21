@@ -26,12 +26,12 @@ AC_ARG_ENABLE([win],
 
 if test "$WIN" == "32"
 then
-	CFLAGS=" ${CFLAGS} -DWIN32 "
+	CFLAGS=" ${CFLAGS} -D_WIN32 "
 fi
 
 if test "$WIN" == "64"
 then
-	CFLAGS=" ${CFLAGS} -DWIN32 -DWIN64 "
+	CFLAGS=" ${CFLAGS} -D_WIN32 -D_WIN64 "
 fi
 
 # Checks for programs.

@@ -3,9 +3,9 @@
 #include "pipes.h"
 #include "logs.h"
 
-#ifdef WIN32
+#ifdef _WIN32
 #include "winmsgque.h"
-#endif /* WIN32 */
+#endif /* _WIN32 */
 
 typedef struct _TaskInfo{
     TaskFunc    Task;
@@ -13,13 +13,13 @@ typedef struct _TaskInfo{
     void    *Arg1;
     void    *Arg2;
 
-#ifdef WIN32
+#ifdef _WIN32
     DWORD   TimeOut;
     DWORD   LeftTime;
-#else /* WIN32 */
+#else /* _WIN32 */
     struct timeval  TimeOut;
     struct timeval  LeftTime;
-#endif /* WIN32 */
+#endif /* _WIN32 */
 
     BOOL    Persistent;
     BOOL    Asynchronous;
@@ -27,13 +27,13 @@ typedef struct _TaskInfo{
 
 static LinkedQueue  TimeQueue;
 
-#ifdef WIN32
+#ifdef _WIN32
 static WinMsgQue    MsgQue;
-#else /* WIN32 */
+#else /* _WIN32 */
 static PIPE_HANDLE  WriteTo, ReadFrom;
-#endif /* WIN32 */
+#endif /* _WIN32 */
 
-#ifndef WIN32
+#ifndef _WIN32
 static int Tv_Comapre(const struct timeval *one, const struct timeval *two)
 {
     if( one->tv_sec == two->tv_sec )
@@ -65,9 +65,9 @@ static int Tv_Subtract(struct timeval *Minuend,
         return 1;
     }
 }
-#endif /* WIN32 */
+#endif /* _WIN32 */
 
-#ifdef WIN32
+#ifdef _WIN32
 static void TimeTask_ReduceTime(const DWORD tv)
 {
     LinkedQueueIterator i;
@@ -89,7 +89,7 @@ static void TimeTask_ReduceTime(const DWORD tv)
         }
     }
 }
-#else /* WIN32 */
+#else /* _WIN32 */
 static void TimeTask_ReduceTime(const struct timeval *tv)
 {
     LinkedQueueIterator i;
@@ -112,7 +112,7 @@ static void TimeTask_ReduceTime(const struct timeval *tv)
         Tv_Subtract(&(ti->LeftTime), tv);
     }
 }
-#endif /* WIN32 */
+#endif /* _WIN32 */
 
 static int TimeTask_ReallyAdd(TaskInfo *i)
 {
@@ -134,17 +134,17 @@ TimeTask_RunTack(void *i)
         Info->LeftTime = Info->TimeOut;
         if( Info->Asynchronous )
         {
-#ifdef WIN32
+#ifdef _WIN32
             if( MsgQue.Post(&MsgQue, Info) != 0 )
             {
                 /** TODO: Show fatal error */
             }
-#else /* WIN32 */
+#else /* _WIN32 */
             if( WRITE_PIPE(WriteTo, Info, sizeof(TaskInfo)) < 0 )
             {
                 /** TODO: Show fatal error */
             }
-#endif /* WIN32 */
+#endif /* _WIN32 */
         } else {
             if( TimeTask_ReallyAdd(Info) != 0 )
             {
@@ -163,7 +163,7 @@ WINAPI
 #endif
 TimeTask_Work(void *Unused)
 {
-#ifdef WIN32
+#ifdef _WIN32
     static TaskInfo *i = NULL;
     static DWORD *tv = NULL;
     DWORD BeforeWaiting = 0;
@@ -231,7 +231,7 @@ TimeTask_Work(void *Unused)
             }
         }
     }
-#else /* WIN32 */
+#else /* _WIN32 */
     static fd_set   ReadSet, ReadySet;
 
     static TaskInfo *i = NULL;
@@ -318,7 +318,7 @@ TimeTask_Work(void *Unused)
             break;
         }
     }
-#endif /* WIN32 */
+#endif /* _WIN32 */
 }
 
 int TimedTask_Add(BOOL Persistent,
@@ -342,35 +342,35 @@ int TimedTask_Add(BOOL Persistent,
     i.Arg2 = Arg2;
     i.Persistent = Persistent;
     i.Asynchronous = Asynchronous;
-#ifdef WIN32
+#ifdef _WIN32
     i.TimeOut = Milliseconds;
-#else /* WIN32 */
+#else /* _WIN32 */
     i.TimeOut.tv_usec = (Milliseconds % 1000) * 1000;
     i.TimeOut.tv_sec = Milliseconds / 1000;
-#endif /* WIN32 */
+#endif /* _WIN32 */
     if( Immediate )
     {
-#ifdef WIN32
+#ifdef _WIN32
         i.LeftTime = 0;
-#else /* WIN32 */
+#else /* _WIN32 */
         i.LeftTime.tv_sec = 0;
         i.LeftTime.tv_usec = 0;
-#endif /* WIN32 */
+#endif /* _WIN32 */
     } else {
         i.LeftTime = i.TimeOut;
     }
 
-#ifdef WIN32
+#ifdef _WIN32
     if( MsgQue.Post(&MsgQue, &i) != 0 )
     {
         return -212;
     }
-#else /* WIN32 */
+#else /* _WIN32 */
     if( WRITE_PIPE(WriteTo, &i, sizeof(TaskInfo)) < 0 )
     {
         return -53;
     }
-#endif /* WIN32 */
+#endif /* _WIN32 */
 
     return 0;
 }
@@ -378,20 +378,20 @@ int TimedTask_Add(BOOL Persistent,
 static int Compare(const void *One, const void *Two)
 {
     const TaskInfo *o = One, *t = Two;
-#ifdef WIN32
+#ifdef _WIN32
     return o->LeftTime - t->LeftTime;
-#else /* WIN32 */
+#else /* _WIN32 */
     return Tv_Comapre(&(o->LeftTime), &(t->LeftTime));
-#endif /* WIN32 */
+#endif /* _WIN32 */
 }
 
 static void TimedTask_Cleanup(void)
 {
     TimeQueue.Free(&TimeQueue);
-#ifdef WIN32
+#ifdef _WIN32
     WinMsgQue_Destroy(&MsgQue);
-#else /* WIN32 */
-#endif /* WIN32 */
+#else /* _WIN32 */
+#endif /* _WIN32 */
 }
 
 int TimedTask_Init(void)
@@ -409,17 +409,17 @@ int TimedTask_Init(void)
 
     atexit(TimedTask_Cleanup);
 
-#ifdef WIN32
+#ifdef _WIN32
     if( WinMsgQue_Init(&MsgQue, sizeof(TaskInfo)) != 0 )
     {
         return -247;
     }
-#else /* WIN32 */
+#else /* _WIN32 */
     if( !CREATE_PIPE_SUCCEEDED(CREATE_PIPE(&ReadFrom, &WriteTo)) )
     {
         return -25;
     }
-#endif /* WIN32 */
+#endif /* _WIN32 */
 
     CREATE_THREAD(TimeTask_Work, NULL, t);
     DETACH_THREAD(t);

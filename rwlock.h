@@ -3,8 +3,8 @@
 
 #include "common.h"
 
-#ifdef WIN32
-    #ifdef WIN64
+#ifdef _WIN32
+    #ifdef _WIN64
     /*
         #ifndef InitializeSRWLock
         typedef struct _RWLock {
@@ -15,11 +15,11 @@
         #endif
     */
         typedef SRWLOCK RWLock;
-    #else /* WIN64 */
+    #else /* _WIN64 */
         typedef CRITICAL_SECTION RWLock;
-    #endif /* WIN64 */
+    #endif /* _WIN64 */
     #define NULL_RWLOCK {NULL}
-#else /* WIN32 */
+#else /* _WIN32 */
 
 #ifdef HAVE_PTHREAD_RWLOCK_INIT
     typedef pthread_rwlock_t  RWLock;
@@ -28,11 +28,11 @@
 #endif /* HAVE_PTHREAD_RWLOCK_INIT */
     #define NULL_RWLOCK {0}
 
-#endif /* WIN32 */
+#endif /* _WIN32 */
 
-#ifdef WIN32
+#ifdef _WIN32
 
-    #ifdef WIN64
+    #ifdef _WIN64
 
         /*
         #ifndef InitializeSRWLock
@@ -53,7 +53,7 @@
         #define RWLock_UnWLock(l)   ReleaseSRWLockExclusive(&(l))
         #define RWLock_Destroy(l)
 
-    #else /* WIN64 */
+    #else /* _WIN64 */
 
         #define RWLock_Init(l)      CRITICAL_SECTION_INIT((l), 1024)
         #define RWLock_RdLock(l)    ENTER_CRITICAL_SECTION(l)
@@ -62,8 +62,8 @@
         #define RWLock_UnWLock(l)   LEAVE_CRITICAL_SECTION(l)
         #define RWLock_Destroy(l)   DELETE_CRITICAL_SECTION(l)
 
-    #endif /* WIN64 */
-#else /* WIN32 */
+    #endif /* _WIN64 */
+#else /* _WIN32 */
 
     #ifdef HAVE_PTHREAD_RWLOCK_INIT
         #define RWLock_Init(l)      pthread_rwlock_init(&(l), NULL)
@@ -80,6 +80,6 @@
         #define RWLock_UnWLock(l)   (pthread_mutex_unlock(&(l)))
         #define RWLock_Destroy(l)   (pthread_mutex_destroy(&(l)))
     #endif
-#endif /* WIN32 */
+#endif /* _WIN32 */
 
 #endif // RWLOCK_H_INCLUDED

@@ -1,4 +1,4 @@
-#ifndef WIN32
+#ifndef _WIN32
 #ifndef DOWNLOAD_LIBCURL
 #ifndef DOWNLOAD_WGET
 #ifndef NODOWNLOAD
@@ -6,10 +6,10 @@
 #endif /* NODOWNLOAD */
 #endif /* DOWNLOAD_WGET */
 #endif /*  DOWNLOAD_LIBCURL */
-#endif /* WIN32 */
+#endif /* _WIN32 */
 
 #ifndef NODOWNLOAD
-#ifdef WIN32
+#ifdef _WIN32
 #else
 #include <limits.h>
 #ifdef DOWNLOAD_LIBCURL
@@ -198,7 +198,7 @@ static size_t WriteFileCallback(void *Contents,
 int GetFromInternet_Base(const char *URL, const char *File)
 {
 #ifndef NODOWNLOAD
-#   ifdef WIN32
+#   ifdef _WIN32
     FILE        *fp;
     HINTERNET   webopen     =   NULL,
                 webopenurl  =   NULL;
@@ -258,7 +258,7 @@ int GetFromInternet_Base(const char *URL, const char *File)
     fclose(fp);
 
     return 0;
-#   else /* WIN32 */
+#   else /* _WIN32 */
 
 #       ifdef DOWNLOAD_LIBCURL
     CURL *curl;
@@ -306,7 +306,7 @@ int GetFromInternet_Base(const char *URL, const char *File)
 
     return Execute(Cmd);
 #       endif /* DOWNLOAD_WGET */
-#   endif /* WIN32 */
+#   endif /* _WIN32 */
 #else /* NODOWNLOAD */
     WARNING("No downloader implemented.\n");
     return -1;

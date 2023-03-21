@@ -12,7 +12,7 @@ LD = g++.exe
 WINDRES = windres.exe
 
 INC = 
-CFLAGS ?= -Wall -DWIN32 -DWIN32_LEAN_AND_MEAN
+CFLAGS ?= -Wall -DWIN32_LEAN_AND_MEAN
 RESINC = 
 LIBDIR = 
 LIB = -lws2_32 -lwininet -lshlwapi

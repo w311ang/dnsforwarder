@@ -10,9 +10,9 @@
  * And we defined things here to unify interfaces,
  * but it doesn't seem to be very good. */
 
-#ifdef WIN32 /* For Windows below. */
+#ifdef _WIN32 /* For Windows below. */
 
-    #ifdef WIN64
+    #ifdef _WIN64
         #ifdef _WIN32_WINNT
             #undef _WIN32_WINNT
         #endif
@@ -258,9 +258,9 @@
 
     #define ExitThisThread()    (pthread_exit(NULL))
 
-#endif /* WIN32 */
+#endif /* _WIN32 */
 
-#ifdef WIN32
+#ifdef _WIN32
     typedef CRITICAL_SECTION    EFFECTIVE_LOCK;
     #define EFFECTIVE_LOCK_INIT(l)      CRITICAL_SECTION_INIT((l), 1024)
     #define EFFECTIVE_LOCK_GET(l)       ENTER_CRITICAL_SECTION(l)
@@ -268,7 +268,7 @@
     #define EFFECTIVE_LOCK_TRY_SUCCEED(ret) CRITICAL_SECTION_TRY_SUCCEED(ret)
     #define EFFECTIVE_LOCK_RELEASE(l)   LEAVE_CRITICAL_SECTION(l)
     #define EFFECTIVE_LOCK_DESTROY(l)   DELETE_CRITICAL_SECTION(l)
-#else /* WIN32 */
+#else /* _WIN32 */
     typedef SpinHandle  EFFECTIVE_LOCK;
     #define EFFECTIVE_LOCK_INIT(l)      CREATE_SPIN(l)
     #define EFFECTIVE_LOCK_GET(l)       LOCK_SPIN(l)
@@ -276,13 +276,13 @@
     #define EFFECTIVE_LOCK_TRY_SUCCEED(ret) SPIN_TRY_SUCCEED(ret)
     #define EFFECTIVE_LOCK_RELEASE(l)   UNLOCK_SPIN(l)
     #define EFFECTIVE_LOCK_DESTROY(l)   DESTROY_SPIN(l)
-#endif /* WIN32 */
+#endif /* _WIN32 */
 
-#ifdef WIN32
+#ifdef _WIN32
     #define GetFileDirectory(out)   (GetModulePath(out, sizeof(out)))
-#else /* WIN32 */
+#else /* _WIN32 */
     #define GetFileDirectory(out)   (GetConfigDirectory(out))
-#endif /* WIN32 */
+#endif /* _WIN32 */
 
 #ifndef MSG_NOSIGNAL
 #define MSG_NOSIGNAL    0

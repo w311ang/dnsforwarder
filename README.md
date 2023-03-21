@@ -135,12 +135,12 @@ GPL v3
 
   For Windows x86 (at least Windows XP)
 
-    WIN32
+    _WIN32
 
   For Windows x86-64 (at least Windows Vista):
 
-    WIN32
-    WIN64
+    _WIN32
+    _WIN64
 
 ### Build
 

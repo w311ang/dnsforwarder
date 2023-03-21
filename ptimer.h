@@ -1,8 +1,8 @@
 #ifndef PTIMER_H_INCLUDED
 #define PTIMER_H_INCLUDED
 
-#ifdef WIN32
-    #ifdef WIN64
+#ifdef _WIN32
+    #ifdef _WIN64
         #ifdef _WIN32_WINNT
             #undef _WIN32_WINNT
         #endif
@@ -11,20 +11,20 @@
     #include <windows.h>
 #else
     #include <time.h>
-#endif /* WIN32 */
+#endif /* _WIN32 */
 
 typedef struct _PTimer PTimer;
 
 struct _PTimer{
-#ifdef WIN32
-    #ifdef WIN64
+#ifdef _WIN32
+    #ifdef _WIN64
     unsigned long long   c;
     #else
     unsigned long   c;
-    #endif /* WIN64 */
+    #endif /* _WIN64 */
 #else
     struct timespec c;
-#endif /* WIN32 */
+#endif /* _WIN32 */
 };
 
 int PTimer_Start(PTimer *t);

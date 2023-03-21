@@ -41,7 +41,7 @@
 				<Compiler>
 					<Add option="-pg" />
 					<Add option="-g" />
-					<Add option="-DWIN64" />
+					<Add option="-D_WIN64" />
 				</Compiler>
 				<Linker>
 					<Add option="-pg -lgmon" />
@@ -58,7 +58,7 @@
 					<Add option="-fexpensive-optimizations" />
 					<Add option="-Os" />
 					<Add option="-O3" />
-					<Add option="-DWIN64" />
+					<Add option="-D_WIN64" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -89,7 +89,7 @@
 		<Compiler>
 			<Add option="-Wunreachable-code" />
 			<Add option="-Wall" />
-			<Add option="-DWIN32" />
+			<Add option="-D_WIN32" />
 			<Add option="-DWIN32_LEAN_AND_MEAN" />
 		</Compiler>
 		<Linker>

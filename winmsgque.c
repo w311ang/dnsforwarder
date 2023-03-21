@@ -1,4 +1,4 @@
-#ifdef WIN32
+#ifdef _WIN32
 #include "winmsgque.h"
 #include "ptimer.h"
 
@@ -93,4 +93,4 @@ int WinMsgQue_Init(WinMsgQue *q, int MsgSize)
     return 0;
 }
 
-#endif /* WIN32 */
+#endif /* _WIN32 */

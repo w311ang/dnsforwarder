@@ -4,13 +4,13 @@
 #include <stdlib.h> /* exit() */
 
 #ifndef NODOWNLOAD
-    #ifndef WIN32
+    #ifndef _WIN32
         #include <sys/types.h>
         #include <sys/stat.h>
         #ifdef DOWNLOAD_LIBCURL
             #include <curl/curl.h>
         #endif /* DOWNLOAD_LIBCURL */
-    #endif /* WIN32 */
+    #endif /* _WIN32 */
 #endif /* NODOWNLOAD */
 
 #include "common.h"
@@ -236,7 +236,7 @@ static int EnvironmentInit(void)
 
 static int DaemonInit(void)
 {
-#ifdef WIN32
+#ifdef _WIN32
     char        *CmdLine = GetCommandLine();
     char        *NewArguments;
 
@@ -306,7 +306,7 @@ static int DaemonInit(void)
     } else {
         return 1;
     }
-#else /* WIN32 */
+#else /* _WIN32 */
 
     pid_t   pid;
     if( (pid = fork()) < 0 )
@@ -327,22 +327,22 @@ static int DaemonInit(void)
         close(2);
         return 0;
     }
-#endif /* WIN32 */
+#endif /* _WIN32 */
 }
 
 static int GetDefaultConfigureFile(char *out, int OutLength)
 {
-#ifdef WIN32
+#ifdef _WIN32
     GetModulePath(out, OutLength);
     strcat(out, "\\dnsforwarder.config");
-#else /* WIN32 */
+#else /* _WIN32 */
     GetConfigDirectory(out);
     strcat(out, "/config");
-#endif /* WIN32 */
+#endif /* _WIN32 */
     return 0;
 }
 
-#ifndef WIN32
+#ifndef _WIN32
 static void PrepareEnvironment(void)
 {
     char ConfigDirectory[2048];
@@ -362,7 +362,7 @@ static void PrepareEnvironment(void)
 
     printf("Please put configure file into `%s' and rename it to `config'.\n", ConfigDirectory);
 }
-#endif /* WIN32 */
+#endif /* _WIN32 */
 
 static int ArgParse(int argc, char *argv_ori[])
 {
@@ -380,10 +380,10 @@ static int ArgParse(int argc, char *argv_ori[])
                   "  -q         Quiet mode. Do not print any information.\n"
                   "  -D         Show debug messages.\n"
                   "  -d         Daemon mode. Running at background.\n"
-#ifndef WIN32
+#ifndef _WIN32
                   "\n"
                   "  -p         Prepare needed environment.\n"
-#endif /* WIN32 */
+#endif /* _WIN32 */
                   "\n"
                   "  -h         Show this help.\n"
                   "\n"
@@ -421,13 +421,13 @@ static int ArgParse(int argc, char *argv_ori[])
             continue;
         }
 
-#ifndef WIN32
+#ifndef _WIN32
         if( strcmp("-p", *argv) == 0 )
         {
             PrepareEnvironment();
             exit(0);
         }
-#endif /* WIN32 */
+#endif /* _WIN32 */
 
         printf("Unrecognisable arg `%s'. Try `-h'.\n", *argv);
         ++argv;
@@ -446,24 +446,24 @@ static void CleanupConfigInfo(void)
     ConfigFree(&ConfigInfo);
 }
 
-#ifdef WIN32
+#ifdef _WIN32
 static void CleanupWSA(void)
 {
     WSACleanup();
 }
-#endif /* WIN32 */
+#endif /* _WIN32 */
 
 int main(int argc, char *argv[])
 {
-#ifdef WIN32
+#ifdef _WIN32
     WSADATA wdata;
     HWND ThisWindow = GetConsoleWindow();
     BOOL DeamonInited = ThisWindow == NULL ?
                         TRUE :
                         !IsWindowVisible(ThisWindow);
-#else /* WIN32 */
+#else /* _WIN32 */
     BOOL DeamonInited = FALSE;
-#endif /* WIN32 */
+#endif /* _WIN32 */
 
     int UdpStatus, TcpStatus;
 
@@ -471,18 +471,18 @@ int main(int argc, char *argv[])
     curl_global_init(CURL_GLOBAL_ALL);
     atexit(curl_global_cleanup);
 #else
-#ifdef WIN32
+#ifdef _WIN32
     if( WSAStartup(MAKEWORD(2, 2), &wdata) != 0 )
     {
         return -244;
     }
     atexit(CleanupWSA);
-#endif /* WIN32 */
+#endif /* _WIN32 */
 #endif
 
-#ifdef WIN32
+#ifdef _WIN32
     SetConsoleTitle("dnsforwarder");
-#endif /* WIN32 */
+#endif /* _WIN32 */
 
     ArgParse(argc, argv);
 
@@ -500,9 +500,9 @@ int main(int argc, char *argv[])
 
     printf(DESCRIPTIONS);
 
-#ifndef WIN32
+#ifndef _WIN32
     printf("Please run `dnsforwarder -p' if something goes wrong.\n\n");
-#endif /* WIN32 */
+#endif /* _WIN32 */
 
     printf("Configure File : %s\n\n", ConfigFile);
 
