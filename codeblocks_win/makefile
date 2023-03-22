@@ -4,18 +4,21 @@
 # Optimized manually!
 # cbp2make.exe -in dnsforwarder.cbp -out mk -windows -targets Release,Debug --flat-objects --wrap-objects --with-deps
 
+# Builtin variables' default value: https://www.gnu.org/software/make/manual/html_node/Implicit-Variables.html
+ifeq "$(CC)" "cc"
+	CC = gcc.exe
+endif
+ifeq "$(LD)" "ld"
+	LD = g++.exe
+endif
 
-CC = gcc.exe
-CXX = g++.exe
-AR = ar.exe
-LD = g++.exe
-WINDRES = windres.exe
+WINDRES ?= windres.exe
 
 INC = 
 CFLAGS ?= -Wall -DWIN32_LEAN_AND_MEAN
 RESINC = 
 LIBDIR = 
-LIB = -lws2_32 -lwininet -lshlwapi
+LIB = -lws2_32 -lwininet -lshlwapi -luser32
 LDFLAGS = -static-libgcc
 
 INC_DEBUG = $(INC)
