@@ -1,5 +1,6 @@
 #include <string.h>
 #include <ctype.h>
+#include "ipchunk.h"
 #include "hostscontainer.h"
 #include "logs.h"
 
@@ -97,6 +98,7 @@ PUBFUNC const void *HostsContainer_Find(HostsContainer  *Container,
 
     const TableNode **Matched = NULL;
     const TableNode *IP = NULL;
+    const TableNode *IP4to6 = NULL;
 
     if( !StringChunk_Match(&(Container->Mappings), Name, NULL, (void **)&Matched, NULL, NULL) )
     {
@@ -108,40 +110,38 @@ PUBFUNC const void *HostsContainer_Find(HostsContainer  *Container,
         IP = *Matched;
     }
 
-    if( Func != NULL )
+    while( IP != NULL )
     {
-        const TableNode *ret = NULL;
-
-        while( IP != NULL )
+        if( Type == HOSTS_TYPE_UNKNOWN || IP->Type == Type )
         {
-            if( Type == HOSTS_TYPE_UNKNOWN || IP->Type == Type )
-            {
-                /* Found */
-                if( Func(Number++, IP->Type, IP->Data, Arg) != 0 )
-                {
-                    return NULL;
-                }
-
-                ret = IP;
-            }
-
-            IP = IP->Next;
+            Type = IP->Type;
+            break;
+        }
+        if( Type == HOSTS_TYPE_AAAA && IP->Type == HOSTS_TYPE_A && IP4to6 == NULL )
+        {
+            IP4to6 = IP;
         }
 
-        return ret;
-    } else {
-        while( IP != NULL )
-        {
-            if( Type == HOSTS_TYPE_UNKNOWN || IP->Type == Type )
-            {
-                return IP;
-            }
-
-            IP = IP->Next;
-        }
-
-        return NULL;
+        IP = IP->Next;
     }
+
+    if( IP == NULL )
+    {
+        IP = IP4to6;
+    }
+
+    if( IP != NULL )
+    {
+        if( Func != NULL )
+        {
+            if( Func(Number++, Type, IP->Data, Arg) != 0 )
+            {
+                return NULL;
+            }
+        }
+    }
+
+    return IP;
 }
 
 PRIFUNC const void *HostsContainer_FindExist(HostsContainer  *Container,
@@ -180,11 +180,48 @@ PRIFUNC int HostsContainer_AddNode(HostsContainer   *Container,
 
     if( Data != NULL )
     {
-        n.Data = Container->Table.Add(&(Container->Table),
-                                      Data,
-                                      DataLength,
-                                      TRUE
-                                      );
+        if( Type == HOSTS_TYPE_A || Type == HOSTS_TYPE_AAAA )
+        {
+            StableBufferIterator IPI;
+            IpAddr *ipAddr;
+
+            if(StableBufferIterator_Init(&IPI, &(Container->TableIPAddr)) != 0)
+            {
+                return -170;
+            }
+            IPI.Reset(&IPI);
+            while( (ipAddr = IPI.NextBlock(&IPI)) != NULL )
+            {
+                int i, BytesOfMetaInfo;
+                BytesOfMetaInfo = IPI.CurrentBlockUsed(&IPI);
+                for( i = 0; i * sizeof(IpAddr) < BytesOfMetaInfo; ++i, ++ipAddr )
+                {
+                    if( memcmp(ipAddr, Data, DataLength) == 0 )
+                    {
+                        goto OUT_SEARCH;
+                    }
+                }
+            }
+
+OUT_SEARCH:
+            if( ipAddr == NULL )
+            {
+                ipAddr = Container->TableIPAddr.Add(&(Container->TableIPAddr),
+                                                      Data,
+                                                      DataLength,
+                                                      TRUE
+                                                      );
+            }
+
+            n.Data = ipAddr;
+        } else {
+            n.Data = Container->Table.Add(&(Container->Table),
+                                          Data,
+                                          DataLength,
+                                          TRUE
+                                          );
+        }
+
         if( n.Data == NULL )
         {
             return -171;
@@ -236,50 +273,34 @@ PRIFUNC int HostsContainer_AddNode(HostsContainer   *Container,
     return 0;
 }
 
-PRIFUNC int HostsContainer_AddIPV6(HostsContainer   *Container,
-                                   const char       *IPOrCName,
-                                   const char       *Domain
-                                   )
+PRIFUNC int HostsContainer_AddIP(HostsContainer *Container,
+                                 HostsRecordType  Type,
+                                 const char *IP,
+                                 const char *Domain
+                                )
 {
-    char        NumericIP[16];
+    IpAddr ipAddr;
 
-    IPv6AddressToNum(IPOrCName, NumericIP);
+    IpAddr_Parse(IP, &ipAddr);
 
     return HostsContainer_AddNode(Container,
                                   Domain,
-                                  HOSTS_TYPE_AAAA,
-                                  NumericIP,
-                                  16
-                                  );
-}
-
-PRIFUNC int HostsContainer_AddIPV4(HostsContainer *Container,
-                                   const char *IPOrCName,
-                                   const char *Domain
-                                   )
-{
-    char        NumericIP[4];
-
-    IPv4AddressToNum(IPOrCName, NumericIP);
-
-    return HostsContainer_AddNode(Container,
-                                  Domain,
-                                  HOSTS_TYPE_A,
-                                  NumericIP,
-                                  4
+                                  Type,
+                                  &ipAddr,
+                                  sizeof(IpAddr)
                                   );
 }
 
 PRIFUNC int HostsContainer_AddCName(HostsContainer *Container,
-                                    const char *IPOrCName,
+                                    const char *CName,
                                     const char *Domain
                                     )
 {
     return HostsContainer_AddNode(Container,
                                   Domain,
                                   HOSTS_TYPE_CNAME,
-                                  IPOrCName,
-                                  strlen(IPOrCName) + 1
+                                  CName,
+                                  strlen(CName) + 1
                                   );
 }
 
@@ -317,23 +338,17 @@ PRIFUNC HostsRecordType HostsContainer_Add(HostsContainer *Container,
                                            const char *Domain
                                            )
 {
-    switch( HostsContainer_DetermineType(IPOrCName) )
+    HostsRecordType  Type = HostsContainer_DetermineType(IPOrCName);
+
+    switch( Type )
     {
         case HOSTS_TYPE_AAAA:
-            if( HostsContainer_AddIPV6(Container, IPOrCName, Domain) != 0)
-            {
-                return HOSTS_TYPE_UNKNOWN;
-            } else {
-                return HOSTS_TYPE_AAAA;
-            }
-            break;
-
         case HOSTS_TYPE_A:
-            if( HostsContainer_AddIPV4(Container, IPOrCName, Domain) != 0 )
+            if( HostsContainer_AddIP(Container, Type, IPOrCName, Domain) != 0 )
             {
                 return HOSTS_TYPE_UNKNOWN;
             } else {
-                return HOSTS_TYPE_A;
+                return Type;
             }
             break;
 
@@ -396,6 +411,7 @@ PUBFUNC void HostsContainer_Free(HostsContainer *Container)
 {
     StringChunk_Free(&(Container->Mappings), TRUE);
     Container->Table.Free(&(Container->Table));
+    Container->TableIPAddr.Free(&(Container->TableIPAddr));
 }
 
 int HostsContainer_Init(HostsContainer *Container)
@@ -409,6 +425,13 @@ int HostsContainer_Init(HostsContainer *Container)
     {
         StringChunk_Free(&(Container->Mappings), TRUE);
         return -6;
+    }
+
+    if( StableBuffer_Init(&(Container->TableIPAddr)) != 0 )
+    {
+        StringChunk_Free(&(Container->Mappings), TRUE);
+        Container->Table.Free(&(Container->Table));
+        return -7;
     }
 
     Container->Load = HostsContainer_Load;

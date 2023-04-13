@@ -29,6 +29,7 @@ typedef int (*HostsFindFunc)(int                Number, /* Start with 1 */
 struct _HostsContainer{
     PRIMEMB StringChunk     Mappings;
     PRIMEMB StableBuffer    Table;
+    PRIMEMB StableBuffer    TableIPAddr;
 
     PUBMEMB HostsRecordType (*Load)(HostsContainer *Container,
                                     const char *MetaLine

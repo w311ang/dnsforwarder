@@ -1,4 +1,5 @@
 #include "hostsutils.h"
+#include "ipchunk.h"
 #include "dnsgenerator.h"
 #include "goodiplist.h"
 
@@ -62,7 +63,7 @@ static int HostsUtils_Generate(int              Number,
                        "a",
                        DNS_TYPE_A,
                        DNS_CLASS_IN,
-                       Data,
+                       (const char *)(((IpAddr *)Data)->Addr + 12),
                        4,
                        60
                        )
@@ -77,7 +78,7 @@ static int HostsUtils_Generate(int              Number,
                        "a",
                        DNS_TYPE_AAAA,
                        DNS_CLASS_IN,
-                       Data,
+                       (const char *)(((IpAddr *)Data)->Addr),
                        16,
                        60
                        )

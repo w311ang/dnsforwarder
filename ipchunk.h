@@ -20,6 +20,17 @@ typedef struct _IpSet {
     int     PrefixBits;
 } IpSet;
 
+int IpAddr_BitLength(IpAddr *ipAddr);
+int IpAddr_Is6(IpAddr *ipAddr);
+int IpAddr_HasZone(IpAddr *ipAddr);
+int IpAddr_IsValid(IpAddr *ipAddr);
+void IpAddr_From4(unsigned char Addr[4], IpAddr *ipAddr);
+void IpAddr_From6(unsigned char Addr[16], IpAddr *ipAddr);
+int IpAddr_Parse(const char *s, IpAddr *ipAddr);
+
+BOOL IpSet_IsSingleIp(IpSet *ipSet);
+int IpSet_Parse(const char *s, const char *p, IpSet *ipSet);
+
 typedef struct _IpElement {
     IpSet   IpSet;
     int     Type;

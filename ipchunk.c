@@ -13,7 +13,7 @@ CIDR: https://datatracker.ietf.org/doc/html/rfc4632
       https://datatracker.ietf.org/doc/html/rfc4291#section-2.3
 */
 
-static int IpAddr_BitLength(IpAddr *ipAddr)
+int IpAddr_BitLength(IpAddr *ipAddr)
 {
     if( ipAddr->Zone == Z0 )
     {
@@ -26,17 +26,17 @@ static int IpAddr_BitLength(IpAddr *ipAddr)
     return 128;
 }
 
-static int IpAddr_Is6(IpAddr *ipAddr)
+int IpAddr_Is6(IpAddr *ipAddr)
 {
     return ipAddr->Zone != Z0 && ipAddr->Zone != Z4;
 }
 
-static int IpAddr_HasZone(IpAddr *ipAddr)
+int IpAddr_HasZone(IpAddr *ipAddr)
 {
     return IpAddr_Is6(ipAddr) && ipAddr->Zone != Z6noz;
 }
 
-static int IpAddr_IsValid(IpAddr *ipAddr)
+int IpAddr_IsValid(IpAddr *ipAddr)
 {
     return ipAddr->Zone != Z0;
 }
@@ -47,20 +47,20 @@ static void IpAddr_SetPrefix4(unsigned char Addr[16])
     *(uint16_t *)(Addr + 10) = 0xffff;
 }
 
-static void IpAddr_From4(unsigned char Addr[4], IpAddr *ipAddr)
+void IpAddr_From4(unsigned char Addr[4], IpAddr *ipAddr)
 {
     ipAddr->Zone = Z4;
     IpAddr_SetPrefix4(ipAddr->Addr);
     *(uint32_t *)(ipAddr->Addr + 12) = *(uint32_t *)Addr;
 }
 
-static void IpAddr_From6(unsigned char Addr[16], IpAddr *ipAddr)
+void IpAddr_From6(unsigned char Addr[16], IpAddr *ipAddr)
 {
     ipAddr->Zone = Z6noz;
     memcpy(ipAddr->Addr, Addr, 16);
 }
 
-static int IpAddr_Parse(const char *s, IpAddr *ipAddr)
+int IpAddr_Parse(const char *s, IpAddr *ipAddr)
 {
     const char *p = s;
 
@@ -91,12 +91,12 @@ static int IpAddr_Parse(const char *s, IpAddr *ipAddr)
     return -1;
 }
 
-static BOOL IpSet_IsSingleIp(IpSet *ipSet)
+BOOL IpSet_IsSingleIp(IpSet *ipSet)
 {
     return ipSet->PrefixBits != 0 && ipSet->PrefixBits == IpAddr_BitLength(&(ipSet->Ip));
 }
 
-static int IpSet_Parse(const char *s, const char *p, IpSet *ipSet)
+int IpSet_Parse(const char *s, const char *p, IpSet *ipSet)
 {
     int n, L;
     IpAddr *ipAddr = &(ipSet->Ip);
