@@ -34,7 +34,7 @@ static int SwepTask(UdpM *m, SwepCallback cb)
 }
 
 static int
-#ifdef WIN32
+#ifdef _WIN32
 WINAPI
 #endif
 UdpM_Swep_Thread(UdpM *m)
@@ -69,7 +69,7 @@ static int UdpM_Cleanup(UdpM *m)
 }
 
 static void
-#ifdef WIN32
+#ifdef _WIN32
 WINAPI
 #endif
 UdpM_Works(UdpM *m)

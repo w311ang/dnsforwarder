@@ -533,7 +533,7 @@ static int TcpM_Cleanup(TcpM *m)
 }
 
 static int
-#ifdef WIN32
+#ifdef _WIN32
 WINAPI
 #endif
 TcpM_Works(TcpM *m)
