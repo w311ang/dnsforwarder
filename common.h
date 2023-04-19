@@ -217,7 +217,7 @@
     /* File and Mapping */
     /* In Linux, there is no a long process to map a file like Windows. */
     #define OPEN_FILE(file)                     (open((file), O_RDWR | O_CREAT, S_IRWXU))
-    #define CREATE_FILE_MAPPING(handle, size)   (lseek((handle), size, SEEK_SET), write((handle), "\0", 1), (handle))
+    #define CREATE_FILE_MAPPING(handle, size)   (lseek((handle), size, SEEK_SET), write((handle), "\0", 1) == -1 ? INVALID_MAP : (handle))
     #define MPA_FILE(handle, size)              (mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, (handle), 0))
     #define UNMAP_FILE(start, size)             (munmap(start, size))
     #define DESTROY_MAPPING(handle)             /* Nothing */

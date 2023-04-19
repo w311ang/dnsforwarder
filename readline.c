@@ -85,7 +85,10 @@ START:
             char BlackHole[128];
             do
             {
-                fgets(BlackHole, sizeof(BlackHole), fp);
+                if( fgets(BlackHole, sizeof(BlackHole), fp) == NULL )
+                {
+                    return READ_FAILED_OR_END;
+                }
                 ReachedEnd = ReachedLineEnd(fp, BlackHole);
             }while( ReachedEnd == FALSE );
         }
