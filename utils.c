@@ -1080,6 +1080,15 @@ char *ReplaceStr_WithLengthChecking(char *Src,
     }
 }
 
+/* Off by default on most *nix, or unsupported.
+   Windows Vista and later support this. */
+#if defined(_WIN32) && defined(IPV6_V6ONLY)
+int SetSocketIPv6V6only(SOCKET sock, int on)
+{
+    return setsockopt(sock, IPPROTO_IPV6, IPV6_V6ONLY, (void *)&on, sizeof(on));
+}
+#endif
+
 int SetSocketNonBlock(SOCKET sock, BOOL NonBlocked)
 {
 #ifdef _WIN32

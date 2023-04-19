@@ -147,6 +147,10 @@ char *ReplaceStr_WithLengthChecking(char *Src,
                                     int SrcBufferLength
                                     );
 
+#ifdef _WIN32
+int SetSocketIPv6V6only(SOCKET sock, int on);
+#endif
+
 int SetSocketNonBlock(SOCKET sock, BOOL NonBlocked);
 
 int SetSocketTimeout(SOCKET Sock, int OptName, int Timeout);

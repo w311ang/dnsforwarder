@@ -100,11 +100,11 @@ UdpM_Works(UdpM *m)
         /* Set up socket */
         if( m->Departure == INVALID_SOCKET )
         {
+            sa_family_t family;
+
             EFFECTIVE_LOCK_GET(m->Lock);
             if( m->Parallels.addrs == NULL )
             {
-                sa_family_t family;
-
                 addr = AddressList_GetOne(&(m->AddrList), &family);
                 if( addr == NULL )
                 {
@@ -115,6 +115,7 @@ UdpM_Works(UdpM *m)
 
                 m->Departure = socket(family, SOCK_DGRAM, IPPROTO_UDP);
             } else { /* Parallel query */
+                family = m->Parallels.familiy;
                 m->Departure = socket(m->Parallels.familiy,
                                       SOCK_DGRAM,
                                       IPPROTO_UDP
@@ -127,6 +128,13 @@ UdpM_Works(UdpM *m)
                 EFFECTIVE_LOCK_RELEASE(m->Lock);
                 break;
             }
+
+#if defined(_WIN32) && defined(IPV6_V6ONLY)
+            if( family == AF_INET6 )
+            {
+                SetSocketIPv6V6only(m->Departure, 0);
+            }
+#endif
 
             m->CountOfTimeout = 0;
 

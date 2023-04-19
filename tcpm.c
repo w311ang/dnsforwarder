@@ -130,6 +130,13 @@ static SOCKET TcpM_Connect_Addr(sa_family_t af, struct sockaddr *addr)
         return INVALID_SOCKET;
     }
 
+#if defined(_WIN32) && defined(IPV6_V6ONLY)
+    if( af == AF_INET6 )
+    {
+        SetSocketIPv6V6only(s, 0);
+    }
+#endif
+
     if( connect(s, addr, GetAddressLength(af)) != 0 )
     {
         if( GET_LAST_ERROR() != CONNECT_FUNCTION_BLOCKED )
