@@ -166,7 +166,7 @@ char *GetCurDateAndTime(char *Buffer, int BufferLength)
 
     timeinfo = localtime(&rawtime);
 
-    strftime(Buffer, BufferLength - 1 ,"%b %d %X", timeinfo);
+    strftime(Buffer, BufferLength - 1 ,"%Y/%m/%d %X", timeinfo);
 
     return Buffer;
 }
