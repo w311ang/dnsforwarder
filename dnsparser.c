@@ -180,7 +180,7 @@ char *GetAllAnswers(char *DNSBody, int DNSBodyLength, char *Buffer, int BufferLe
            i.Purpose != DNS_RECORD_PURPOSE_UNKNOWN
          )
     {
-        if( i.TextifyData(&i, "   %t:%v\n", BufferItr, BufferLeft) == 0 )
+        if( i.TextifyData(&i, "   %t: %v\n", BufferItr, BufferLeft) == 0 )
         {
             sprintf(BufferItr, "   And %d More ...\n", ANACount);
 
@@ -607,7 +607,7 @@ static int DnsSimpleParserIterator_ParseIPv6(DnsSimpleParserIterator *i,
                                           int *AcutalDataLength
                                           )
 {
-    char Example[LENGTH_OF_IPV6_ADDRESS_ASCII];
+    char Example[LENGTH_OF_IPV6_ADDRESS_ASCII + 1];
 
     if( DataLength < 16 || strlen(Format) + 1 > BufferLength )
     {

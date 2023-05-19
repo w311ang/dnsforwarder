@@ -439,6 +439,7 @@ EXIT_1:
 #endif /* _WIN32 */
 }
 #endif /* MASKED */
+
 int IPv6AddressToNum(const char *asc, void *Buffer)
 {
     int16_t *buf_s  =   (int16_t *)Buffer;
@@ -548,17 +549,70 @@ sa_family_t GetAddressFamily(const char *Addr)
 
 int IPv6AddressToAsc(const void *Address, void *Buffer)
 {
-    sprintf((char *)Buffer, "%x:%x:%x:%x:%x:%x:%x:%x",
-        GET_16_BIT_U_INT((const char *)Address),
-        GET_16_BIT_U_INT((const char *)Address + 2),
-        GET_16_BIT_U_INT((const char *)Address + 4),
-        GET_16_BIT_U_INT((const char *)Address + 6),
-        GET_16_BIT_U_INT((const char *)Address + 8),
-        GET_16_BIT_U_INT((const char *)Address + 10),
-        GET_16_BIT_U_INT((const char *)Address + 12),
-        GET_16_BIT_U_INT((const char *)Address + 14)
+    int i;
+    int z = -1, n = 0;
+    int z2 = -1, n2 = 0;
+    char *x = (char *)Address;
+    char *s = (char *)Buffer;
 
-    );
+    /* Find the longest continuous uint16_t 0. Only one "::",
+       "2001:0:0:db8:0:0:0:ec" to "2001:0:0:db8::ec",
+       "2001:0:0:0:db8:0:0:ec" to "2001::db8:0:0:ec" */
+    for( i = 0; i < 16; i += 2 )
+    {
+        if( x[i] == 0 && x[i + 1] == 0 )
+        {
+            if( z2 == -1 )
+            {
+                z2 = i;
+                n2 = 0;
+            }
+            n2 += 2;
+            if( n2 > n )
+            {
+                z = z2;
+                n = n2;
+            }
+        } else {
+            z2 = -1;
+        }
+    }
+
+    for( i = 0; i < 16; i += 2 )
+    {
+        uint16_t v;
+
+        if( i == z && n > 2 )
+        {
+            if( i == 0 )
+            {
+                *s = ':';
+                s++;
+            }
+            *s = ':';
+            s++;
+            i += n - 2;
+            continue;
+        }
+
+        v = GET_16_BIT_U_INT(x + i);
+        sprintf(s, "%x", v);
+        if( v == 0 )
+        {
+            s++;
+        } else {
+            for( ; v > 0; v >>= 4 )
+            {
+                s++;
+            }
+        }
+        if( i < 14 )
+        {
+            *s = ':';
+            s++;
+        }
+    }
+    *s = 0x0;
 
     return 0;
 }
