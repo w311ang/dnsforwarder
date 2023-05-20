@@ -58,6 +58,12 @@ jobs:
         echo Setting up clang ${{matrix.env}} ...
         sudo dpkg --add-architecture ${{matrix.env}}
         sudo apt-get update
+        if [ "${{matrix.env}}" = "i386" ]; then
+          # 20230520: Seems these dependencies have conflicts that can't be solved with the existing amd64 version.
+          sudo apt-get install -y libgcc-s1:${{matrix.env}} libgomp1:${{matrix.env}} libitm1:${{matrix.env}} \
+            libatomic1:${{matrix.env}} libubsan1:${{matrix.env}} libquadmath0:${{matrix.env}} \
+            libstdc++6:${{matrix.env}}
+        fi
         sudo apt-get install -y "libc6-dev:${{matrix.env}}" "lib$(readlink /usr/bin/gcc)-dev:${{matrix.env}}" "libcurl4-openssl-dev:${{matrix.env}}"
         CLANG="$(readlink -f /usr/bin/clang)"
         LLD=${CLANG/clang/lld}
