@@ -48,4 +48,4 @@ struct _HostsContainer{
 
 int HostsContainer_Init(HostsContainer *Container);
 
-#endif // HOSTSCONTAINER_H_INCLUDED
+#endif /* HOSTSCONTAINER_H_INCLUDED */

@@ -27,4 +27,4 @@
 
 #endif /* _WIN32 */
 
-#endif // PIPES_H_INCLUDED
+#endif /* PIPES_H_INCLUDED */

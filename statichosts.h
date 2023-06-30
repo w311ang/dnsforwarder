@@ -12,4 +12,4 @@ BOOL StaticHosts_TypeExisting(const char *Domain, HostsRecordType Type);
 
 HostsUtilsTryResult StaticHosts_Try(MsgContext *MsgCtx, int BufferLength);
 
-#endif // STATICHOSTS_H_INCLUDED
+#endif /* STATICHOSTS_H_INCLUDED */

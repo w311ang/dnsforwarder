@@ -72,4 +72,4 @@ int MsgContext_SendBack(MsgContext *MsgCtx);
 
 int MsgContext_SendBackRefusedMessage(MsgContext *MsgCtx);
 
-#endif // IHEADER_H_INCLUDED
+#endif /* IHEADER_H_INCLUDED */

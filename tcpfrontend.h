@@ -7,4 +7,4 @@ void TcpFrontend_StartWork(void);
 
 int TcpFrontend_Init(ConfigFileInfo *ConfigInfo, BOOL StartWork);
 
-#endif // TCPFRONTEND_H_INCLUDED
+#endif /* TCPFRONTEND_H_INCLUDED */

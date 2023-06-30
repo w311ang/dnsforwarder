@@ -31,4 +31,4 @@ int PTimer_Start(PTimer *t);
 
 unsigned long PTimer_End(PTimer *t);
 
-#endif // PTIMER_H_INCLUDED
+#endif /* PTIMER_H_INCLUDED */

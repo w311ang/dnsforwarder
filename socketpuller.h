@@ -44,4 +44,4 @@ void SocketPullers_FreeWithoutClose(SocketPuller **Pullers);
 
 void SocketPullers_Free(SocketPuller **Pullers);
 
-#endif // SOCKETPULLER_H_INCLUDED
+#endif /* SOCKETPULLER_H_INCLUDED */

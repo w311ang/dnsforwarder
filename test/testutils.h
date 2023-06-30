@@ -5,4 +5,4 @@ char *RandomString(char *out, int len);
 
 char *RandomAlpha(char *out, int len);
 
-#endif // TESTUTILS_H_INCLUDED
+#endif /* TESTUTILS_H_INCLUDED */

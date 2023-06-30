@@ -16,4 +16,4 @@ int TimedTask_Add(BOOL Persistent,
                   BOOL Immediate
                   );
 
-#endif // TIMEDTASK_H_INCLUDED
+#endif /* TIMEDTASK_H_INCLUDED */

@@ -50,4 +50,4 @@ struct _StableBufferIterator{
 
 int StableBufferIterator_Init(StableBufferIterator *i, StableBuffer *s);
 
-#endif // STABLEBUFFER_C_INCLUDED
+#endif /* STABLEBUFFER_C_INCLUDED */

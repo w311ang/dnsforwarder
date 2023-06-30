@@ -11,4 +11,4 @@ int Modules_Update(void);
 
 int MMgr_Send(const char *Buffer, int BufferLength);
 
-#endif // MMGR_H_INCLUDED
+#endif /* MMGR_H_INCLUDED */

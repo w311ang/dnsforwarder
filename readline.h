@@ -14,4 +14,4 @@ ReadLineStatus ReadLine(FILE *fp, char *Buffer, int BufferSize);
 
 ReadLineStatus ReadLine_GoToNextLine(FILE *fp);
 
-#endif // READLINE_H_INCLUDED
+#endif /* READLINE_H_INCLUDED */

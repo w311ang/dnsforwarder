@@ -103,4 +103,4 @@ struct sockaddr **AddressList_GetPtrList(AddressList *a, sa_family_t **families)
  *  Apparently.
  */
 
-#endif // ADDRESSLIST_H_INCLUDED
+#endif /* ADDRESSLIST_H_INCLUDED */

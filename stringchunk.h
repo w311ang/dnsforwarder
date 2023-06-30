@@ -106,4 +106,4 @@ void StringChunk_Free(StringChunk *dl, BOOL FreeStringList);
 
 int InitChunk(StringChunk **dl);
 
-#endif // STRINGCHUNK_H_INCLUDED
+#endif /* STRINGCHUNK_H_INCLUDED */

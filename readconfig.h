@@ -131,4 +131,4 @@ void ConfigSetDefaultValue(ConfigFileInfo *Info, VType Value, char *KeyName);
 
 void ConfigFree(ConfigFileInfo *Info);
 
-#endif // _READCONFIG_
+#endif /* _READCONFIG_ */

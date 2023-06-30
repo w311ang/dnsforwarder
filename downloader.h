@@ -22,5 +22,5 @@ int GetFromInternet_SingleFile(const char   *URL,
 
 int GetFromInternet_Base(const char *URL, const char *File);
 
-#endif // DOWNLOADER_H_INCLUDED
+#endif /* DOWNLOADER_H_INCLUDED */
 

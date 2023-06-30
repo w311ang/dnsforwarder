@@ -29,4 +29,4 @@ void ModuleContext_Free(ModuleContext *c);
 
 int ModuleContext_Init(ModuleContext *c, int ItemLength);
 
-#endif // MCONTEXT_H_INCLUDED
+#endif /* MCONTEXT_H_INCLUDED */

@@ -141,4 +141,4 @@ void Array_Free(__in Array *a);
  *  a : The Array to be freed.
  */
 
-#endif // ARRAY_H_INCLUDED
+#endif /* ARRAY_H_INCLUDED */

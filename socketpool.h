@@ -37,4 +37,4 @@ struct _SocketPool{
 
 int SocketPool_Init(SocketPool *sp, int DataLength);
 
-#endif // SOCKETPOOL_H_INCLUDED
+#endif /* SOCKETPOOL_H_INCLUDED */

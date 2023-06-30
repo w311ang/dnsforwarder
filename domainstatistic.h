@@ -18,4 +18,4 @@ int DomainStatistic_Init(ConfigFileInfo *ConfigInfo);
 
 int DomainStatistic_Add(IHeader *h, StatisticType Type);
 
-#endif // DOMAINSTATISTIC_H_INCLUDED
+#endif /* DOMAINSTATISTIC_H_INCLUDED */

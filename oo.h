@@ -6,4 +6,4 @@
 #define PRIFUNC static
 #define PUBFUNC static
 
-#endif // OO_H_INCLUDED
+#endif /* OO_H_INCLUDED */

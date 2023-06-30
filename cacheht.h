@@ -43,4 +43,4 @@ Cht_Node *CacheHT_Get(CacheHT *h, const char *Key, Cht_Node *Start, uint32_t *Ha
 
 void CacheHT_Free(CacheHT *h);
 
-#endif // HASHTABLE_H_INCLUDED
+#endif /* HASHTABLE_H_INCLUDED */

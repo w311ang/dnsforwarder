@@ -44,4 +44,4 @@ int HostsUtils_CombineRecursedResponse(MsgContext   *Buffer,
                                        const char   *RecursedDomain
                                        );
 
-#endif // HOSTSUTILS_H_INCLUDED
+#endif /* HOSTSUTILS_H_INCLUDED */

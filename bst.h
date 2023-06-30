@@ -37,4 +37,4 @@ struct _Bst {
 
 int Bst_Init(Bst *t, int ElementLength, CompareFunc Compare);
 
-#endif // BST_H_INCLUDED
+#endif /* BST_H_INCLUDED */

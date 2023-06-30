@@ -44,4 +44,4 @@ struct _StringListIterator{
 
 int StringListIterator_Init(StringListIterator *i, StringList *l);
 
-#endif // STRINGLIST_H_INCLUDED
+#endif /* STRINGLIST_H_INCLUDED */

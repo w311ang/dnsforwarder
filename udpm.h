@@ -40,4 +40,4 @@ struct _UdpM {
 
 int UdpM_Init(UdpM *m, const char *Services, BOOL Parallel);
 
-#endif // UDPM_H_INCLUDED
+#endif /* UDPM_H_INCLUDED */

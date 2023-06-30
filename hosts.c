@@ -139,10 +139,10 @@ Hosts_SocketLoop(void *Unused)
     char    InnerBuffer[CONTEXT_DATA_LENGTH];
     MsgContext *InnerMsgCtx = (MsgContext *)InnerBuffer;
     IHeader *InnerHeader = (IHeader *)InnerBuffer;
-    //char    *InnerEntity = InnerBuffer + sizeof(IHeader);
+    /* char    *InnerEntity = InnerBuffer + sizeof(IHeader); */
 
     char OuterBuffer[CONTEXT_DATA_LENGTH];
-    //MsgContext *OuterMsgCtx = (MsgContext *)OuterBuffer;
+    /* MsgContext *OuterMsgCtx = (MsgContext *)OuterBuffer; */
     IHeader *OuterHeader = (IHeader *)OuterBuffer;
     char    *OuterEntity = OuterBuffer + sizeof(IHeader);
 

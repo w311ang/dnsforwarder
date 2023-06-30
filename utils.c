@@ -1097,7 +1097,6 @@ char *ReplaceStr(char *Src, const char *OriSubstr, const char *DesSubstr)
 {
     int DesLen = strlen(DesSubstr);
     int OriLen = strlen(OriSubstr);
-    //int Difference = DesLen - OriLen;
 
     char *Itr;
 

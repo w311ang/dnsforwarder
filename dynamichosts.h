@@ -12,4 +12,4 @@ BOOL DynamicHosts_TypeExisting(const char *Domain, HostsRecordType Type);
 
 HostsUtilsTryResult DynamicHosts_Try(MsgContext *MsgCtx, int BufferLength);
 
-#endif // DYNAMICHOSTS_H_INCLUDED
+#endif /* DYNAMICHOSTS_H_INCLUDED */

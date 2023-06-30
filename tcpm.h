@@ -45,4 +45,4 @@ struct _TcpM {
 
 int TcpM_Init(TcpM *m, const char *Services, BOOL Parallel, const char *SocksProxies);
 
-#endif // TCPM_C_INCLUDED
+#endif /* TCPM_C_INCLUDED */

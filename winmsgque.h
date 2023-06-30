@@ -25,4 +25,4 @@ int WinMsgQue_Init(WinMsgQue *q, int MsgSize);
 #define WinMsgQue_FreeMsg(m_ptr)    LinkedQueue_FreeNode(m_ptr)
 
 #endif /* _WIN32 */
-#endif // WINMSGQUE_H_INCLUDED
+#endif /* WINMSGQUE_H_INCLUDED */

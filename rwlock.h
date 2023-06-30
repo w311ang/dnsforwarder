@@ -82,4 +82,4 @@
     #endif
 #endif /* _WIN32 */
 
-#endif // RWLOCK_H_INCLUDED
+#endif /* RWLOCK_H_INCLUDED */

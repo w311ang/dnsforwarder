@@ -57,4 +57,4 @@ int IpChunk_Add(IpChunk *ic,
 
 BOOL IpChunk_Find(IpChunk *ic, unsigned char *Ip, int IpBytes, int *Type, const char **Data);
 
-#endif // IPCHUNK_H_INCLUDED
+#endif /* IPCHUNK_H_INCLUDED */

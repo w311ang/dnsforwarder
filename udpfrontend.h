@@ -7,4 +7,4 @@ void UdpFrontend_StartWork(void);
 
 int UdpFrontend_Init(ConfigFileInfo *ConfigInfo, BOOL StartWork);
 
-#endif // UDPFRONTEND_H_INCLUDED
+#endif /* UDPFRONTEND_H_INCLUDED */

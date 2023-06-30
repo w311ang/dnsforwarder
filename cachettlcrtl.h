@@ -34,4 +34,4 @@ int CacheTtlCrtl_Add_From_StringList(CacheTtlCtrl *c, StringList *sl);
 
 const CtrlContent *CacheTtlCrtl_Get(CacheTtlCtrl *c, const char *Domain);
 
-#endif // CACHETTLCRTL_H_INCLUDED
+#endif /* CACHETTLCRTL_H_INCLUDED */

@@ -46,4 +46,4 @@ int IpMiscMapping_Init(ConfigFileInfo *ConfigInfo);
 
 int IPMiscMapping_Process(MsgContext *MsgCtx);
 
-#endif // IPMISC_H_INCLUDED
+#endif /* IPMISC_H_INCLUDED */

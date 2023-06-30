@@ -29,4 +29,4 @@ const char *SimpleHT_Enum(SimpleHT *ht, int32_t *Start);
 
 void SimpleHT_Free(SimpleHT *ht);
 
-#endif // SIMPLEHT_H_INCLUDED
+#endif /* SIMPLEHT_H_INCLUDED */

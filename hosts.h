@@ -14,4 +14,4 @@ HostsUtilsTryResult Hosts_Try(MsgContext *MsgCtx, int BufferLength);
 
 int Hosts_Get(MsgContext *MsgCtx, int BufferLength);
 
-#endif // HOSTS_H_INCLUDED
+#endif /* HOSTS_H_INCLUDED */

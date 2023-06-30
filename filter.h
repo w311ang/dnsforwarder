@@ -12,4 +12,4 @@ int Filter_Update(void);
 
 BOOL Filter_Out(MsgContext *MsgCtx);
 
-#endif // EXCLUDEDLIST_H_INCLUDED
+#endif /* EXCLUDEDLIST_H_INCLUDED */
