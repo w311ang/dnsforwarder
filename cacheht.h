@@ -34,12 +34,12 @@ int CacheHT_InsertToSlot(CacheHT    *h,
                          const char *Key,
                          int        Node_index,
                          Cht_Node   *Node,
-                         uint32_t   *HashValue
+                         const uint32_t *HashValue
                          );
 
 int CacheHT_RemoveFromSlot(CacheHT *h, int32_t SubScriptOfNode, Cht_Node *Node);
 
-Cht_Node *CacheHT_Get(CacheHT *h, const char *Key, Cht_Node *Start, uint32_t *HashValue);
+Cht_Node *CacheHT_Get(CacheHT *h, const char *Key, const Cht_Node *Start, const uint32_t *HashValue);
 
 void CacheHT_Free(CacheHT *h);
 

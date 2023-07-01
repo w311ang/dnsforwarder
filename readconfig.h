@@ -96,7 +96,7 @@ int ConfigOpenFile(ConfigFileInfo *Info, const char *File);
 int ConfigCloseFile(ConfigFileInfo *Info);
 
 int ConfigAddOption(ConfigFileInfo *Info,
-                    char *KeyName,
+                    const char *KeyName,
                     MultilineStrategy Strategy,
                     OptionType Type,
                     VType Initial
@@ -110,24 +110,24 @@ int ConfigAddAlias(ConfigFileInfo *Info,
                    );
 
 int ConfigSetStringDelimiters(ConfigFileInfo *Info,
-                              char *KeyName,
+                              const char *KeyName,
                               const char *Delimiters
                               );
 
 int ConfigRead(ConfigFileInfo *Info);
 
-const char *ConfigGetRawString(ConfigFileInfo *Info, char *KeyName);
+const char *ConfigGetRawString(ConfigFileInfo *Info, const char *KeyName);
 
-StringList *ConfigGetStringList(ConfigFileInfo *Info, char *KeyName);
+StringList *ConfigGetStringList(ConfigFileInfo *Info, const char *KeyName);
 
-int32_t ConfigGetNumberOfStrings(ConfigFileInfo *Info, char *KeyName);
+int32_t ConfigGetNumberOfStrings(ConfigFileInfo *Info, const char *KeyName);
 
-int32_t ConfigGetInt32(ConfigFileInfo *Info, char *KeyName);
+int32_t ConfigGetInt32(ConfigFileInfo *Info, const char *KeyName);
 
-BOOL ConfigGetBoolean(ConfigFileInfo *Info, char *KeyName);
+BOOL ConfigGetBoolean(ConfigFileInfo *Info, const char *KeyName);
 
 /* Won't change the Option's status */
-void ConfigSetDefaultValue(ConfigFileInfo *Info, VType Value, char *KeyName);
+void ConfigSetDefaultValue(ConfigFileInfo *Info, VType Value, const char *KeyName);
 
 void ConfigFree(ConfigFileInfo *Info);
 

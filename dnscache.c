@@ -50,7 +50,7 @@ static void DNSCacheTTLCountdown_Task(void *Unused, void *Unused2)
 {
     BOOL        GotMutex = FALSE;
 
-    Array       *ChunkList = &(CacheInfo->NodeChunk);
+    const Array *ChunkList = &(CacheInfo->NodeChunk);
     int         loop = ChunkList->Used - 1;
     Cht_Node    *Node = (Cht_Node *)Array_GetBySubscript(ChunkList, loop);
 
@@ -98,7 +98,7 @@ static void DNSCacheTTLCountdown_Task(void *Unused, void *Unused2)
 
 static BOOL IsReloadable(void)
 {
-    struct _Header  *Header = (struct _Header *)MapStart;
+    const struct _Header *Header = (struct _Header *)MapStart;
 
     if( Header->Ver != CACHE_VERSION )
     {
@@ -382,7 +382,7 @@ static int32_t DNSCache_GetAviliableChunk(uint32_t Length, Cht_Node **Out)
 
 }
 
-static Cht_Node *DNSCache_FindFromCache(char *Content, size_t Length, Cht_Node *Start, time_t CurrentTime)
+static Cht_Node *DNSCache_FindFromCache(const char *Content, size_t Length, Cht_Node *Start, time_t CurrentTime)
 {
     Cht_Node *Node = Start;
 
@@ -405,7 +405,7 @@ static Cht_Node *DNSCache_FindFromCache(char *Content, size_t Length, Cht_Node *
 
 }
 
-static uint32_t DNSCache_CacheMinTTL(char *Content, size_t Length, uint32_t NewTTL, time_t CurrentTime)
+static uint32_t DNSCache_CacheMinTTL(const char *Content, size_t Length, uint32_t NewTTL, time_t CurrentTime)
 {
     uint32_t RecordTTL = NewTTL;
     Cht_Node *Node = NULL;
@@ -443,7 +443,7 @@ static int DNSCache_AddAItemToCache(DnsSimpleParserIterator *i,
     char            *Item = Buffer + 1;
 
     /* Iterator of `Buffer' */
-    char            *BufferItr = Buffer;
+    char            *BufferItr;
 
     const CtrlContent   *TtlContent;
 
@@ -676,8 +676,6 @@ static int DNSCache_GetRawRecordsFromCache( __in    const char *Name,
 
     do
     {
-        char *CacheItr;
-
         Node = DNSCache_FindFromCache(Name_Type_Class,
                                       strlen(Name_Type_Class) + 1,
                                       Node,
@@ -693,6 +691,8 @@ static int DNSCache_GetRawRecordsFromCache( __in    const char *Name,
 
         if( Node->TTL != 0 )
         {
+            char *CacheItr;
+
             /* TTL*/
             if( IgnoreTTL == TRUE )
             {
@@ -774,9 +774,6 @@ static int DNSCache_GetByQuestion(__inout DnsGenerator *g,
                                   )
 {
     char    Name[260];
-    char    CName[260];
-
-    uint32_t NewTTL;
 
     DnsSimpleParserIterator i;
 
@@ -810,11 +807,15 @@ static int DNSCache_GetByQuestion(__inout DnsGenerator *g,
     /* If the intended type is not DNS_TYPE_CNAME, then first find its cname */
     if( i.Type != DNS_TYPE_CNAME )
     {
+        char    CName[260];
         Cht_Node *Node = NULL;
+
         while( (Node = DNSCache_GetCNameFromCache(Name, CName, CurrentTime))
                != NULL
                )
         {
+            uint32_t NewTTL;
+
             if( IgnoreTTL == TRUE )
             {
                 NewTTL = Node->TTL;

@@ -2,7 +2,7 @@
 #include "stablebuffer.h"
 #include "utils.h"
 
-static BOOL NeedRealloc(Array *MetaInfo, int DataLength)
+static BOOL NeedRealloc(const Array *MetaInfo, int DataLength)
 {
     StableBuffer_MetaInfo   *lm;
 
@@ -184,7 +184,7 @@ static BOOL StableBufferIterator_IsInCurrentBlock(StableBufferIterator *i,
                                                   const void *Position)
 {
     const char              *pos = Position;
-    StableBuffer_MetaInfo   *m = StableBufferIterator_CurrentMeta(i);
+    const StableBuffer_MetaInfo   *m = StableBufferIterator_CurrentMeta(i);
 
     if( m == NULL )
     {
@@ -203,14 +203,14 @@ static BOOL StableBufferIterator_IsInCurrentBlock(StableBufferIterator *i,
 
 static int32_t StableBufferIterator_CurrentBlockSize(StableBufferIterator *i)
 {
-    StableBuffer_MetaInfo   *m = StableBufferIterator_CurrentMeta(i);
+    const StableBuffer_MetaInfo   *m = StableBufferIterator_CurrentMeta(i);
 
     return m->Amount;
 }
 
 static int32_t StableBufferIterator_CurrentBlockUsed(StableBufferIterator *i)
 {
-    StableBuffer_MetaInfo   *m = StableBufferIterator_CurrentMeta(i);
+    const StableBuffer_MetaInfo   *m = StableBufferIterator_CurrentMeta(i);
 
     return m->Used;
 }

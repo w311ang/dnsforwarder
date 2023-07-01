@@ -22,7 +22,7 @@ int IHeader_Fill(IHeader *h,
                  BOOL ReturnHeader, /* For tcp, this will be ignored */
                  char *DnsEntity,
                  int EntityLength,
-                 struct sockaddr *BackAddress, /* NULL for tcp */
+                 const struct sockaddr *BackAddress, /* NULL for tcp */
                  SOCKET SendBackSocket,
                  sa_family_t Family, /* For tcp, this will be ignored */
                  const char *Agent
@@ -142,14 +142,14 @@ int MsgContext_AddFakeEdns(MsgContext *MsgCtx, int BufferLength)
     return 0;
 }
 
-BOOL MsgContext_IsBlocked(MsgContext *MsgCtx)
+BOOL MsgContext_IsBlocked(const MsgContext *MsgCtx)
 {
-    IHeader *h = (IHeader *)MsgCtx;
+    const IHeader *h = (IHeader *)MsgCtx;
 
     return (ap && !(h->EDNSEnabled));
 }
 
-BOOL MsgContext_IsFromTCP(MsgContext *MsgCtx)
+BOOL MsgContext_IsFromTCP(const MsgContext *MsgCtx)
 {
     IHeader *h = (IHeader *)MsgCtx;
 

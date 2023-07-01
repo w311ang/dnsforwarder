@@ -266,7 +266,7 @@ static int UdpM_Send(UdpM *m,
                      )
 {
     int ret = 0;
-    IHeader *h = (IHeader *)Buffer;
+    const IHeader *h = (IHeader *)Buffer;
 
     MsgContext_AddFakeEdns((MsgContext *)Buffer, BufferLength);
 
@@ -283,8 +283,6 @@ static int UdpM_Send(UdpM *m,
         if( m->Parallels.addrs != NULL )
         { /* Parallel query */
             struct sockaddr **a = m->Parallels.addrs;
-
-            ret = 0;
 
             while( *a != NULL )
             {
@@ -313,7 +311,7 @@ static int UdpM_Send(UdpM *m,
             if( a == NULL )
             {
                 ERRORMSG("Fatal error 205.\n");
-                ret = -277;
+                return -277;
             }
 
             State = sendto(m->Departure,

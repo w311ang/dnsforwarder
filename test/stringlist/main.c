@@ -8,7 +8,7 @@ int main(void)
     StringList l;
     StringListIterator i;
 
-    char str[128];
+    /* char str[128]; */
     const char *ci;
 
     int n;

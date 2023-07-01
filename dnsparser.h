@@ -188,23 +188,23 @@ struct _DnsSimpleParser{
         const DNSFlags    *Flags;
 
         /* public */
-        DnsDirection    (*Direction)(DnsSimpleParser *p);
-        DnsOperation    (*Operation)(DnsSimpleParser *p);
-        BOOL            (*IsAuthoritative)(DnsSimpleParser *p);
-        BOOL            (*Truncated)(DnsSimpleParser *p);
-        BOOL            (*RecursionDesired)(DnsSimpleParser *p);
-        BOOL            (*RecursionAvailable)(DnsSimpleParser *p);
-        ResponseCode    (*ResponseCode)(DnsSimpleParser *p);
+        DnsDirection    (*Direction)(const DnsSimpleParser *p);
+        DnsOperation    (*Operation)(const DnsSimpleParser *p);
+        BOOL            (*IsAuthoritative)(const DnsSimpleParser *p);
+        BOOL            (*Truncated)(const DnsSimpleParser *p);
+        BOOL            (*RecursionDesired)(const DnsSimpleParser *p);
+        BOOL            (*RecursionAvailable)(const DnsSimpleParser *p);
+        ResponseCode    (*ResponseCode)(const DnsSimpleParser *p);
     } _Flags;
 
     /* public */
-    uint16_t    (*QueryIdentifier)(DnsSimpleParser *p);
-    int         (*QuestionCount)(DnsSimpleParser *p);
-    int         (*AnswerCount)(DnsSimpleParser *p);
-    int         (*NameServerCount)(DnsSimpleParser *p);
-    int         (*AdditionalCount)(DnsSimpleParser *p);
+    uint16_t    (*QueryIdentifier)(const DnsSimpleParser *p);
+    int         (*QuestionCount)(const DnsSimpleParser *p);
+    int         (*AnswerCount)(const DnsSimpleParser *p);
+    int         (*NameServerCount)(const DnsSimpleParser *p);
+    int         (*AdditionalCount)(const DnsSimpleParser *p);
 
-    BOOL        (*HasType)(DnsSimpleParser *p,
+    BOOL        (*HasType)(const DnsSimpleParser *p,
                            DnsRecordPurpose Purpose,
                            DNSRecordClass Klass,
                            DNSRecordType Type

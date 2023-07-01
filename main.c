@@ -522,10 +522,8 @@ int main(int argc, char *argv[])
     }
 
     atexit(CleanupConfigInfo);
-    if( EnvironmentInit() != 0 )
-    {
-        return -498;
-    }
+
+    EnvironmentInit();
 
     putchar('\n');
 

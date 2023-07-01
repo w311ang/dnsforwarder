@@ -50,7 +50,7 @@ void *Array_GetBySubscript(__in const Array *a, __in int Subscript)
     }
 }
 
-void *Array_GetThis(__in Array *a, __in const void *Position)
+void *Array_GetThis(__in const Array *a, __in const void *Position)
 {
     const char *pos = Position;
 
@@ -63,7 +63,7 @@ void *Array_GetThis(__in Array *a, __in const void *Position)
     }
 }
 
-void *Array_GetNext(__in Array *a, __in const void *Position)
+void *Array_GetNext(__in const Array *a, __in const void *Position)
 {
     const char *pos = Position;
 

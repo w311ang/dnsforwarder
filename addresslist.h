@@ -30,8 +30,8 @@ int AddressList_Init(__in AddressList *a);
  *  0 on success, a non-zero value otherwise.
  */
 
-int AddressList_Add(__in    AddressList     *a,
-                    __in    Address_Type    *Addr);
+int AddressList_Add(__in AddressList        *a,
+                    __in const Address_Type *Addr);
 /* Description:
  *  Add an address in the form of `Address_Type' to an AddressList.
  * Parameters:

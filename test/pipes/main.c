@@ -14,6 +14,10 @@ int main(void)
     char r[1024];
 
     s = CreatePipe(&rh, &wh, NULL, 0);
+    if( !s )
+    {
+        return 1;
+    }
 
     WriteFile(wh, w, sizeof(w)-1, NULL, NULL);
     WriteFile(wh, w, sizeof(w), NULL, NULL);
@@ -21,6 +25,8 @@ int main(void)
     ReadFile(rh, r, sizeof(r), NULL, NULL);
 
     printf("%s\n", r);
+
+    return 0;
 }
 
 

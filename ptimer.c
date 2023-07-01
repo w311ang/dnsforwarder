@@ -16,7 +16,7 @@ int PTimer_Start(PTimer *t)
 #endif /* _WIN32 */
 }
 
-unsigned long PTimer_End(PTimer *t)
+unsigned long PTimer_End(const PTimer *t)
 {
 #ifdef _WIN32
     #ifdef _WIN64

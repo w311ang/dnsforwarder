@@ -735,7 +735,7 @@ static int DnsGenerator_CopyAAAA(DnsGenerator *g, DnsSimpleParserIterator *i)
     return 0;
 }
 
-static int DnsGenerator_Length(DnsGenerator *g)
+static int DnsGenerator_Length(const DnsGenerator *g)
 {
     return g->Itr - g->Buffer;
 }
@@ -794,7 +794,7 @@ int DnsGenerator_Init(DnsGenerator *g,
 
     if( CopyFrom != NULL && SourceLength > 0 )
     {
-        int FourCounts[4] = {
+        const int FourCounts[4] = {
             DNSGetQuestionCount(CopyFrom),
             DNSGetAnswerCount(CopyFrom),
             Strip == TRUE ? 0 : DNSGetNameServerCount(CopyFrom),

@@ -39,7 +39,7 @@ int ConfigCloseFile(ConfigFileInfo *Info)
 }
 
 int ConfigAddOption(ConfigFileInfo *Info,
-                    char *KeyName,
+                    const char *KeyName,
                     MultilineStrategy Strategy,
                     OptionType Type,
                     VType Initial
@@ -154,7 +154,7 @@ static ConfigOption *GetOptionOfAInfo(ConfigFileInfo *Info,
 }
 
 int ConfigSetStringDelimiters(ConfigFileInfo *Info,
-                              char *KeyName,
+                              const char *KeyName,
                               const char *Delimiters
                               )
 {
@@ -338,10 +338,11 @@ static void ParseString(ConfigOption *Option,
 static char *TrimPath(char *Path)
 {
     char *LastCharacter = StrRNpbrk(Path, "\"");
-    char *FirstLetter;
 
     if( LastCharacter != NULL )
     {
+        char *FirstLetter;
+
         *(LastCharacter + 1) = '\0';
 
         FirstLetter = StrNpbrk(Path, "\"\t ");
@@ -362,8 +363,6 @@ int ConfigRead(ConfigFileInfo *Info)
     int             NumOfRead   =   0;
 
     char            Buffer[2048];
-    char            *ValuePos;
-    ReadLineStatus  ReadStatus;
 
     char            *KeyName;
     ConfigOption    *Option;
@@ -372,6 +371,9 @@ int ConfigRead(ConfigFileInfo *Info)
     const char      *StringDelimiters;
 
     while(TRUE){
+        char            *ValuePos;
+        ReadLineStatus  ReadStatus;
+
         ReadStatus = ReadLine(Info->fp, Buffer, sizeof(Buffer));
         if( ReadStatus == READ_FAILED_OR_END )
             return NumOfRead;
@@ -476,7 +478,7 @@ int ConfigRead(ConfigFileInfo *Info)
     return NumOfRead;
 }
 
-const char *ConfigGetRawString(ConfigFileInfo *Info, char *KeyName)
+const char *ConfigGetRawString(ConfigFileInfo *Info, const char *KeyName)
 {
     ConfigOption *Option = GetOptionOfAInfo(Info, KeyName, NULL, NULL);
 
@@ -496,7 +498,7 @@ const char *ConfigGetRawString(ConfigFileInfo *Info, char *KeyName)
     }
 }
 
-StringList *ConfigGetStringList(ConfigFileInfo *Info, char *KeyName)
+StringList *ConfigGetStringList(ConfigFileInfo *Info, const char *KeyName)
 {
     ConfigOption *Option = GetOptionOfAInfo(Info, KeyName, NULL, NULL);
 
@@ -513,7 +515,7 @@ StringList *ConfigGetStringList(ConfigFileInfo *Info, char *KeyName)
     }
 }
 
-int32_t ConfigGetNumberOfStrings(ConfigFileInfo *Info, char *KeyName)
+int32_t ConfigGetNumberOfStrings(ConfigFileInfo *Info, const char *KeyName)
 {
     ConfigOption *Option = GetOptionOfAInfo(Info, KeyName, NULL, NULL);
 
@@ -525,7 +527,7 @@ int32_t ConfigGetNumberOfStrings(ConfigFileInfo *Info, char *KeyName)
     }
 }
 
-int32_t ConfigGetInt32(ConfigFileInfo *Info, char *KeyName)
+int32_t ConfigGetInt32(ConfigFileInfo *Info, const char *KeyName)
 {
     ConfigOption *Option = GetOptionOfAInfo(Info, KeyName, NULL, NULL);
 
@@ -537,7 +539,7 @@ int32_t ConfigGetInt32(ConfigFileInfo *Info, char *KeyName)
     }
 }
 
-BOOL ConfigGetBoolean(ConfigFileInfo *Info, char *KeyName)
+BOOL ConfigGetBoolean(ConfigFileInfo *Info, const char *KeyName)
 {
     ConfigOption *Option = GetOptionOfAInfo(Info, KeyName, NULL, NULL);
 
@@ -550,7 +552,7 @@ BOOL ConfigGetBoolean(ConfigFileInfo *Info, char *KeyName)
 }
 
 /* Won't change the Option's status */
-void ConfigSetDefaultValue(ConfigFileInfo *Info, VType Value, char *KeyName)
+void ConfigSetDefaultValue(ConfigFileInfo *Info, VType Value, const char *KeyName)
 {
     ConfigOption *Option = GetOptionOfAInfo(Info, KeyName, NULL, NULL);
 

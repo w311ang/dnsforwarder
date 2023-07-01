@@ -451,7 +451,7 @@ int IPv6AddressToNum(const char *asc, void *Buffer)
 
     if( strstr(asc, "::") == NULL )
     {   /* full format */
-        int a[8];
+        uint32_t a[8];
         sscanf(asc, "%x:%x:%x:%x:%x:%x:%x:%x",
                 a, a + 1, a + 2, a + 3, a + 4, a + 5, a + 6, a + 7
                 );
@@ -474,7 +474,7 @@ int IPv6AddressToNum(const char *asc, void *Buffer)
 
         while(1)
         {
-            int a;
+            uint32_t a;
             itr = asc;
             asc = strchr(asc, ':');
             if( asc == NULL )
@@ -494,7 +494,7 @@ int IPv6AddressToNum(const char *asc, void *Buffer)
         for(; *asc != '\0'; ++asc);
         while(1)
         {
-            int a;
+            uint32_t a;
             for(itr = asc; *itr != ':'; --itr);
 
             if( *(itr + 1) == '\0' )
@@ -755,10 +755,10 @@ int FindNextPrime(int Current)
     } while( TRUE );
 }
 
-unsigned int BKDRHash(const char* str, unsigned int Unused)
+uint32_t BKDRHash(const char* str, uint32_t Unused)
 {
-    unsigned int seed = 131; /* 31 131 1313 13131 131313 etc.. */
-    unsigned int hash = 0;
+    uint32_t seed = 131; /* 31 131 1313 13131 131313 etc.. */
+    uint32_t hash = 0;
 
     while( *str != '\0' )
     {
@@ -1018,7 +1018,6 @@ char *GetLocalPathFromURL(const char *URL, char *Buffer, int BufferLength)
 int CopyAFile(const char *Src, const char *Dst, BOOL Append)
 {
     FILE *Src_Fp, *Dst_Fp;
-    int ch;
 
     Src_Fp = fopen(Src, "r");
     if( Src_Fp == NULL )
@@ -1034,6 +1033,8 @@ int CopyAFile(const char *Src, const char *Dst, BOOL Append)
     }
 
     do{
+        int ch;
+
         ch = fgetc(Src_Fp);
         if( ch != EOF && !feof(Src_Fp) )
         {
@@ -1301,7 +1302,7 @@ SOCKET TryBindLocal(BOOL Ipv6, int StartPort, Address_Type *Address)
     return ret;
 }
 
-char *SplitNameAndValue(char *Line, const char *Delimiters)
+char *SplitNameAndValue(const char *Line, const char *Delimiters)
 {
     char *Delimiter = strpbrk(Line, Delimiters);
 

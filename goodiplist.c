@@ -78,7 +78,7 @@ static struct sockaddr_in *CheckAList(struct sockaddr_in *Ips, int Count)
 
 static int ThreadJod(const char *Domain, ListInfo *inf)
 {
-    struct sockaddr_in *Fastest, *First;
+    struct sockaddr_in *Fastest;
     PTimer  tm;
 
     if( inf == NULL )
@@ -93,6 +93,7 @@ static int ThreadJod(const char *Domain, ListInfo *inf)
 
     if( Fastest != NULL )
     {
+        struct sockaddr_in *First;
         struct sockaddr_in t;
 
         INFO("The fastest ip for `%s' is %s: %lums.\n",
@@ -270,10 +271,7 @@ int GoodIpList_Init(ConfigFileInfo *ConfigInfo)
         return -2;
     }
 
-    if( AddTask() != 0 )
-    {
-        return -270;
-    }
+    AddTask();
 
     return 0;
 }

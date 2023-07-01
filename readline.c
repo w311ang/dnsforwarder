@@ -5,7 +5,7 @@
 
 static BOOL ClearAnnotation(char *str, char mark)
 {
-    char *pos = strchr(str, mark);
+    char *pos = strchr((const char *)str, mark);
 
     if( pos != NULL )
     {
@@ -17,7 +17,7 @@ static BOOL ClearAnnotation(char *str, char mark)
     }
 }
 
-static BOOL ReachedLineEnd(FILE *fp, char *str)
+static BOOL ReachedLineEnd(FILE *fp, const char *str)
 {
     int len = strlen(str);
 
@@ -69,8 +69,6 @@ ReadLineStatus ReadLine(FILE *fp, char *Buffer, int BufferSize)
     BOOL    ReachedEnd;
 
 START:
-    ReachedEnd = TRUE;
-
     if( Buffer == NULL || fgets(Buffer, BufferSize, fp) == NULL )
     {
         return READ_FAILED_OR_END;

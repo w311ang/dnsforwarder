@@ -22,7 +22,7 @@ int AddressList_Init(AddressList *a)
 }
 
 
-int AddressList_Add(AddressList *a, Address_Type    *Addr)
+int AddressList_Add(AddressList *a, const Address_Type *Addr)
 {
     if( a == NULL )
     {

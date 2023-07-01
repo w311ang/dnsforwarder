@@ -88,11 +88,11 @@ static SOCKET SocketPool_FetchOnSet(SocketPool *sp,
 }
 
 static int SocketPool_CloseAll_Inner(Bst *t,
-                                     const SocketUnit *Data,
-                                     SOCKET *ExceptFor
+                                     SocketUnit *Data,
+                                     const SOCKET *ExceptFor
                                      )
 {
-    SOCKET *s = (SOCKET *)Data;
+    const SOCKET *s = (SOCKET *)Data;
 
     if( *s != INVALID_SOCKET && *s != *ExceptFor )
     {

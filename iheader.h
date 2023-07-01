@@ -53,7 +53,7 @@ int IHeader_Fill(IHeader *h,
                  BOOL ReturnHeader,
                  char *DnsEntity,
                  int EntityLength,
-                 struct sockaddr *BackAddress,
+                 const struct sockaddr *BackAddress,
                  SOCKET SendBackSocket,
                  sa_family_t Family,
                  const char *Agent
@@ -64,9 +64,9 @@ int MsgContext_Init(BOOL _ap);
 
 int MsgContext_AddFakeEdns(MsgContext *MsgCtx, int BufferLength);
 
-BOOL MsgContext_IsBlocked(MsgContext *MsgCtx);
+BOOL MsgContext_IsBlocked(const MsgContext *MsgCtx);
 
-BOOL MsgContext_IsFromTCP(MsgContext *MsgCtx);
+BOOL MsgContext_IsFromTCP(const MsgContext *MsgCtx);
 
 int MsgContext_SendBack(MsgContext *MsgCtx);
 

@@ -52,11 +52,11 @@ static void TcpM_Connect_Recycle(SocketPuller *Puller, SocketPuller **Backups)
 {
     SocketPuller *p;
     TcpContext *TcpCtx;
-    SOCKET s = INVALID_SOCKET;
     int Err;
 
     while( Puller != NULL )
     {
+        SOCKET s = INVALID_SOCKET;
         struct timeval TimeOut = {0, TIMEOUT_ms_ALIVE * 1000};
 
         s = Puller->Select(Puller, &TimeOut, (void **)&TcpCtx, FALSE, TRUE, &Err);
@@ -105,7 +105,6 @@ static SOCKET TcpM_Connect_GetAvailable(SocketPuller *p, TcpContext **TcpCtx)
             if( time(NULL) - (*TcpCtx)->LastActivity > TCPM_Keep_Alive ) {
                 INFO("Existing TCP connection expired, discard.\n");
                 CLOSE_SOCKET(s);
-                s = INVALID_SOCKET;
             } else {
                 break;
             }
@@ -115,7 +114,7 @@ static SOCKET TcpM_Connect_GetAvailable(SocketPuller *p, TcpContext **TcpCtx)
     return s;
 }
 
-static SOCKET TcpM_Connect_Addr(sa_family_t af, struct sockaddr *addr)
+static SOCKET TcpM_Connect_Addr(sa_family_t af, const struct sockaddr *addr)
 {
     SOCKET s = socket(af, SOCK_STREAM, IPPROTO_TCP);
 
@@ -151,12 +150,11 @@ static SOCKET TcpM_Connect_Addr(sa_family_t af, struct sockaddr *addr)
 
 static int TcpM_Connect(TcpM *m, int ServerIndex, BOOL IsProxy)
 {
-    SOCKET s = INVALID_SOCKET;
     struct sockaddr **ServerAddresses;
     sa_family_t *Families;
     const char *Name, *Type;
 
-    SocketPuller **Pullers, *Puller, *p;
+    SocketPuller **Pullers, *Puller;
     int i, NumOfServers, Shift, idx, n = 0;
     TcpContext *TcpCtx, TcpCtxNew;
 
@@ -195,7 +193,7 @@ static int TcpM_Connect(TcpM *m, int ServerIndex, BOOL IsProxy)
 
     for( i = 0; i < NumOfServers; ++i )
     {
-        s = INVALID_SOCKET;
+        SOCKET s = INVALID_SOCKET;
 
         if( ServerIndex < 0 )
         {
@@ -205,9 +203,7 @@ static int TcpM_Connect(TcpM *m, int ServerIndex, BOOL IsProxy)
         DEBUG("Pullers[%d]:\n", idx);
 
         /* Existing */
-        p = Pullers[idx];
-
-        s = TcpM_Connect_GetAvailable(p, &TcpCtx);
+        s = TcpM_Connect_GetAvailable(Pullers[idx], &TcpCtx);
         if( s != INVALID_SOCKET )
         {
             DEBUG("Got existing connection from Pullers[%d].\n", idx);
@@ -496,7 +492,7 @@ PUBFUNC int TcpM_Send(TcpM *m,
                       )
 {
     int State;
-    IHeader *h = (IHeader *)Buffer;
+    const IHeader *h = (IHeader *)Buffer;
 
     State = sendto(m->Incoming,
                    Buffer,
@@ -545,7 +541,6 @@ WINAPI
 #endif
 TcpM_Works(TcpM *m)
 {
-    SOCKET  s;
     int Err;
 
     char ReceiveBuffer[CONTEXT_DATA_LENGTH];
@@ -566,6 +561,7 @@ TcpM_Works(TcpM *m)
 
     while( m->IsServer )
     {
+        SOCKET  s;
         struct timeval TimeOut = TimeOut_Const;
 
         s = p->Select(p, &TimeOut, (void **)&TcpCtx, TRUE, FALSE, &Err);

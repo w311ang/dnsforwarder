@@ -50,7 +50,7 @@ struct _DnsGenerator {
     /* public */
     DNSHeader *Header;
 
-    int (*Length)(DnsGenerator *g);
+    int (*Length)(const DnsGenerator *g);
 
     DnsRecordPurpose (*NextPurpose)(DnsGenerator *g);
     void (*CopyHeader)(DnsGenerator *g,

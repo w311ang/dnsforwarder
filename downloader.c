@@ -95,8 +95,6 @@ int GetFromInternet_SingleFile(const char   *URL,
                                void         (*SuccessCallBack)(const char *URL, const char *File)
                                )
 {
-    int DownloadState = 0;
-
     if( strncmp(URL, "file", 4) == 0 )
     {
         char LocalPath[384];
@@ -140,6 +138,8 @@ int GetFromInternet_SingleFile(const char   *URL,
 
         while( RetryTimes != 0 )
         {
+            int DownloadState = 0;
+
             DownloadState = GetFromInternet_Base(URL, TempFile);
             if( DownloadState == 0 )
             {
@@ -202,25 +202,21 @@ int GetFromInternet_Base(const char *URL, const char *File)
     FILE        *fp;
     HINTERNET   webopen     =   NULL,
                 webopenurl  =   NULL;
-    BOOL        ReadFlag;
     DWORD       ReadedLength;
     char        Buffer[4096];
-    int         ret = -1;
+    int         ret = 0;
     int         TimeOut = 30000;
 
     webopen = InternetOpen("dnsforwarder", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
     if( webopen == NULL ){
-        ret = -1 * GetLastError();
-        InternetCloseHandle(webopen);
-        return ret;
+        ret = -1 * (int)GetLastError();
+        goto Exit_1;
     }
 
     webopenurl = InternetOpenUrl(webopen, URL, NULL, 0, INTERNET_FLAG_RELOAD, 0);
     if( webopenurl == NULL ){
-        ret = -1 * GetLastError();
-        InternetCloseHandle(webopenurl);
-        InternetCloseHandle(webopen);
-        return ret;
+        ret = -1 * (int)GetLastError();
+        goto Exit_2;
     }
 
     InternetSetOption(webopenurl, INTERNET_OPTION_CONNECT_TIMEOUT, &TimeOut, sizeof(TimeOut));
@@ -228,23 +224,20 @@ int GetFromInternet_Base(const char *URL, const char *File)
     fp = fopen(File, "wb" );
     if( fp == NULL )
     {
-        ret = -1 * GetLastError();
-        InternetCloseHandle(webopenurl);
-        InternetCloseHandle(webopen);
-        return ret;
+        ret = -1 * (int)GetLastError();
+        goto Exit_2;
     }
 
     while(1)
     {
+        BOOL    ReadFlag;
+
         ReadedLength = 0;
         ReadFlag = InternetReadFile(webopenurl, Buffer, sizeof(Buffer), &ReadedLength);
 
         if( ReadFlag == FALSE ){
-            ret = -1 * GetLastError();
-            InternetCloseHandle(webopenurl);
-            InternetCloseHandle(webopen);
-            fclose(fp);
-            return ret;
+            ret = -1 * (int)GetLastError();
+            goto Exit_3;
         }
 
         if( ReadedLength == 0 )
@@ -253,11 +246,14 @@ int GetFromInternet_Base(const char *URL, const char *File)
         fwrite(Buffer, 1, ReadedLength, fp);
     }
 
-    InternetCloseHandle(webopenurl);
-    InternetCloseHandle(webopen);
+Exit_3:
     fclose(fp);
+Exit_2:
+    InternetCloseHandle(webopenurl);
+Exit_1:
+    InternetCloseHandle(webopen);
 
-    return 0;
+    return ret;
 #   else /* _WIN32 */
 
 #       ifdef DOWNLOAD_LIBCURL

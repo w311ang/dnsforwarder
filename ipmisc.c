@@ -171,7 +171,6 @@ static void IpMiscMapping_Free(IPMisc *ipMiscMapping)
 
     IPMisc_Free(ipMiscMapping);
     SafeFree(ipMiscMapping);
-    ipMiscMapping = NULL;
 }
 
 static void IpMiscMapping_Cleanup(void)
@@ -183,7 +182,6 @@ static void IpMiscMapping_Cleanup(void)
 static int LoadIPSubstitutingFromFile(IPMisc *ipMiscMapping, const char *FilePath)
 {
     FILE *fp;
-    ReadLineStatus  Status;
     char    Mapping[512];
 
     if( ipMiscMapping == NULL || FilePath == NULL )
@@ -199,6 +197,8 @@ static int LoadIPSubstitutingFromFile(IPMisc *ipMiscMapping, const char *FilePat
 
     while( TRUE )
     {
+        ReadLineStatus  Status;
+
         Status = ReadLine(fp, Mapping, sizeof(Mapping));
         if( Status == READ_FAILED_OR_END )
         {

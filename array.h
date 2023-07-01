@@ -84,9 +84,9 @@ void *Array_GetBySubscript(__in const Array *a, __in int Subscript);
  *  The address of the gotten element. NULL on failure.
  */
 
-void *Array_GetThis(__in Array *a, __in const void *Position);
+void *Array_GetThis(__in const Array *a, __in const void *Position);
 
-void *Array_GetNext(__in Array *a, __in const void *Position);
+void *Array_GetNext(__in const Array *a, __in const void *Position);
 
 int Array_PushBack(__in Array *a, __in_opt const void *Data, __in_opt void *Boundary);
 /* Description:

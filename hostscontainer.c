@@ -94,8 +94,6 @@ PUBFUNC const void *HostsContainer_Find(HostsContainer  *Container,
                                         void            *Arg
                                         )
 {
-    int Number = 1;
-
     const TableNode **Matched = NULL;
     const TableNode *IP = NULL;
     const TableNode *IP4to6 = NULL;
@@ -134,7 +132,9 @@ PUBFUNC const void *HostsContainer_Find(HostsContainer  *Container,
     {
         if( Func != NULL )
         {
-            if( Func(Number++, Type, IP->Data, Arg) != 0 )
+            int i = 1;
+
+            if( Func(i++, Type, IP->Data, Arg) != 0 )
             {
                 return NULL;
             }

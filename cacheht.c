@@ -90,7 +90,7 @@ int32_t CacheHT_FindUnusedNode(CacheHT      *h,
     Cht_Node    *FirstNode = NULL;
     Cht_Node    *SecondNode = NULL;
 
-    Array       *NodeChunk = &(h->NodeChunk);
+    const Array *NodeChunk = &(h->NodeChunk);
 
     while ( Subscript >= 0 )
     {
@@ -128,7 +128,7 @@ int CacheHT_InsertToSlot(CacheHT    *h,
                          const char *Key,
                          int        Node_index,
                          Cht_Node   *Node,
-                         uint32_t   *HashValue
+                         const uint32_t *HashValue
                          )
 {
     int         Slot_i;
@@ -156,7 +156,7 @@ int CacheHT_InsertToSlot(CacheHT    *h,
     return 0;
 }
 
-static Cht_Node *CacheHT_FindPredecesor(CacheHT *h, Cht_Slot *Slot, int32_t SubScriptOfNode)
+static Cht_Node *CacheHT_FindPredecesor(CacheHT *h, const Cht_Slot *Slot, int32_t SubScriptOfNode)
 {
     int Next = Slot->Next;
     Cht_Node *Node;
@@ -220,7 +220,7 @@ int CacheHT_RemoveFromSlot(CacheHT *h, int32_t SubScriptOfNode, Cht_Node *Node)
     return 0;
 }
 
-Cht_Node *CacheHT_Get(CacheHT *h, const char *Key, Cht_Node *Start, uint32_t *HashValue)
+Cht_Node *CacheHT_Get(CacheHT *h, const char *Key, const Cht_Node *Start, const uint32_t *HashValue)
 {
     Cht_Node    *Node;
 

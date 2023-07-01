@@ -20,7 +20,7 @@ static EFFECTIVE_LOCK   PrintLock;
 
 static void Log_Cleanup(void)
 {
-    if( LogFile == NULL )
+    if( LogFile != NULL )
     {
         fclose(LogFile);
     }
@@ -90,8 +90,6 @@ BOOL Log_DebugOn(void)
 
 static void CheckLength(void)
 {
-    static int CurrentNumber = 0;
-
     if( CurrentLength >= ThresholdLength )
     {
         char FileRenamed[MAX_PATH_BUFFER + 8];
@@ -100,6 +98,8 @@ static void CheckLength(void)
 
         while( TRUE )
         {
+            static int CurrentNumber = 0;
+
             ++CurrentNumber;
 
             if( snprintf(FileRenamed,

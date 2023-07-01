@@ -21,9 +21,9 @@ typedef struct _SimpleHT {
 
 int SimpleHT_Init(SimpleHT *ht, int DataLength, size_t MaxLoadFactor, uint32_t (*HashFunction)(const char *, uint32_t));
 
-const char *SimpleHT_Add(SimpleHT *ht, const char *Key, int KeyLength, const char *Data, uint32_t *HashValue);
+const char *SimpleHT_Add(SimpleHT *ht, const char *Key, int KeyLength, const char *Data, const uint32_t *HashValue);
 
-const char *SimpleHT_Find(SimpleHT *ht, const char *Key, int KeyLength, uint32_t *HashValue, const char *Start);
+const char *SimpleHT_Find(SimpleHT *ht, const char *Key, int KeyLength, const uint32_t *HashValue, const char *Start);
 
 const char *SimpleHT_Enum(SimpleHT *ht, int32_t *Start);
 

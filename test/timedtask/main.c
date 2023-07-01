@@ -4,14 +4,14 @@
 
 void p(const char *t, void *u)
 {
-    printf("%lu : %s\n", time(NULL), t);
+    printf("%ld : %s\n", time(NULL), t);
 }
 
 void j2(void *a, void *b)
 {
-    printf("%lu : %s\n", time(NULL), "Job 2 start .");
+    printf("%ld : %s\n", time(NULL), "Job 2 start .");
     SLEEP(4000);
-    printf("%lu : %s\n", time(NULL), "Job 2 end .");
+    printf("%ld : %s\n", time(NULL), "Job 2 end .");
 }
 
 int main(void)

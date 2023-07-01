@@ -19,7 +19,6 @@ static int WinMsgQue_Post(WinMsgQue *q, const void *Data)
 static void *WinMsgQue_Wait(WinMsgQue *q, DWORD *Milliseconds)
 {
     void *Peek;
-    DWORD TimeWaiting;
     void *ret = NULL;
 
     EFFECTIVE_LOCK_GET(q->l);
@@ -30,7 +29,8 @@ static void *WinMsgQue_Wait(WinMsgQue *q, DWORD *Milliseconds)
     {
         return Peek;
     } else {
-        PTimer t;
+        DWORD   TimeWaiting;
+        PTimer  t;
 
         TimeWaiting = Milliseconds == NULL ? INFINITE : *Milliseconds;
         PTimer_Start(&t);

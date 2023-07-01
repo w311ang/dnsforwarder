@@ -370,7 +370,7 @@ static int Modules_InitFromFile(ModuleMap *ModuleMap, StringListIterator *i)
         if( Status == READ_TRUNCATED )
         {
             WARNING("Line is too long %s, file \"%s\".\n", Buffer, File);
-            Status = ReadLine_GoToNextLine(fp);
+            ReadLine_GoToNextLine(fp);
             continue;
         }
 
@@ -432,7 +432,7 @@ static int Modules_InitFromFile(ModuleMap *ModuleMap, StringListIterator *i)
                 if( Status == READ_TRUNCATED )
                 {
                     WARNING("Line is too long %s, file \"%s\".\n", Buffer, ListFile);
-                    Status = ReadLine_GoToNextLine(fp);
+                    ReadLine_GoToNextLine(fp);
                     continue;
                 }
 
@@ -771,8 +771,8 @@ int Modules_Update(void)
 
 static BOOL ModuleFitRequest(const void **Data, const void *Expected)
 {
-    ModuleInterface *m = *(ModuleInterface **)Data;
-    MsgContext *MsgCtx = (MsgContext *)Expected;
+    const ModuleInterface *m = *(ModuleInterface **)Data;
+    const MsgContext *MsgCtx = (MsgContext *)Expected;
 
     if( MsgContext_IsFromTCP(MsgCtx) || ((IHeader *)Expected)->RequestTcp )
     {

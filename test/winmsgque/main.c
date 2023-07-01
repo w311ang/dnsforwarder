@@ -35,17 +35,23 @@ int main(void)
     WinMsgQue_Init(&q, sizeof(int));
 
     CREATE_THREAD(t, &q, th);
+    DETACH_THREAD(th);
     CREATE_THREAD(t, &q, th);
+    DETACH_THREAD(th);
     CREATE_THREAD(t, &q, th);
+    DETACH_THREAD(th);
     CREATE_THREAD(t, &q, th);
+    DETACH_THREAD(th);
     CREATE_THREAD(t, &q, th);
+    DETACH_THREAD(th);
     CREATE_THREAD(t, &q, th);
+    DETACH_THREAD(th);
 
     while( TRUE )
     {
         int *i;
-        DWORD t = 1000;
-        i = q.Wait(&q, &t);
+        DWORD tv = 1000;
+        i = q.Wait(&q, &tv);
         if( i == NULL )
         {
             printf("-->Didn't get anything.\n");

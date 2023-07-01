@@ -12,7 +12,7 @@ static int Divide(char *Str, const char *Delimiters)
         return 1;
     }
 
-    Itr = strpbrk(Str, Delimiters);
+    Itr = strpbrk((const char *)Str, Delimiters);
     while( Itr != NULL )
     {
         *Itr = '\0';
@@ -20,7 +20,7 @@ static int Divide(char *Str, const char *Delimiters)
         ++Itr;
         ++Count;
 
-        Itr = strpbrk(Itr, Delimiters);
+        Itr = strpbrk((const char *)Itr, Delimiters);
     }
 
     return Count + 1;

@@ -234,67 +234,67 @@ int DNSCopyLable(const char *DNSBody, char *here, const char *src)
 */
 
 /* Converted to host byte order */
-static uint16_t DnsSimpleParser_QueryIdentifier(DnsSimpleParser *p)
+static uint16_t DnsSimpleParser_QueryIdentifier(const DnsSimpleParser *p)
 {
     return DNSGetQueryIdentifier(p->RawDns);
 }
 
-static DnsDirection DnsSimpleParser_Flags_Direction(DnsSimpleParser *p)
+static DnsDirection DnsSimpleParser_Flags_Direction(const DnsSimpleParser *p)
 {
     return (DnsDirection)(p->_Flags.Flags->Direction);
 }
 
-static DnsOperation DnsSimpleParser_Flags_Operation(DnsSimpleParser *p)
+static DnsOperation DnsSimpleParser_Flags_Operation(const DnsSimpleParser *p)
 {
     return (DnsOperation)(p->_Flags.Flags->Type);
 }
 
-static BOOL DnsSimpleParser_Flags_IsAuthoritative(DnsSimpleParser *p)
+static BOOL DnsSimpleParser_Flags_IsAuthoritative(const DnsSimpleParser *p)
 {
     return !!(p->_Flags.Flags->AuthoritativeAnswer);
 }
 
-static BOOL DnsSimpleParser_Flags_Truncated(DnsSimpleParser *p)
+static BOOL DnsSimpleParser_Flags_Truncated(const DnsSimpleParser *p)
 {
     return !!(p->_Flags.Flags->TrunCation);
 }
 
-static BOOL DnsSimpleParser_Flags_RecursionDesired(DnsSimpleParser *p)
+static BOOL DnsSimpleParser_Flags_RecursionDesired(const DnsSimpleParser *p)
 {
     return !!(p->_Flags.Flags->RecursionDesired);
 }
 
-static BOOL DnsSimpleParser_Flags_RecursionAvailable(DnsSimpleParser *p)
+static BOOL DnsSimpleParser_Flags_RecursionAvailable(const DnsSimpleParser *p)
 {
     return !!(p->_Flags.Flags->RecursionAvailable);
 }
 
-static ResponseCode DnsSimpleParser_Flags_ResponseCode(DnsSimpleParser *p)
+static ResponseCode DnsSimpleParser_Flags_ResponseCode(const DnsSimpleParser *p)
 {
     return (ResponseCode)(p->_Flags.Flags->ResponseCode);
 }
 
-static int DnsSimpleParser_QuestionCount(DnsSimpleParser *p)
+static int DnsSimpleParser_QuestionCount(const DnsSimpleParser *p)
 {
     return DNSGetQuestionCount(p->RawDns);
 }
 
-static int DnsSimpleParser_AnswerCount(DnsSimpleParser *p)
+static int DnsSimpleParser_AnswerCount(const DnsSimpleParser *p)
 {
     return DNSGetAnswerCount(p->RawDns);
 }
 
-static int DnsSimpleParser_NameServerCount(DnsSimpleParser *p)
+static int DnsSimpleParser_NameServerCount(const DnsSimpleParser *p)
 {
     return DNSGetNameServerCount(p->RawDns);
 }
 
-static int DnsSimpleParser_AdditionalCount(DnsSimpleParser *p)
+static int DnsSimpleParser_AdditionalCount(const DnsSimpleParser *p)
 {
     return DNSGetAdditionalCount(p->RawDns);
 }
 
-static BOOL DnsSimpleParser_HasType(DnsSimpleParser *p,
+static BOOL DnsSimpleParser_HasType(const DnsSimpleParser *p,
                                     DnsRecordPurpose Purpose,
                                     DNSRecordClass Klass,
                                     DNSRecordType Type
@@ -302,7 +302,7 @@ static BOOL DnsSimpleParser_HasType(DnsSimpleParser *p,
 {
     DnsSimpleParserIterator i;
 
-    if( DnsSimpleParserIterator_Init(&i, p) != 0 )
+    if( DnsSimpleParserIterator_Init(&i, (DnsSimpleParser *)p) != 0 )
     {
         return FALSE;
     }
@@ -365,7 +365,7 @@ int DnsSimpleParser_Init(DnsSimpleParser *p,
   Iterator
 */
 static DnsRecordPurpose DnsSimpleParserIterator_DeterminePurpose(
-                                                    DnsSimpleParserIterator *i,
+                                                    const DnsSimpleParserIterator *i,
                                                     int RecordPosition)
 {
     if( i->QuestionFirst != 0 &&
@@ -1001,7 +1001,7 @@ typedef struct {
 static int DnsSimpleParserIterator_ParseData(DnsSimpleParserIterator *i,
                                               const char *Data,
                                               int DataLength,
-                                             const char *Format, /* "%t:%v\n" */
+                                              const char *Format, /* "%t:%v\n" */
                                               char *Buffer,
                                               int BufferLength,
                                               const ParserProjector *pp
@@ -1047,14 +1047,14 @@ static int DnsSimpleParserIterator_ParseData(DnsSimpleParserIterator *i,
 }
 
 static int DnsSimpleParserIterator_ParseSOA(DnsSimpleParserIterator *i,
-                                              const char *Data,
-                                              int DataLength,
-                                             const char *Format, /* "%t:%v\n" */
-                                              char *Buffer,
-                                              int BufferLength
-                                              )
+                                            const char *Data,
+                                            int DataLength,
+                                            const char *Format, /* "%t:%v\n" */
+                                            char *Buffer,
+                                            int BufferLength
+                                            )
 {
-    ParserProjector pp[] = {
+    const ParserProjector pp[] = {
         {"(SOA)primary name server", DnsSimpleParserIterator_ParseLabeledName},
         {"(SOA)responsible mail addr", DnsSimpleParserIterator_ParseLabeledName},
         {"(SOA)serial", DnsSimpleParserIterator_Parse32Uint},
@@ -1122,7 +1122,7 @@ static int DnsSimpleParserIterator_ParseMailEx(DnsSimpleParserIterator *i,
                                                int BufferLength
                                                )
 {
-    ParserProjector pp[] = {
+    const ParserProjector pp[] = {
         {"preference", DnsSimpleParserIterator_Parse16Uint},
         {"mail exchanger", DnsSimpleParserIterator_ParseLabeledName},
 

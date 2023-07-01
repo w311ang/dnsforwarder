@@ -77,7 +77,7 @@ static int SimpleHT_Expand(SimpleHT *ht)
     return 0;
 }
 
-const char *SimpleHT_Add(SimpleHT *ht, const char *Key, int KeyLength, const char *Data, uint32_t *HashValue)
+const char *SimpleHT_Add(SimpleHT *ht, const char *Key, int KeyLength, const char *Data, const uint32_t *HashValue)
 {
     Sht_NodeHead *New;
     int NewSubscript;
@@ -118,11 +118,9 @@ const char *SimpleHT_Add(SimpleHT *ht, const char *Key, int KeyLength, const cha
     return (const char *)(New + 1);
 }
 
-const char *SimpleHT_Find(SimpleHT *ht, const char *Key, int KeyLength, uint32_t *HashValue, const char *Start)
+const char *SimpleHT_Find(SimpleHT *ht, const char *Key, int KeyLength, const uint32_t *HashValue, const char *Start)
 {
     int NumberOfSlots = Array_GetUsed(&(ht->Slots));
-    int SlotNumber;
-    Sht_Slot *TheSlot;
     Sht_NodeHead *Node;
 
     if( NumberOfSlots <= 0 )
@@ -134,6 +132,9 @@ const char *SimpleHT_Find(SimpleHT *ht, const char *Key, int KeyLength, uint32_t
     {
         Node = Array_GetBySubscript(&(ht->Nodes), (((Sht_NodeHead *)Start) - 1)->Next);
     } else {
+        Sht_Slot *TheSlot;
+        int SlotNumber;
+
         if( HashValue == NULL )
         {
             SlotNumber = (ht->HashFunction)(Key, KeyLength) % NumberOfSlots;
@@ -161,8 +162,8 @@ const char *SimpleHT_Find(SimpleHT *ht, const char *Key, int KeyLength, uint32_t
 
 const char *SimpleHT_Enum(SimpleHT *ht, int32_t *Start)
 {
-    Array *Nodes = &(ht->Nodes);
-    Sht_NodeHead *Node;
+    const Array *Nodes = &(ht->Nodes);
+    const Sht_NodeHead *Node;
 
     Node = Array_GetBySubscript(Nodes, *Start);
 

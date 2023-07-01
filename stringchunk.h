@@ -37,12 +37,12 @@ int StringChunk_Add_Domain(StringChunk    *dl,
                             );
 
 /* NOTICE : Data address returned, not offset. */
-BOOL StringChunk_Match_NoWildCard(StringChunk   *dl,
-                                  const char    *Str,
-                                  uint32_t      *HashValue,
-                                  void          **Data,
-                                  DataCompare   cb,
-                                  void          *Expected
+BOOL StringChunk_Match_NoWildCard(StringChunk       *dl,
+                                  const char        *Str,
+                                  const uint32_t    *HashValue,
+                                  void              **Data,
+                                  DataCompare       cb,
+                                  void              *Expected
                                   );
 
 BOOL StringChunk_Match_OnlyWildCard(StringChunk *dl,
@@ -59,42 +59,42 @@ BOOL StringChunk_Match_OnlyWildCard_GetOne(StringChunk  *dl,
                                             void        *Expected
                                             );
 
-BOOL StringChunk_Match(StringChunk  *dl,
-                        const char  *Str,
-                        uint32_t    *HashValue,
-                        void        **Data,
-                        DataCompare cb,
-                        void        *Expected
+BOOL StringChunk_Match(StringChunk      *dl,
+                        const char      *Str,
+                        const uint32_t  *HashValue,
+                        void            **Data,
+                        DataCompare     cb,
+                        void            *Expected
                         );
 
-BOOL StringChunk_Match_Exactly(StringChunk  *dl,
-                                const char  *Str,
-                                uint32_t    *HashValue,
-                                void        **Data,
-                                DataCompare cb,
-                                void        *Expected
+BOOL StringChunk_Match_Exactly(StringChunk      *dl,
+                                const char      *Str,
+                                const uint32_t  *HashValue,
+                                void            **Data,
+                                DataCompare     cb,
+                                void            *Expected
                                 );
 
 BOOL StringChunk_Domain_Match_NoWildCard(StringChunk    *dl,
                                         const char      *Domain,
-                                        uint32_t        *HashValue,
+                                        const uint32_t  *HashValue,
                                         void            **Data,
                                         DataCompare     cb,
                                         void            *Expected
                                         );
 
 /* Closest */
-BOOL StringChunk_Domain_Match(StringChunk   *dl,
-                                const char  *Domain,
-                                uint32_t    *HashValue,
-                                void        **Data,
-                                DataCompare cb,
-                                void        *Expected
+BOOL StringChunk_Domain_Match(StringChunk       *dl,
+                                const char      *Domain,
+                                const uint32_t  *HashValue,
+                                void            **Data,
+                                DataCompare     cb,
+                                void            *Expected
                                 );
 
 BOOL StringChunk_Domain_Match_WildCardRandom(StringChunk    *dl,
                                             const char      *Domain,
-                                            uint32_t        *HashValue,
+                                            const uint32_t  *HashValue,
                                             void            **Data,
                                             DataCompare     cb,
                                             void            *Expected

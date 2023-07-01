@@ -87,7 +87,6 @@ static int FilterDomain_Init(StringChunk **List, ConfigFileInfo *ConfigInfo)
 static int LoadDomainsFromFile(StringChunk *List, const char *FilePath)
 {
     FILE *fp;
-    ReadLineStatus  Status;
     char    Domain[512];
 
     if( List == NULL || FilePath == NULL )
@@ -103,6 +102,8 @@ static int LoadDomainsFromFile(StringChunk *List, const char *FilePath)
 
     while( TRUE )
     {
+        ReadLineStatus  Status;
+
         Status = ReadLine(fp, Domain, sizeof(Domain));
         if( Status == READ_FAILED_OR_END )
         {
