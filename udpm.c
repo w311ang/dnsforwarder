@@ -88,6 +88,9 @@ UdpM_Works(UdpM *m)
 
     fd_set  ReadSet, ReadySet;
 
+    /* Make analyzer happy. */
+    FD_ZERO(&ReadSet);
+
     MsgCtx = (MsgContext *)ReceiveBuffer;
     Header = (IHeader *)ReceiveBuffer;
     Entity = ReceiveBuffer + sizeof(IHeader);

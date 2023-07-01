@@ -126,6 +126,11 @@ SocketPuller **SocketPullers_Init(int Count, int DataLength)
     SocketPuller **Pullers;
     int i;
 
+    if( Count <= 0 )
+    {
+        return NULL;
+    }
+
     Pullers = SafeMalloc(sizeof(SocketPuller *) * (Count + 1));
     if( Pullers == NULL )
     {
@@ -135,7 +140,8 @@ SocketPuller **SocketPullers_Init(int Count, int DataLength)
     Buffer = SafeMalloc(sizeof(SocketPuller) * Count);
     if( Buffer == NULL )
     {
-        goto EXIT_1;
+        SafeFree(Pullers);
+        return NULL;
     }
 
     for( i = 0; i < Count; ++i )
@@ -144,18 +150,16 @@ SocketPuller **SocketPullers_Init(int Count, int DataLength)
         if( SocketPuller_Init(Pullers[i], DataLength) != 0 )
         {
             Pullers[i] = NULL;
-            goto EXIT_2;
+            goto EXIT_1;
         }
     }
     Pullers[i] = NULL;
 
     return Pullers;
 
-EXIT_2:
+EXIT_1:
     SocketPullers_FreeWithoutClose(Pullers);
     SafeFree(Buffer);
-EXIT_1:
-    SafeFree(Pullers);
     return NULL;
 }
 
@@ -169,16 +173,24 @@ void SocketPullers_CloseAll(SocketPuller **Pullers)
 
 void SocketPullers_FreeWithoutClose(SocketPuller **Pullers)
 {
+    SocketPuller **p;
+
+    p = Pullers;
     for( ; *Pullers != NULL; ++Pullers )
     {
         (*Pullers)->FreeWithoutClose(*Pullers);
     }
+    SafeFree(p);
 }
 
 void SocketPullers_Free(SocketPuller **Pullers)
 {
+    SocketPuller **p;
+
+    p = Pullers;
     for( ; *Pullers != NULL; ++Pullers )
     {
         (*Pullers)->Free(*Pullers);
     }
+    SafeFree(p);
 }

@@ -71,7 +71,7 @@ ReadLineStatus ReadLine(FILE *fp, char *Buffer, int BufferSize)
 START:
     ReachedEnd = TRUE;
 
-    if( fgets(Buffer, BufferSize, fp) == NULL )
+    if( Buffer == NULL || fgets(Buffer, BufferSize, fp) == NULL )
     {
         return READ_FAILED_OR_END;
     } else {

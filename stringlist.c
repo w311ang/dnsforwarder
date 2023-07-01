@@ -34,7 +34,7 @@ static int StringList_Count(StringList *s)
 
     if( StringListIterator_Init(&i, s) != 0 )
     {
-        return -1;
+        return 0;
     }
 
     b = i.Next(&i);

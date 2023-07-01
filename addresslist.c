@@ -51,7 +51,7 @@ sa_family_t AddressList_ConvertFromString(Address_Type *Out, const char *Addr_Po
     {
         case AF_INET6:
             {
-                char        Addr[LENGTH_OF_IPV6_ADDRESS_ASCII] = {0};
+                char        Addr[LENGTH_OF_IPV6_ADDRESS_ASCII + 1] = {0};
                 in_port_t   Port;
                 const char  *PortPos;
 
@@ -63,17 +63,15 @@ sa_family_t AddressList_ConvertFromString(Address_Type *Out, const char *Addr_Po
                     return AF_UNSPEC;
                 }
 
+                /* LENGTH_OF_IPV6_ADDRESS_ASCII = 45 */
+                sscanf(Addr_Port + 1, "%45[^]]", Addr);
+
                 PortPos = strchr(PortPos, ':');
                 if( PortPos == NULL )
                 {
-                    sscanf(Addr_Port + 1, "%[^]]", Addr);
                     Port = DefaultPort;
                 } else {
-                    int Port_warpper;
-
-                    sscanf(Addr_Port + 1, "%[^]]", Addr);
-                    sscanf(PortPos + 1, "%d", &Port_warpper);
-                    Port = Port_warpper;
+                    sscanf(PortPos + 1, "%hu", &Port);
                 }
 
                 Out->Addr.Addr6.sin6_family = Family;
@@ -87,22 +85,22 @@ sa_family_t AddressList_ConvertFromString(Address_Type *Out, const char *Addr_Po
 
         case AF_INET:
             {
-                char        Addr[] = "xxx.xxx.xxx.xxx";
+                char        Addr[LENGTH_OF_IPV4_ADDRESS_ASCII + 1] = {0};
                 in_port_t   Port;
                 const char  *PortPos;
 
                 memset(Addr, 0, sizeof(Addr));
 
                 PortPos = strchr(Addr_Port, ':');
+
+                /* LENGTH_OF_IPV4_ADDRESS_ASCII = 15 */
+                sscanf(Addr_Port, "%15[^:]", Addr);
+
                 if( PortPos == NULL )
                 {
-                    sscanf(Addr_Port, "%s", Addr);
                     Port = DefaultPort;
                 } else {
-                    int Port_warpper;
-                    sscanf(Addr_Port, "%[^:]", Addr);
-                    sscanf(PortPos + 1, "%d", &Port_warpper);
-                    Port = Port_warpper;
+                    sscanf(PortPos + 1, "%hu", &Port);
                 }
                 FILL_ADDR4(Out->Addr.Addr4, Family, Addr, Port);
 

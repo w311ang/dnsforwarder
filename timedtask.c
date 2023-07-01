@@ -193,6 +193,12 @@ TimeTask_Work(void *Unused)
             /* Run the task */
             TimeTask_ReduceTime(ElapsedTime);
 
+            /* Make analyzer happy. Shouldn't be both NULL. */
+            if( i == NULL )
+            {
+                continue;
+            }
+
             if( i->Asynchronous )
             {
                 ThreadHandle t;

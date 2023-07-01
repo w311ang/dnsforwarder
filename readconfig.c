@@ -489,6 +489,7 @@ const char *ConfigGetRawString(ConfigFileInfo *Info, char *KeyName)
             return NULL;
         }
 
+        /* cppcheck-v2.11 shows false possitive */
         return sli.Next(&sli);
     } else {
         return NULL;

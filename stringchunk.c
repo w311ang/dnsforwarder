@@ -276,7 +276,7 @@ BOOL StringChunk_Match_OnlyWildCard_GetOne(StringChunk  *dl,
     }
 
     srand(time(NULL));
-    if( Data != NULL && Array_GetUsed(&Matches) > 0 )
+    if( Array_GetUsed(&Matches) > 0 )
     {
         *Data = *((void **)Array_GetBySubscript(&Matches, rand() % Array_GetUsed(&Matches)));
     } else {

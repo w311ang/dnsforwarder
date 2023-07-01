@@ -52,7 +52,10 @@ static void *WinMsgQue_Wait(WinMsgQue *q, DWORD *Milliseconds)
             ret = q->q.Get(&(q->q));
             EFFECTIVE_LOCK_RELEASE(q->l);
         } else {
-            *Milliseconds = 0;
+            if( Milliseconds != NULL )
+            {
+                *Milliseconds = 0;
+            }
             ret = NULL;
         }
 

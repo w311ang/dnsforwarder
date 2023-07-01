@@ -221,7 +221,13 @@ static int LoadIPSubstitutingFromFile(IPMisc *ipMiscMapping, const char *FilePat
                 }
             }
 
-            ipMiscMapping->AddSubstituteFromString(ipMiscMapping, Itr, Itr2);
+            if( Itr != NULL && Itr2 != NULL )
+            {
+                ipMiscMapping->AddSubstituteFromString(ipMiscMapping, Itr, Itr2);
+            }else if( Itr != NULL )
+            {
+                WARNING("IPSubstitutingFile has invalid tuple: %s\n", Mapping);
+            }
         } else {
             ReadLine_GoToNextLine(fp);
         }
@@ -298,6 +304,11 @@ static int IpMiscMapping_Load(void)
 
             Itr = i.Next(&i);
             Itr2 = i.Next(&i);
+        }
+
+        if( Itr != NULL )
+        {
+            WARNING("Invalid IPSubstituting: %s\n", Itr);
         }
     }
 
