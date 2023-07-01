@@ -50,7 +50,8 @@ jobs:
         # pacman group: https://packages.msys2.org/group/
         install: >-
           mingw-w64-clang-${{matrix.env}}-gcc-compat
-          mingw-w64-clang-${{matrix.env}}-make
+          mingw-w64-clang-${{matrix.env}}-clang-analyzer
+          make
 
     - name: "${{matrix.os}}: Setup and Config"
       if: runner.os == 'Linux'
@@ -64,12 +65,13 @@ jobs:
             libatomic1:${{matrix.env}} libubsan1:${{matrix.env}} libquadmath0:${{matrix.env}} \
             libstdc++6:${{matrix.env}}
         fi
-        sudo apt-get install -y "libc6-dev:${{matrix.env}}" "lib$(readlink /usr/bin/gcc)-dev:${{matrix.env}}" "libcurl4-openssl-dev:${{matrix.env}}"
+        sudo apt-get install -y "libc6-dev:${{matrix.env}}" "lib$(readlink /usr/bin/gcc)-dev:${{matrix.env}}" "libcurl4-openssl-dev:${{matrix.env}}" "clang-tools"
         CLANG="$(readlink -f /usr/bin/clang)"
         LLD=${CLANG/clang/lld}
         sudo update-alternatives --install /usr/bin/lld lld ${LLD} 100
         export CC=clang
         export LD=lld
+        echo CC="clang" >> $GITHUB_ENV
         echo LD="lld" >> $GITHUB_ENV
         echo Configuring ...
         aclocal
@@ -85,10 +87,9 @@ jobs:
       run: |
         if [ "${{runner.os}}" = "Windows" ]; then
           cd codeblocks_win
-          mingw32-make
-        elif [ "${{runner.os}}" = "Linux" ]; then
-          make
         fi
+        # scan-build overwrites `CC` and `CXX`, but adopts `CCC_CC` and `CCC_CXX`.
+        CCC_CC=clang scan-build -k -v make
 
     - name: Upload
       uses: actions/upload-artifact@v3
