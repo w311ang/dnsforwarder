@@ -23,7 +23,7 @@ dnsforwarder
     <br>
     类型：支持 IPv4、IPv6、`@@`（跳过）、\<name> (`GoodIPList`) 和 CName
 3. DNS 缓存。
-4. (ServerGroup = `GroupFile` + `UDPGroup` + `TCPGroup` + `TLSGroup`) {
+4. (ServerGroup = `GroupFile` + `UDPGroup` + `TCPGroup`) {
        <br>
         行数据 < 384 字节；
        <br>
@@ -79,7 +79,7 @@ Read `default.en.config`.
    <br>
    Types：supports IPv4, IPv6, `@@` (skipping), \<name> (`GoodIPList`) and CName
 3. DNS Cache
-4. (ServerGroup = `GroupFile` + `UDPGroup` + `TCPGroup` + `TLSGroup`) {
+4. (ServerGroup = `GroupFile` + `UDPGroup` + `TCPGroup`) {
        <br>
        line length < 384 chars;
        <br>
