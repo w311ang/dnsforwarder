@@ -4,6 +4,13 @@
 # Optimized manually!
 # cbp2make.exe -in dnsforwarder.cbp -out mk -windows -targets Release,Debug --flat-objects --wrap-objects --with-deps
 
+### MSYS convert `/c` to `C:/`
+ifneq "$(MSYSTEM)" ""
+	CMD_OPT = //C
+else
+	CMD_OPT = /C
+endif
+
 # Builtin variables' default value: https://www.gnu.org/software/make/manual/html_node/Implicit-Variables.html
 ifeq "$(CC)" "cc"
 	CC = gcc.exe
@@ -139,12 +146,11 @@ OBJ_DEBUG = $(patsubst %.o,$(OBJDIR_DEBUG)\\%.o,$(OBJECTS))
 
 OBJ_RELEASE = $(patsubst %.o,$(OBJDIR_RELEASE)\\%.o,$(OBJECTS))
 
-### MSYS convert `/c` to `C:/`
-ifneq "$(MSYSTEM)" ""
-	CMD_OPT = //C
-else
-	CMD_OPT = /C
-endif
+### test
+OUT_TEST = $(patsubst ../test/%/main.c,test\\%\\main.exe,$(wildcard ../test/*/main.c)) # requires `/`
+BINDIR_TEST = $(patsubst test\\%\\main.exe,$(BINDIR_DEBUG)\\test\\%\\,$(OUT_TEST))
+OBJDIR_TEST = $(patsubst test\\%\\main.exe,$(OBJDIR_DEBUG)\\test\\%\\,$(OUT_TEST))
+LIB_A_DEBUG = $(filter-out .\\obj\\Debug\main.o,$(OBJ_DEBUG))
 
 ###
 .PHONY: before_debug clean_debug before_release clean_release
@@ -182,6 +188,18 @@ $(OBJDIR_DEBUG)\\%.o: ..\\%.c
 clean_debug: 
 	cmd.exe $(CMD_OPT) "if exist $(OUT_DEBUG) del /f $(OUT_DEBUG)"
 	cmd.exe $(CMD_OPT) "if exist $(OBJDIR_DEBUG) rd /s /q $(OBJDIR_DEBUG)"
+
+###
+test: before_debug $(OUT_TEST)
+
+test\\%\\main.exe: $(OBJDIR_DEBUG)\\test\\%\\main.o $(LIB_A_DEBUG) $(OBJDIR_DEBUG)\\test\\testutils.o
+	cmd.exe $(CMD_OPT) "if not exist $(BINDIR_DEBUG)\\$(@D) md $(BINDIR_DEBUG)\\$(@D)"
+	$(LD) $(LIBDIR_DEBUG) -o $(BINDIR_DEBUG)\\$@ $^ $(LDFLAGS_DEBUG) $(LIB_DEBUG)
+	$(BINDIR_DEBUG)\\$@
+
+$(OBJDIR_DEBUG)\\test\\%.o: ..\\test\\%.c
+	cmd.exe $(CMD_OPT) "if not exist $(@D) md $(@D)"
+	$(CC) $(CFLAGS_DEBUG) $(INC_DEBUG) -c $< -o $@
 
 ###
 all: debug release

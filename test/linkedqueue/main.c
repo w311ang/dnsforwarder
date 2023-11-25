@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include "../../linkedqueue.h"
 
 int cf(const void *o, const void *t)

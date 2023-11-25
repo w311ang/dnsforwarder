@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include "../../stablebuffer.h"
 #include "../testutils.h"
 
@@ -18,7 +19,7 @@ int main(void)
 
     for( n = 2; n < 50; ++n )
     {
-        b.Add(&b, RandomString(str, n), n);
+        b.Add(&b, RandomString(str, n), n, FALSE);
     }
 
     StableBufferIterator_Init(&i, &b);

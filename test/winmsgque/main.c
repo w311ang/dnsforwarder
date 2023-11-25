@@ -1,4 +1,6 @@
+#ifndef _WIN32
 #define _WIN32
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -13,7 +15,7 @@ void t(void *a)
         int i = rand();
         q->Post(q, &i);
         printf("***Posted number %d.\n", i);
-        SLEEP(1000);
+        SLEEP(100);
     }
 }
 
@@ -31,6 +33,7 @@ int main(void)
 {
     WinMsgQue q;
     ThreadHandle th;
+    int i = 30;
 
     WinMsgQue_Init(&q, sizeof(int));
 
@@ -47,10 +50,10 @@ int main(void)
     CREATE_THREAD(t, &q, th);
     DETACH_THREAD(th);
 
-    while( TRUE )
+    while( i-- )
     {
         int *i;
-        DWORD tv = 1000;
+        DWORD tv = 100;
         i = q.Wait(&q, &tv);
         if( i == NULL )
         {

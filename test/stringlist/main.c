@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include "../../stringlist.h"
 #include "../testutils.h"
 
@@ -52,7 +53,7 @@ int main(void)
     l.Add(&l, ",,,,,,asd          ,      facryhty,,    ,  ,00000,,,,,,,", ",");
     l.Add(&l, ",,,,,,asd          ,      facryhty,,    ,  ,00000,,,,,,,", ",");
 
-    l.TrimAll(&l);
+    l.TrimAll(&l, NULL);
 
 /*
     for( n = 2; n < sizeof(str); ++n )

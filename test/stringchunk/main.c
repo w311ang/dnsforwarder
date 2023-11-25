@@ -33,7 +33,7 @@ int main(void)
     si = StringChunk_Enum_NoWildCard(&c, &Start, (void **)&di);
     while( si != NULL )
     {
-        int h = StringChunk_Match(&c, si, NULL, (void **)&di);
+        int h = StringChunk_Match(&c, si, NULL, (void **)&di, NULL, NULL);
 
         if( h )
         {
@@ -45,7 +45,7 @@ int main(void)
         si = StringChunk_Enum_NoWildCard(&c, &Start, (void **)&di);
     }
 
-    int h = StringChunk_Match(&c, "asd1.exe", NULL, (void **)&di);
+    int h = StringChunk_Match(&c, "asd1.exe", NULL, (void **)&di, NULL, NULL);
     if( h )
     {
         printf("STRING : %s\nDATA: %s\n\n", "asd1.exe", di);
