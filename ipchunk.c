@@ -118,9 +118,19 @@ int IpSet_Parse(const char *s, const char *p, IpSet *ipSet)
             n = L;
         }
 
+        L = n;
         if( IpAddr_Is6(ipAddr) )
         {
             ipSet->Ip.Zone = Z6noz;
+            L += 10;
+        }
+        if( L < 16 )
+        {
+            int i = 0;
+            for( ; L > 0; L -= 8, i++ )
+            {
+                ipAddr->Addr[i] &= ~(0xff >> (L >= 8 ? 8 : L));
+            }
         }
     } else {
         n = L;
@@ -160,39 +170,34 @@ static int Contain(IpElement *New, IpElement *Elm)
         int prefixBitsElm = ipSetElm->PrefixBits;
         int ret = 0;
 
-        /* 2nd: prefix bits */
-        if( prefixBitsNew < prefixBitsElm )
-        {
-            return 1;
-        }
-
-        /* 3rd: prefix value */
+        /* 2nd: prefix value */
         if( BitsElm == 32 )
         {
             bn += 12;
             be += 12;
         }
-
         for(; prefixBitsElm >= 32; prefixBitsElm -= 32)
         {
             ret = memcmp(bn, be, 4);
-
             if( ret != 0 )
             {
                 return ret;
             }
-
             bn += 4;
             be += 4;
         }
-
         if( prefixBitsElm > 0 ) {
             uint32_t u32New, u32Elm, mask;
-
             mask = htonl(~(~0U >> prefixBitsElm));
             u32New = *(uint32_t *)bn & mask;
             u32Elm = *(uint32_t *)be & mask;
             ret = memcmp(&u32New, &u32Elm, 4);
+        }
+
+        /* 3rd: prefix bits */
+        if( ret == 0 && prefixBitsNew < prefixBitsElm)
+        {
+            ret = 1;
         }
 
         /* 4th: zone */
