@@ -26,7 +26,7 @@ CFLAGS ?= -Wall -DWIN32_LEAN_AND_MEAN
 RESINC = 
 LIBDIR = 
 LIB = -lws2_32 -lwininet -lshlwapi -luser32
-LDFLAGS = -static-libgcc
+LDFLAGS ?= -static-libgcc
 
 INC_DEBUG = $(INC)
 CFLAGS_DEBUG = $(CFLAGS) -g
