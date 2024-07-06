@@ -38,7 +38,7 @@ jobs:
         shell: ${{matrix.shell}}
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
       # https://github.com/msys2/setup-msys2
     - name: "${{matrix.os}}: Set up MSYS2"
@@ -92,7 +92,7 @@ jobs:
         CCC_CC=clang scan-build -k -v make
 
     - name: Upload
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: dnsforwarder-${{github.head_ref || github.ref_name}}-${{matrix.env}}-${{matrix.os}}-clang
         path: |
