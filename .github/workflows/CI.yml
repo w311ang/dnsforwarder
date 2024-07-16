@@ -71,13 +71,13 @@ jobs:
         fi
         if [ "${{matrix.env}}" = "arm64" ]; then
           cat >> /etc/apt/sources.list << EOF
-deb [arch=arm64] http://ports.ubuntu.com/ focal main multiverse universe
+        deb [arch=arm64] http://ports.ubuntu.com/ focal main multiverse universe
 
-deb [arch=arm64] http://ports.ubuntu.com/ focal-security main multiverse universe
+        deb [arch=arm64] http://ports.ubuntu.com/ focal-security main multiverse universe
 
-deb [arch=arm64] http://ports.ubuntu.com/ focal-backports main multiverse universe
+        deb [arch=arm64] http://ports.ubuntu.com/ focal-backports main multiverse universe
 
-deb [arch=arm64] http://ports.ubuntu.com/ focal-updates main multiverse universe
+        deb [arch=arm64] http://ports.ubuntu.com/ focal-updates main multiverse universe
           EOF
           sudo dpkg --add-architecture arm64
           sudo apt-get update
