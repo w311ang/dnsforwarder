@@ -62,6 +62,7 @@ jobs:
       run: |
         echo Setting up gcc ${{matrix.env}} ...
         if [ "${{matrix.env}}" = "arm64" ]; then
+          grep -R . /etc/apt/sources.list.d
           sudo sed -i '/security.ubuntu.com/d' /etc/apt/sources.list
           sudo sh <<EOF
             cat >>/etc/apt/sources.list <<EOFF
