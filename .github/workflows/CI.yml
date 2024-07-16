@@ -61,14 +61,6 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         echo Setting up gcc ${{matrix.env}} ...
-        sudo dpkg --add-architecture ${{matrix.env}}
-        sudo apt-get update
-        if [ "${{matrix.env}}" = "i386" ]; then
-          # 20230520: Seems these dependencies have conflicts that can't be solved with the existing amd64 version.
-          sudo apt-get install -y libgcc-s1:${{matrix.env}}
-          sudo apt-get install -y gcc-multilib
-          export CFLAGS="-m32"
-        fi
         if [ "${{matrix.env}}" = "arm64" ]; then
           cat >> /etc/apt/sources.list << EOF
         deb [arch=arm64] http://ports.ubuntu.com/ focal main multiverse universe
@@ -79,8 +71,14 @@ jobs:
 
         deb [arch=arm64] http://ports.ubuntu.com/ focal-updates main multiverse universe
           EOF
-          sudo dpkg --add-architecture arm64
-          sudo apt-get update
+        fi
+        sudo dpkg --add-architecture ${{matrix.env}}
+        sudo apt-get update
+        if [ "${{matrix.env}}" = "i386" ]; then
+          # 20230520: Seems these dependencies have conflicts that can't be solved with the existing amd64 version.
+          sudo apt-get install -y libgcc-s1:${{matrix.env}}
+          sudo apt-get install -y gcc-multilib
+          export CFLAGS="-m32"
         fi
         sudo apt-get install -y libcurl4-openssl-dev:${{matrix.env}}
         echo Configuring ...
