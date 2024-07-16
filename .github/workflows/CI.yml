@@ -31,6 +31,11 @@ jobs:
             bin: dnsforwarder
             shell: bash
 
+          - os: ubuntu-latest
+            env: arm64
+            bin: dnsforwarder
+            shell: bash
+
       fail-fast: false
 
     defaults:
