@@ -65,6 +65,7 @@ jobs:
           grep -R . /etc/apt/sources.list.d
           sudo sed -i '/security.ubuntu.com/d' /etc/apt/apt-mirrors.txt
           sudo sed -i '/archive.ubuntu.com/d' /etc/apt/apt-mirrors.txt
+          sudo sed -i '/apt-mirrors.txt/d' /etc/apt/sources.list
           sudo sh <<EOF
             cat >>/etc/apt/sources.list <<EOFF
         deb [arch=arm64] http://ports.ubuntu.com/ focal main multiverse universe
