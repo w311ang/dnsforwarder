@@ -62,7 +62,8 @@ jobs:
       run: |
         echo Setting up gcc ${{matrix.env}} ...
         if [ "${{matrix.env}}" = "arm64" ]; then
-          cat >>/etc/apt/sources.list <<EOF
+          sudo sh <<EOF
+            cat >>/etc/apt/sources.list <<EOFF
         deb [arch=arm64] http://ports.ubuntu.com/ focal main multiverse universe
 
         deb [arch=arm64] http://ports.ubuntu.com/ focal-security main multiverse universe
@@ -70,6 +71,7 @@ jobs:
         deb [arch=arm64] http://ports.ubuntu.com/ focal-backports main multiverse universe
 
         deb [arch=arm64] http://ports.ubuntu.com/ focal-updates main multiverse universe
+        EOFF
         EOF
         fi
         sudo dpkg --add-architecture ${{matrix.env}}
