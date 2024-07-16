@@ -75,6 +75,7 @@ jobs:
         deb [arch=arm64] http://ports.ubuntu.com/ focal-updates main multiverse universe
         EOFF
         EOF
+        cat /etc/apt/sources.list
         fi
         sudo dpkg --add-architecture ${{matrix.env}}
         sudo apt-get update
